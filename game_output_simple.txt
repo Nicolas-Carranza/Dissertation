@@ -1,0 +1,13 @@
+Namespace(game_type='reco', train_data='egg/zoo/basic_games/data_generation_scripts/example_reconstruction_input.txt', validation_data='egg/zoo/basic_games/data_generation_scripts/example_reconstruction_input.txt', n_attributes=2, n_values=2, validation_batch_size=101, mode='gs', temperature=1.0, sender_entropy_coeff=0.1, sender_cell='gru', receiver_cell='gru', sender_hidden=256, receiver_hidden=512, sender_embedding=5, receiver_embedding=30, print_validation_events=True, random_seed=1233892494, checkpoint_dir=None, preemptable=False, checkpoint_freq=0, validation_freq=1, n_epochs=50, load_from_checkpoint=None, no_cuda=True, batch_size=32, optimizer='adam', lr=0.01, update_freq=1, vocab_size=100, max_len=4, tensorboard=False, tensorboard_dir='runs/', distributed_port=18363, fp16=False, cuda=False, device=device(type='cpu'), distributed_context=DistributedContext(is_distributed=False, rank=0, local_rank=0, world_size=1, mode='none'))
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/home/nc212/StAndrews/Documents/Dissertation/egg_repo/egg/zoo/basic_games/play.py", line 327, in <module>
+    main(sys.argv[1:])
+  File "/home/nc212/StAndrews/Documents/Dissertation/egg_repo/egg/zoo/basic_games/play.py", line 203, in main
+    AttValRecoDataset(
+  File "/home/nc212/StAndrews/Documents/Dissertation/egg_repo/egg/zoo/basic_games/data_readers.py", line 33, in __init__
+    z[i, config[i]] = 1
+IndexError: index 2 is out of bounds for dimension 1 with size 2

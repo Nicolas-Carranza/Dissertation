@@ -1,0 +1,334 @@
+#!/usr/bin/env python3
+"""
+Survival Game — train.py
+==========================
+
+Main entry point for training the Survival Game with emergent communication.
+
+Supports two training modes:
+  --mode rf   Reinforce (policy gradient, default)
+  --mode gs   Gumbel-Softmax (differentiable relaxation)
+
+Usage:
+    python -m egg.zoo.survival_game.train --mode gs [OPTIONS]
+
+Example (Gumbel-Softmax):
+    python -m egg.zoo.survival_game.train \\
+        --mode gs \\
+        --n_epochs 200 \\
+        --batch_size 64 \\
+        --vocab_size 50 \\
+        --max_len 2 \\
+        --temperature 1.0 \\
+        --sender_hidden 128 \\
+        --receiver_hidden 128 \\
+        --lr 1e-3 \\
+        --n_episodes 10000 \\
+        --eval_freq 5
+
+Example (Reinforce):
+    python -m egg.zoo.survival_game.train \\
+        --mode rf \\
+        --n_epochs 50 \\
+        --batch_size 64 \\
+        --sender_entropy_coeff 0.1 \\
+        --lr 1e-3
+
+For a full list of options:
+    python -m egg.zoo.survival_game.train --help
+"""
+
+import argparse
+import sys
+from typing import List, Optional
+
+import torch
+import egg.core as core
+
+from egg.zoo.survival_game.callbacks import (
+    MessageAnalyzer,
+    SurvivalGameEvaluator,
+)
+from egg.zoo.survival_game.data import get_dataloaders
+from egg.zoo.survival_game.games import build_game
+
+
+def get_params(params: Optional[List[str]] = None) -> argparse.Namespace:
+    """
+    Parse command-line arguments.
+
+    First adds game-specific flags, then passes to core.init() which
+    adds the standard EGG parameters (batch_size, vocab_size, max_len, lr,
+    n_epochs, etc.) and handles seeding / CUDA setup.
+    """
+    parser = argparse.ArgumentParser(
+        description="Survival Game — emergent communication experiment"
+    )
+
+    # ---- Agent architecture ----
+    parser.add_argument(
+        "--mode", type=str, default="rf",
+        choices=["rf", "gs"],
+        help="Training mode: 'rf' (Reinforce) or 'gs' (Gumbel-Softmax) (default: rf)",
+    )
+    parser.add_argument(
+        "--sender_hidden", type=int, default=128,
+        help="Hidden size for Sender MLP + RNN (default: 128)",
+    )
+    parser.add_argument(
+        "--receiver_hidden", type=int, default=128,
+        help="Hidden size for Receiver MLP + RNN (default: 128)",
+    )
+    parser.add_argument(
+        "--sender_embedding", type=int, default=32,
+        help="Embedding dim for Sender RNN input (default: 32)",
+    )
+    parser.add_argument(
+        "--receiver_embedding", type=int, default=32,
+        help="Embedding dim for Receiver RNN input (default: 32)",
+    )
+    parser.add_argument(
+        "--sender_cell", type=str, default="lstm",
+        choices=["rnn", "gru", "lstm"],
+        help="RNN cell type for Sender (default: lstm)",
+    )
+    parser.add_argument(
+        "--receiver_cell", type=str, default="lstm",
+        choices=["rnn", "gru", "lstm"],
+        help="RNN cell type for Receiver (default: lstm)",
+    )
+
+    # ---- Reinforce ----
+    parser.add_argument(
+        "--sender_entropy_coeff", type=float, default=0.1,
+        help="Entropy regularisation coefficient for Sender, RF mode only (default: 0.1)",
+    )
+    parser.add_argument(
+        "--receiver_entropy_coeff", type=float, default=0.05,
+        help="Entropy regularisation coefficient for Receiver, RF mode only (default: 0.05)",
+    )
+    parser.add_argument(
+        "--reward_scale", type=float, default=0.2,
+        help="Scaling factor for reward → loss conversion (default: 0.2)",
+    )
+    parser.add_argument(
+        "--recon_weight", type=float, default=2.0,
+        help="Weight of auxiliary entity-reconstruction loss, GS mode only (default: 2.0)",
+    )
+    parser.add_argument(
+        "--action_entropy_coeff", type=float, default=0.1,
+        help="Entropy bonus for action distribution, GS mode only (default: 0.1)",
+    )
+    parser.add_argument(
+        "--action_temperature", type=float, default=2.0,
+        help="Temperature for action softmax (higher=more exploration), GS mode (default: 2.0)",
+    )
+    parser.add_argument(
+        "--reward_normalise", action="store_true",
+        help="Normalise per-sample reward matrix to mean=0, std=1 (default: off)",
+    )
+
+    # ---- Gumbel-Softmax ----
+    parser.add_argument(
+        "--temperature", type=float, default=2.0,
+        help="Initial GS temperature for Sender, GS mode only (default: 2.0)",
+    )
+    parser.add_argument(
+        "--temperature_decay", type=float, default=0.9,
+        help="Temperature decay per epoch, GS mode only (default: 0.9)",
+    )
+    parser.add_argument(
+        "--temperature_minimum", type=float, default=0.1,
+        help="Minimum temperature, GS mode only (default: 0.1)",
+    )
+
+    # ---- Data generation ----
+    parser.add_argument(
+        "--n_episodes", type=int, default=10000,
+        help="Total episodes to generate (split into train/val/test) (default: 10000)",
+    )
+    parser.add_argument(
+        "--max_turns", type=int, default=20,
+        help="Turns per simulated episode (default: 20)",
+    )
+    parser.add_argument(
+        "--n_distractors", type=int, default=2,
+        help="Distractor entities per encounter (default: 2)",
+    )
+    parser.add_argument(
+        "--data_seed", type=int, default=42,
+        help="Seed for data generation reproducibility (default: 42)",
+    )
+    parser.add_argument(
+        "--train_frac", type=float, default=0.8,
+        help="Fraction of episodes for training (default: 0.8)",
+    )
+    parser.add_argument(
+        "--val_frac", type=float, default=0.1,
+        help="Fraction of episodes for validation (default: 0.1)",
+    )
+
+    # ---- Evaluation ----
+    parser.add_argument(
+        "--eval_freq", type=int, default=5,
+        help="Run full-episode evaluation every N epochs (0 = never, default: 5)",
+    )
+    parser.add_argument(
+        "--eval_episodes", type=int, default=100,
+        help="Number of episodes per evaluation (default: 100)",
+    )
+    parser.add_argument(
+        "--analyze_freq", type=int, default=10,
+        help="Analyze messages every N epochs (0 = never, default: 10)",
+    )
+
+    # core.init() will add standard EGG params and parse
+    opts = core.init(arg_parser=parser, params=params)
+    return opts
+
+
+def main(params: Optional[List[str]] = None):
+    """Build all components and start training."""
+    opts = get_params(params)
+
+    # ---- Print configuration ----
+    print("=" * 60)
+    print("  Survival Game — Training Configuration")
+    print("=" * 60)
+    print(f"  Mode:               {opts.mode.upper()}"
+          f" ({'Gumbel-Softmax' if opts.mode == 'gs' else 'Reinforce'})")
+    print(f"  Sender hidden:      {opts.sender_hidden}")
+    print(f"  Receiver hidden:    {opts.receiver_hidden}")
+    print(f"  Sender embedding:   {opts.sender_embedding}")
+    print(f"  Receiver embedding: {opts.receiver_embedding}")
+    print(f"  Sender cell:        {opts.sender_cell}")
+    print(f"  Receiver cell:      {opts.receiver_cell}")
+    print(f"  Vocab size:         {opts.vocab_size}")
+    print(f"  Max message len:    {opts.max_len}")
+    if opts.mode == "gs":
+        print(f"  Temperature:        {opts.temperature}")
+        print(f"  Temp decay:         {opts.temperature_decay}")
+        print(f"  Temp minimum:       {opts.temperature_minimum}")
+        print(f"  Recon weight:       {opts.recon_weight}")
+        print(f"  Action entropy:     {opts.action_entropy_coeff}")
+        print(f"  Action temperature: {opts.action_temperature}")
+        print(f"  Reward normalise:   {opts.reward_normalise}")
+    else:
+        print(f"  Sender entropy:     {opts.sender_entropy_coeff}")
+        print(f"  Receiver entropy:   {opts.receiver_entropy_coeff}")
+    print(f"  Reward scale:       {opts.reward_scale}")
+    print(f"  Learning rate:      {opts.lr}")
+    print(f"  Batch size:         {opts.batch_size}")
+    print(f"  Epochs:             {opts.n_epochs}")
+    print(f"  Total episodes:     {opts.n_episodes}")
+    print(f"  Split:              {opts.train_frac:.0%} / {opts.val_frac:.0%} / {1-opts.train_frac-opts.val_frac:.0%} (train/val/test)")
+    print(f"  Max turns/episode:  {opts.max_turns}")
+    print(f"  Eval freq:          {opts.eval_freq}")
+    print(f"  Device:             {opts.device}")
+    print("=" * 60)
+    print()
+
+    # ---- Data ----
+    print("Generating data...")
+    train_loader, val_loader, test_loader = get_dataloaders(opts)
+
+    # ---- Game ----
+    print("Building game...")
+    game = build_game(opts)
+
+    # ---- Optimizer ----
+    optimizer = core.build_optimizer(game.parameters())
+
+    # ---- Callbacks ----
+    callbacks = [
+        core.ConsoleLogger(print_train_loss=True, as_json=True),
+    ]
+
+    # GS temperature annealing
+    if opts.mode == "gs":
+        callbacks.append(
+            core.TemperatureUpdater(
+                agent=game.sender,
+                decay=opts.temperature_decay,
+                minimum=opts.temperature_minimum,
+            )
+        )
+
+    # Survival game evaluator (full episode rollouts)
+    if opts.eval_freq > 0:
+        callbacks.append(
+            SurvivalGameEvaluator(
+                n_episodes=opts.eval_episodes,
+                max_turns=opts.max_turns,
+                eval_freq=opts.eval_freq,
+            )
+        )
+
+    # Message analyzer
+    if opts.analyze_freq > 0:
+        callbacks.append(
+            MessageAnalyzer(analyze_freq=opts.analyze_freq)
+        )
+
+    # Checkpoint saving
+    if opts.checkpoint_dir:
+        callbacks.append(
+            core.CheckpointSaver(
+                checkpoint_path=opts.checkpoint_dir,
+                checkpoint_freq=opts.checkpoint_freq,
+            )
+        )
+
+    # Tensorboard
+    if opts.tensorboard:
+        callbacks.append(core.TensorboardLogger())
+
+    # ---- Trainer ----
+    trainer = core.Trainer(
+        game=game,
+        optimizer=optimizer,
+        train_data=train_loader,
+        validation_data=val_loader,
+        callbacks=callbacks,
+    )
+
+    # ---- Train! ----
+    print("Starting training...")
+    trainer.train(n_epochs=opts.n_epochs)
+
+    # ---- Final test-set evaluation ----
+    print("\n" + "=" * 60)
+    print("  Final Test Set Evaluation")
+    print("=" * 60)
+    game.eval()
+    test_loss = 0.0
+    test_n = 0
+    with torch.no_grad():
+        for batch in test_loader:
+            sender_input, labels, receiver_input = batch
+            # Forward pass through the full game
+            # EGG games return (loss, interaction) regardless of mode
+            loss_val, interaction = game(
+                sender_input, labels, receiver_input,
+            )
+            test_loss += loss_val.sum().item()
+            test_n += sender_input.size(0)
+    if test_n > 0:
+        test_loss /= test_n
+        # Extract metrics from the last batch's interaction for reporting
+        aux = interaction.aux if interaction.aux else {}
+        print(f"  Test samples:    {test_n}")
+        print(f"  Test loss:       {test_loss:.4f}")
+        for key in ["recon_acc", "mean_reward", "expected_reward"]:
+            if key in aux:
+                val = aux[key].mean().item() if aux[key].dim() > 0 else aux[key].item()
+                print(f"  Test {key}: {val:.4f}")
+    print("=" * 60)
+    game.train()
+
+    print("\nTraining complete.")
+    core.close()
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
