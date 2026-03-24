@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Survival Game — data.py
+Survival Game - data.py
 ========================
 
 Generates training / validation / test data for the survival game.
 
 Each sample represents ONE encounter turn:
-    - sender_input:   entity vector as one-hot (6 dims × 5 values = 30 floats)
+    - sender_input:   entity vector as one-hot (6 dims x 5 values = 30 floats)
     - labels:         raw entity vector + game-state info (packed into a tensor)
     - receiver_input: game state vector (16 floats)
     - aux_input:      extra info for loss computation (entity index, weather, etc.)
@@ -89,8 +89,8 @@ from egg.zoo.survival_game.prototype import (
 
 def entity_to_onehot(entity_vector: List[int]) -> torch.Tensor:
     """
-    Convert a 6-dim entity vector (each 0–4) to a one-hot representation.
-    Result: 6 × 5 = 30-dimensional float tensor.
+    Convert a 6-dim entity vector (each 0-4) to a one-hot representation.
+    Result: 6 x 5 = 30-dimensional float tensor.
     """
     onehot = torch.zeros(VECTOR_DIM * VALUES_PER_DIM)
     for dim_idx, val in enumerate(entity_vector):
@@ -241,7 +241,7 @@ def simulate_episode_for_data(
 
 class SurvivalGameDataset(Dataset):
     """
-    A dataset of individual encounter–turns, pre-generated from full episodes.
+    A dataset of individual encounter-turns, pre-generated from full episodes.
 
     Each item returns:
         (sender_input, labels, receiver_input)
@@ -314,7 +314,7 @@ def _turn_to_sample(
 
 
 # =============================================================================
-# DataLoader factory — episode-level split (zero overlap guarantee)
+# DataLoader factory - episode-level split (zero overlap guarantee)
 # =============================================================================
 
 def get_dataloaders(
@@ -331,7 +331,7 @@ def get_dataloaders(
         5. Report per-split entity coverage statistics.
 
     Because splits happen at the EPISODE level, even correlated turns
-    within an episode always stay together — no data leakage possible.
+    within an episode always stay together - no data leakage possible.
 
     Expected opts attributes:
         n_episodes:        total episodes to generate (default: 10000)

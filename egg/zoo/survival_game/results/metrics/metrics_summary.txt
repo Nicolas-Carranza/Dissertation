@@ -1,0 +1,33 @@
+======================================================================
+METRICS SUMMARY REPORT
+======================================================================
+
+Run Directory: /home/nc212/StAndrews/Documents/Dissertation/egg_repo/egg/zoo/survival_game/results
+Log File: /home/nc212/StAndrews/Documents/Dissertation/egg_repo/egg/zoo/survival_game/results/train_run13.log
+Total Epochs: 50
+
+LOSS METRICS
+----------------------------------------------------------------------
+Test Loss - Final: -0.662178, Min: -0.662557, Max: 0.956642
+
+RECONSTRUCTION ACCURACY
+----------------------------------------------------------------------
+Test Accuracy - Final: 1.000000, Min: 0.576311, Max: 1.000000
+
+MEAN REWARD
+----------------------------------------------------------------------
+Test Reward - Final: 1.299314, Mean: 1.286623
+
+LANGUAGE ANALYSIS METRICS
+----------------------------------------------------------------------
+Entropy - Final: 5.048502, Mean: 4.958987
+TopSim - Final: 0.319093, Mean: 0.331889
+PosDis - Final: 0.054071, Mean: 0.048427
+BosDis - Final: 0.091161, Mean: 0.083880
+
+HUNGARIAN ASSIGNMENT METRICS
+----------------------------------------------------------------------
+Frequency - Final epoch: 50, Score: 1.000000, Coverage: 1.000000, Mean cost: 401.075000
+Distance - Final epoch: 50, Score: 1.000000, Coverage: 1.000000, Mean cost: 0.000000
+
+======================================================================

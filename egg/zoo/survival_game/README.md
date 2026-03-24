@@ -592,3 +592,70 @@ Printed as JSON each epoch by `ConsoleLogger`:
 | `length` | Mean message length |
 
 The `SurvivalGameEvaluator` callback runs full sequential episodes every `eval_freq` epochs, reporting true survival rate and action distribution.
+
+
+## Appendix A: Parameter Definitions
+
+### A.1 Training Mode Parameters
+
+| Parameter | CLI Flag | Type | Description |
+|-----------|----------|------|-------------|
+| **mode** | `--mode` | str | Training paradigm. `rf` = REINFORCE (policy gradient with sampling), `gs` = Gumbel-Softmax (differentiable relaxation, no sampling). Default: `rf` |
+| **n_epochs** | `--n_epochs` | int | Total training epochs. Each epoch = one full pass through the training dataset. Default: 10 |
+
+### A.2 Agent Architecture Parameters
+
+| Parameter | CLI Flag | Type | Description |
+|-----------|----------|------|-------------|
+| **sender_hidden** | `--sender_hidden` | int | Hidden dimension of the Sender MLP (entity→embedding) and the Sender RNN (embedding→message). Default: 128 |
+| **receiver_hidden** | `--receiver_hidden` | int | Hidden dimension of the Receiver RNN (message→embedding) and all downstream heads (action logits, reconstruction). Default: 128 |
+| **sender_embedding** | `--sender_embedding` | int | Embedding dimension for the Sender RNN's input projection. The entity vector (6-d) is first projected to `sender_hidden`, then this becomes the RNN's hidden state; the RNN input tokens are embedded to `sender_embedding`. Default: 32 |
+| **receiver_embedding** | `--receiver_embedding` | int | Embedding dimension for the Receiver RNN's input tokens (message symbols). Default: 32 |
+| **sender_cell** | `--sender_cell` | str | RNN cell type for Sender: `rnn`, `gru`, or `lstm`. Default: `lstm` |
+| **receiver_cell** | `--receiver_cell` | str | RNN cell type for Receiver: `rnn`, `gru`, or `lstm`. Default: `lstm` |
+
+### A.3 Gumbel-Softmax Communication Parameters
+
+| Parameter | CLI Flag | Type | Description |
+|-----------|----------|------|-------------|
+| **temperature** | `--temperature` | float | Initial temperature $\tau$ for the Gumbel-Softmax distribution used by the Sender to generate message tokens. Higher $\tau$ → softer (more uniform) token distributions; lower $\tau$ → sharper (more one-hot) tokens. At $\tau \to 0$, GS converges to argmax (discrete). Default: 2.0 |
+| **temperature_decay** | `--temperature_decay` | float | Multiplicative decay applied to temperature each epoch: $\tau_{t+1} = \max(\tau_{\min}, \tau_t \times d)$. Set to 0.0 to disable decay (constant temperature). Default: 0.9 |
+| **temperature_minimum** | `--temperature_minimum` | float | Floor for temperature decay. Prevents temperature from going to zero (which would kill gradients). Default: 0.1 |
+
+### A.4 Loss Function Parameters
+
+| Parameter | CLI Flag | Type | Description |
+|-----------|----------|------|-------------|
+| **reward_scale** | `--reward_scale` | float | Scaling factor $\alpha$ applied to the game reward component of the loss: $L_{\text{game}} = -\alpha \sum_a p(a) \cdot r(a)$. Controls how much the reward signal influences the total loss relative to the reconstruction loss. Default: 0.2 |
+| **recon_weight** | `--recon_weight` | float | Weight $\beta$ for the entity reconstruction loss: $L_{\text{recon}} = \beta \cdot \text{CE}(\hat{e}, e)$. Higher values prioritise communication accuracy; lower values give more relative weight to reward-based learning. Only used in GS mode. Default: 2.0 |
+| **action_entropy_coeff** | `--action_entropy_coeff` | float | Coefficient $\lambda$ for the action entropy bonus: $L_{\text{entropy}} = -\lambda \cdot H(\mathbf{p}_{\text{action}})$, where $H(\mathbf{p}) = -\sum_i p_i \ln p_i$. Positive $\lambda$ encourages the agent to maintain a diverse action distribution (exploration). Only used in GS mode. Added in Run 6. Default: 0.1 |
+| **action_temperature** | `--action_temperature` | float | Temperature $\tau_a$ for the action softmax: $\mathbf{p}_{\text{action}} = \text{softmax}(\mathbf{z}/\tau_a)$. Higher $\tau_a$ flattens the distribution (more exploration); $\tau_a = 1.0$ is standard softmax. Only used in GS mode. Added in Run 6. Default: 2.0 |
+| **reward_normalise** | `--reward_normalise` | flag | When set, normalises each sample's 11-action reward vector to 0 mean and unit variance: $r'_a = (r_a - \bar{r})/\sigma_r$. This prevents samples with uniformly high/low rewards from dominating the gradient. Only used in GS mode. Added in Run 6. Default: off |
+| **sender_entropy_coeff** | `--sender_entropy_coeff` | float | Entropy regularisation for the Sender's message token distributions. RF mode only. Higher values encourage the sender to explore different messages. Default: 0.1 |
+| **receiver_entropy_coeff** | `--receiver_entropy_coeff` | float | Entropy regularisation for the Receiver's action distribution. RF mode only. Default: 0.05 |
+
+### A.5 Complete Loss Formula (GS Mode)
+
+$$L = \underbrace{-\alpha \sum_{a=1}^{11} p_a \cdot r'_a}_{\text{game reward loss}} + \underbrace{\beta \cdot \text{CE}(\hat{e}, e)}_{\text{reconstruction loss}} + \underbrace{(-\lambda) \cdot H(\mathbf{p}_{\text{action}})}_{\text{entropy bonus (reduces loss)}}$$
+
+where:
+- $p_a = \text{softmax}(\mathbf{z}_a / \tau_a)$ — soft action probabilities
+- $r'_a$ — (optionally normalised) reward for action $a$
+- $\hat{e}$ — predicted entity class (40-way), $e$ — true entity index
+- $H(\mathbf{p}) = -\sum_i p_i \ln p_i$ — Shannon entropy
+
+### A.6 Data Parameters
+
+| Parameter | CLI Flag | Type | Description |
+|-----------|----------|------|-------------|
+| **n_episodes** | `--n_episodes` | int | Total episodes to generate. Each episode is ~20 turns long. Episodes are split into train/val/test. Default: 10000 |
+| **max_turns** | `--max_turns` | int | Maximum turns (encounters) per episode. Default: 20 |
+| **train_frac** | `--train_frac` | float | Fraction of episodes for training. Default: 0.8 |
+| **val_frac** | `--val_frac` | float | Fraction of episodes for validation. Default: 0.1 |
+| **data_seed** | `--data_seed` | int | Random seed for episode generation, ensuring reproducibility. Default: 42 |
+| **vocab_size** | `--vocab_size` | int | Number of symbols in the communication vocabulary. Default: 50 |
+| **max_len** | `--max_len` | int | Maximum message length (in symbols). Messages are padded to `max_len + 1` with EOS. Default: 2 |
+| **batch_size** | `--batch_size` | int | Mini-batch size for training. Default: 64 (from EGG) or 32 |
+| **lr** | `--lr` | float | Learning rate for Adam optimiser. Default: 1e-3 |
+
+---

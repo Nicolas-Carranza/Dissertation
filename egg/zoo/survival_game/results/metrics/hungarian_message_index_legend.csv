@@ -1,0 +1,41 @@
+index,entity_name,assigned_message
+1,Wolf,38 31 0
+2,Lion,22 22 0
+3,Bear,12 12 0
+4,Goat,38 14 0
+5,Deer,42 42 0
+6,Lizard,9 42 0
+7,Snake,38 46 0
+8,Fish,30 42 0
+9,Salmon,27 12 0
+10,Squirrel,41 9 0
+11,Rabbit,30 27 0
+12,Firewood,38 38 0
+13,Wood,46 2 0
+14,Water,38 16 0
+15,Muddy Water,29 42 0
+16,Herbs,46 46 0
+17,Berries,46 9 0
+18,Mushrooms,38 42 0
+19,Stone,47 38 0
+20,Flint,38 0 0
+21,Storm,32 12 0
+22,Blizzard,34 34 0
+23,Cold Night,12 27 0
+24,Frost,12 32 0
+25,Thorns,42 12 0
+26,Poison Plant,22 19 0
+27,Cliff,22 42 0
+28,Quicksand,12 45 0
+29,Fever,46 3 0
+30,Infection,19 4 0
+31,Weapon Cache,38 28 0
+32,Dry Campsite,46 42 0
+33,Rocky Outcrop,12 42 0
+34,Riverbank,42 27 0
+35,Herb Garden,3 42 0
+36,Supply Cache,10 16 0
+37,River Crossing,14 7 0
+38,Animal Migration,34 16 0
+39,Berry Patch,27 45 0
+40,Cave,12 9 0

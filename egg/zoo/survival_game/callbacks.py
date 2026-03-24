@@ -19,9 +19,11 @@ since the per-turn loss uses randomly-generated game states while
 the evaluator runs proper sequential episodes.
 """
 
+import json
 import random
 from collections import defaultdict
-from typing import List, Optional, Tuple
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
 import torch
 import torch.nn.functional as F
@@ -272,12 +274,27 @@ class MessageAnalyzer(Callback):
     Prints a simple table showing most common messages per entity type.
     """
 
-    def __init__(self, analyze_freq: int = 10):
+    def __init__(
+        self,
+        analyze_freq: int = 10,
+        progression_path: Optional[str] = None,
+        final_snapshot_path: Optional[str] = None,
+        total_epochs: Optional[int] = None,
+    ):
         super().__init__()
         self.analyze_freq = analyze_freq
+        self.total_epochs = total_epochs
+        self.progression_path = Path(progression_path) if progression_path else None
+        self.final_snapshot_path = Path(final_snapshot_path) if final_snapshot_path else None
+
+        # Fast lookup for vector -> entity name when writing fine-grained snapshots.
+        self._entity_name_by_vec = {tuple(e.vector): e.name for e in ALL_ENTITIES}
 
     def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
-        if self.analyze_freq <= 0 or epoch % self.analyze_freq != 0:
+        should_print = self.analyze_freq > 0 and epoch % self.analyze_freq == 0
+        should_force_final = self.total_epochs is not None and epoch == self.total_epochs
+
+        if not should_print and not should_force_final:
             return
 
         if logs.message is None or logs.sender_input is None:
@@ -289,6 +306,11 @@ class MessageAnalyzer(Callback):
         if messages.dim() == 3:
             messages = messages.argmax(dim=-1)  # (N, max_len+1)
         sender_inputs = logs.sender_input  # (N, 30)
+
+        snapshot = self._build_snapshot(messages, sender_inputs, epoch)
+        self._append_progression_snapshot(snapshot)
+        if should_force_final:
+            self._write_final_snapshot(snapshot)
 
         # Decode entity types from sender_input (one-hot: first 5 values = entity_type)
         # entity_type is in dims 0-4 of the 30-dim one-hot vector
@@ -303,30 +325,101 @@ class MessageAnalyzer(Callback):
         print(f"  {'-'*12}-+-{'-'*6}-+-{'-'*6}-+-{'-'*40}", flush=True)
 
         for etype in range(5):
+            tname = type_names.get(etype, f"Type{etype}")
+            row = snapshot["by_type"].get(str(etype), {})
+            top = row.get("top_messages", [])
+            top_str = " | ".join(f"[{m['message']}]×{m['count']}" for m in top)
+            print(
+                f"  {tname:>12} | {row.get('count', 0):>6} | {row.get('unique', 0):>6} | {top_str}",
+                flush=True,
+            )
+
+        print(flush=True)
+
+    def _build_snapshot(
+        self,
+        messages: torch.Tensor,
+        sender_inputs: torch.Tensor,
+        epoch: int,
+    ) -> Dict:
+        entity_types = sender_inputs[:, :VALUES_PER_DIM].argmax(dim=-1)
+
+        # Decode the original 6-dim entity vector from one-hot sender input.
+        reshaped = sender_inputs.view(-1, VECTOR_DIM, VALUES_PER_DIM)
+        entity_vectors = reshaped.argmax(dim=-1)
+
+        by_type = {}
+        by_entity = {}
+        unique_global = set()
+
+        for etype in range(5):
             mask = (entity_types == etype)
             count = int(mask.sum().item())
             if count == 0:
+                by_type[str(etype)] = {"count": 0, "unique": 0, "top_messages": []}
                 continue
 
             etype_msgs = messages[mask]
-            # Convert to tuples for counting
-            msg_strings = []
+            msg_counts = defaultdict(int)
             for m in etype_msgs:
                 msg_str = " ".join(str(s.item()) for s in m)
-                msg_strings.append(msg_str)
+                msg_counts[msg_str] += 1
+                unique_global.add(msg_str)
 
-            # Count unique messages
-            msg_counts = defaultdict(int)
-            for ms in msg_strings:
-                msg_counts[ms] += 1
-
-            n_unique = len(msg_counts)
-
-            # Top 3
             top = sorted(msg_counts.items(), key=lambda x: -x[1])[:3]
-            top_str = " | ".join(f"[{m}]×{c}" for m, c in top)
+            by_type[str(etype)] = {
+                "count": count,
+                "unique": len(msg_counts),
+                "top_messages": [
+                    {"message": message, "count": n}
+                    for message, n in top
+                ],
+            }
 
-            tname = type_names.get(etype, f"Type{etype}")
-            print(f"  {tname:>12} | {count:>6} | {n_unique:>6} | {top_str}", flush=True)
+        for vec_tensor, msg_tensor in zip(entity_vectors, messages):
+            vec_key = tuple(int(v.item()) for v in vec_tensor)
+            msg_str = " ".join(str(s.item()) for s in msg_tensor)
 
-        print(flush=True)
+            if vec_key not in by_entity:
+                by_entity[vec_key] = {
+                    "entity": self._entity_name_by_vec.get(vec_key, "unknown"),
+                    "type": int(vec_key[0]),
+                    "messages": defaultdict(int),
+                }
+            by_entity[vec_key]["messages"][msg_str] += 1
+
+        # Convert complex keys/values to JSON-safe dicts.
+        by_entity_json = {}
+        for vec_key, payload in by_entity.items():
+            top = sorted(payload["messages"].items(), key=lambda x: -x[1])[:3]
+            by_entity_json[" ".join(str(v) for v in vec_key)] = {
+                "entity": payload["entity"],
+                "type": payload["type"],
+                "unique": len(payload["messages"]),
+                "top_messages": [
+                    {"message": message, "count": n}
+                    for message, n in top
+                ],
+            }
+
+        return {
+            "epoch": epoch,
+            "total_unique_messages": len(unique_global),
+            "by_type": by_type,
+            "by_entity": by_entity_json,
+        }
+
+    def _append_progression_snapshot(self, snapshot: Dict) -> None:
+        if self.progression_path is None:
+            return
+        self.progression_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.progression_path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(snapshot))
+            f.write("\n")
+
+    def _write_final_snapshot(self, snapshot: Dict) -> None:
+        if self.final_snapshot_path is None:
+            return
+        self.final_snapshot_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.final_snapshot_path.open("w", encoding="utf-8") as f:
+            json.dump(snapshot, f, indent=2)

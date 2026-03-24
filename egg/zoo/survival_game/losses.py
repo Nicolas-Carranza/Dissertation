@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Survival Game — losses.py
+Survival Game - losses.py
 ==========================
 
 Loss function for the survival game (supports both Reinforce and
@@ -187,7 +187,7 @@ def _compute_single_reward(action_id: int, entity: Entity,
     Simulate a single action on a reconstructed game state and return reward.
 
     Returns:
-        reward: float — higher is better
+        reward: float - higher is better
         info: dict with extra fields for logging
     """
     valid = get_valid_actions(entity, state)
@@ -249,8 +249,8 @@ def _compute_expected_rewards(entity: Entity, state: GameState) -> torch.Tensor:
     Compute DETERMINISTIC expected reward for each action.
 
     Key differences from _compute_single_reward:
-      - No random.random() calls — uses expected values (prob × outcome)
-      - No state mutation — pure calculation, no deepcopy needed
+      - No random.random() calls - uses expected values (prob x outcome)
+      - No state mutation - pure calculation, no deepcopy needed
       - No unaddressed-danger penalty (it's the same for gather/rest/eat/craft
         so it also cancels; only flee/hunt/mitigate truly address encounters)
       - DEATH PROXIMITY PENALTY: dying = game over = forfeiting all remaining
@@ -419,7 +419,7 @@ def _compute_expected_rewards(entity: Entity, state: GameState) -> torch.Tensor:
                 # Could die from injury
                 r -= injury_urgency * future_value * 0.5
             elif action_id == FLEE:
-                # Fleeing is safe — small bonus
+                # Fleeing is safe - small bonus
                 r += injury_urgency * future_value * 0.1
 
         rewards[action_id] = r

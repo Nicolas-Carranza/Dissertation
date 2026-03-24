@@ -144,6 +144,7 @@ class TopographicSimilarity(Callback):
         compute_topsim_train_set: bool = False,
         compute_topsim_test_set: bool = True,
         is_gumbel: bool = False,
+        max_samples: int = 0,
     ):
 
         self.sender_input_distance_fn = sender_input_distance_fn
@@ -154,6 +155,7 @@ class TopographicSimilarity(Callback):
         assert compute_topsim_train_set or compute_topsim_test_set
 
         self.is_gumbel = is_gumbel
+        self.max_samples = max_samples
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         if self.compute_topsim_train_set:
@@ -204,10 +206,30 @@ class TopographicSimilarity(Callback):
 
     def print_message(self, logs: Interaction, mode: str, epoch: int) -> None:
         messages = logs.message.argmax(dim=-1) if self.is_gumbel else logs.message
-        messages = [msg.tolist() for msg in messages]
         sender_input = torch.flatten(logs.sender_input, start_dim=1)
 
-        topsim = self.compute_topsim(sender_input, messages, self.sender_input_distance_fn, self.message_distance_fn)
+        # TopSim is O(n^2): optional sampling prevents long stalls on large validation sets.
+        if self.max_samples and sender_input.size(0) > self.max_samples:
+            sample_ids = torch.randperm(sender_input.size(0), device=sender_input.device)[
+                : self.max_samples
+            ]
+            sender_input = sender_input[sample_ids]
+            messages = messages[sample_ids]
+
+        meanings_for_dist = sender_input.detach().cpu().numpy()
+        messages_cpu = messages.detach().cpu().numpy()
+        messages_for_dist = (
+            messages_cpu.tolist()
+            if self.message_distance_fn == "edit"
+            else messages_cpu
+        )
+
+        topsim = self.compute_topsim(
+            meanings_for_dist,
+            messages_for_dist,
+            self.sender_input_distance_fn,
+            self.message_distance_fn,
+        )
 
         output = json.dumps(dict(topsim=topsim, mode=mode, epoch=epoch))
         print(output, flush=True)
@@ -255,7 +277,7 @@ class Disent(Callback):
         self,
         is_gumbel: bool,
         compute_posdis: bool = True,
-        compute_bosdis: bool = False,
+        compute_bosdis: bool = True,
         vocab_size: int = 0,
         print_train: bool = False,
         print_test: bool = True,
@@ -299,10 +321,10 @@ class Disent(Callback):
         message = logs.message.argmax(dim=-1) if self.is_gumbel else logs.message
 
         posdis = (
-            self.disent(logs.sender_input, message) if self.compute_posdis else None
+            self.posdis(logs.sender_input, message) if self.compute_posdis else None
         )
         bosdis = (
-            self.disent(logs.sender_input, message, self.vocab_size)
+            self.bosdis(logs.sender_input, message, self.vocab_size)
             if self.compute_bosdis
             else None
         )

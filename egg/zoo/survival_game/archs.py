@@ -25,7 +25,7 @@ import torch.nn.functional as F
 from egg.zoo.survival_game.prototype import N_ACTIONS, VALUES_PER_DIM, VECTOR_DIM, ALL_ENTITIES
 
 # Sender input: 6 dimensions × 5 one-hot values = 30
-SENDER_INPUT_DIM = VECTOR_DIM * VALUES_PER_DIM  # 30
+SENDER_INPUT_DIM = VECTOR_DIM * VALUES_PER_DIM
 
 # Receiver input transported from data.py: 16 (game state) + 11 (valid mask) = 27
 # BUT only the 16 state dims are used as MLP features.
@@ -33,10 +33,10 @@ SENDER_INPUT_DIM = VECTOR_DIM * VALUES_PER_DIM  # 30
 RECEIVER_INPUT_DIM = 16 + N_ACTIONS  # 27 (transport format)
 RECEIVER_STATE_DIM = 16               # features actually fed to MLP
 
-# Entity-level reconstruction target (40 individual entities, not 5 types)
+# Entity-level reconstruction target (40 individual entities)
 # This forces the sender to encode WHICH entity it sees, not just what TYPE,
 # enabling the receiver to make entity-specific action decisions.
-N_ENTITY_TYPES = 5   # kept for reference
+N_ENTITY_TYPES = 5
 N_ENTITIES = len(ALL_ENTITIES)  # 40
 
 

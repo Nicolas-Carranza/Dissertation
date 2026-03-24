@@ -39,12 +39,15 @@ For a full list of options:
 """
 
 import argparse
+import io
+import os
 import sys
 from typing import List, Optional
 
 import torch
 import egg.core as core
 
+from egg.core.language_analysis import Disent, MessageEntropy, TopographicSimilarity
 from egg.zoo.survival_game.callbacks import (
     MessageAnalyzer,
     SurvivalGameEvaluator,
@@ -181,6 +184,42 @@ def get_params(params: Optional[List[str]] = None) -> argparse.Namespace:
         "--analyze_freq", type=int, default=10,
         help="Analyze messages every N epochs (0 = never, default: 10)",
     )
+    parser.add_argument(
+        "--run_name", type=str, default="",
+        help="Optional label used in output filenames (example: run9)",
+    )
+    parser.add_argument(
+        "--output_dir", type=str, default="outputs",
+        help="Directory to store run artifacts (logs/snapshots) (default: outputs)",
+    )
+    parser.add_argument(
+        "--log_file", type=str, default="",
+        help="If set, tee full stdout/stderr stream to this file",
+    )
+    parser.add_argument(
+        "--message_progression_file", type=str, default="",
+        help="If set, append per-analysis message snapshots as JSONL",
+    )
+    parser.add_argument(
+        "--final_snapshot_file", type=str, default="",
+        help="If set, write final message snapshot JSON at last epoch",
+    )
+    parser.add_argument(
+        "--track_message_entropy", action="store_true",
+        help="Enable MessageEntropy callback from egg.core.language_analysis",
+    )
+    parser.add_argument(
+        "--track_topsim", action="store_true",
+        help="Enable TopographicSimilarity callback from egg.core.language_analysis",
+    )
+    parser.add_argument(
+        "--topsim_max_samples", type=int, default=2000,
+        help="Max samples used by TopSim per split (0 = full set; default: 2000)",
+    )
+    parser.add_argument(
+        "--track_disent", action="store_true",
+        help="Enable Disent callback from egg.core.language_analysis",
+    )
 
     # core.init() will add standard EGG params and parse
     opts = core.init(arg_parser=parser, params=params)
@@ -190,6 +229,19 @@ def get_params(params: Optional[List[str]] = None) -> argparse.Namespace:
 def main(params: Optional[List[str]] = None):
     """Build all components and start training."""
     opts = get_params(params)
+
+    # Resolve output paths once so all callbacks share a consistent naming scheme.
+    out_dir = opts.output_dir
+    run_suffix = f"_{opts.run_name}" if opts.run_name else ""
+    default_log_file = os.path.join(out_dir, f"train{run_suffix}.log")
+    default_progression_file = os.path.join(out_dir, f"message_progression{run_suffix}.jsonl")
+    default_final_snapshot_file = os.path.join(out_dir, f"message_snapshot_final{run_suffix}.json")
+
+    log_file = opts.log_file or default_log_file
+    message_progression_file = opts.message_progression_file or default_progression_file
+    final_snapshot_file = opts.final_snapshot_file or default_final_snapshot_file
+
+    _setup_stdio_tee(log_file)
 
     # ---- Print configuration ----
     print("=" * 60)
@@ -224,6 +276,10 @@ def main(params: Optional[List[str]] = None):
     print(f"  Split:              {opts.train_frac:.0%} / {opts.val_frac:.0%} / {1-opts.train_frac-opts.val_frac:.0%} (train/val/test)")
     print(f"  Max turns/episode:  {opts.max_turns}")
     print(f"  Eval freq:          {opts.eval_freq}")
+    print(f"  Output dir:         {out_dir}")
+    print(f"  Log file:           {log_file}")
+    print(f"  Message progression:{message_progression_file}")
+    print(f"  Final snapshot:     {final_snapshot_file}")
     print(f"  Device:             {opts.device}")
     print("=" * 60)
     print()
@@ -267,7 +323,38 @@ def main(params: Optional[List[str]] = None):
     # Message analyzer
     if opts.analyze_freq > 0:
         callbacks.append(
-            MessageAnalyzer(analyze_freq=opts.analyze_freq)
+            MessageAnalyzer(
+                analyze_freq=opts.analyze_freq,
+                progression_path=message_progression_file,
+                final_snapshot_path=final_snapshot_file,
+                total_epochs=opts.n_epochs,
+            )
+        )
+
+    # Optional language-analysis callbacks from egg.core.
+    if opts.track_message_entropy:
+        callbacks.append(MessageEntropy(print_train=True, is_gumbel=(opts.mode == "gs")))
+
+    if opts.track_topsim:
+        callbacks.append(
+            TopographicSimilarity(
+                compute_topsim_train_set=False,
+                compute_topsim_test_set=True,
+                is_gumbel=(opts.mode == "gs"),
+                max_samples=opts.topsim_max_samples,
+            )
+        )
+
+    if opts.track_disent:
+        callbacks.append(
+            Disent(
+                is_gumbel=(opts.mode == "gs"),
+                compute_posdis=True,
+                compute_bosdis=True,
+                vocab_size=opts.vocab_size,
+                print_train=False,
+                print_test=True,
+            )
         )
 
     # Checkpoint saving
@@ -328,6 +415,27 @@ def main(params: Optional[List[str]] = None):
 
     print("\nTraining complete.")
     core.close()
+
+
+class _Tee(io.TextIOBase):
+    def __init__(self, *streams):
+        self._streams = streams
+
+    def write(self, data):
+        for s in self._streams:
+            s.write(data)
+        return len(data)
+
+    def flush(self):
+        for s in self._streams:
+            s.flush()
+
+
+def _setup_stdio_tee(log_path: str) -> None:
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    log_stream = open(log_path, "a", encoding="utf-8")
+    sys.stdout = _Tee(sys.stdout, log_stream)
+    sys.stderr = _Tee(sys.stderr, log_stream)
 
 
 if __name__ == "__main__":
