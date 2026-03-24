@@ -185,6 +185,18 @@ def get_params(params: Optional[List[str]] = None) -> argparse.Namespace:
         help="Analyze messages every N epochs (0 = never, default: 10)",
     )
     parser.add_argument(
+        "--top_k_messages", type=int, default=10,
+        help="Top-K messages to log per entity per snapshot (default: 10)",
+    )
+    parser.add_argument(
+        "--include_all_messages", action="store_true",
+        help="Log full per-entity message histograms in snapshots (can be large)",
+    )
+    parser.add_argument(
+        "--message_snapshot_max_mb", type=int, default=0,
+        help="Max snapshot JSONL size in MB before append stops (0 = unlimited)",
+    )
+    parser.add_argument(
         "--run_name", type=str, default="",
         help="Optional label used in output filenames (example: run9)",
     )
@@ -328,6 +340,9 @@ def main(params: Optional[List[str]] = None):
                 progression_path=message_progression_file,
                 final_snapshot_path=final_snapshot_file,
                 total_epochs=opts.n_epochs,
+                top_k_messages=opts.top_k_messages,
+                include_all_messages=opts.include_all_messages,
+                max_snapshot_bytes=opts.message_snapshot_max_mb * 1_000_000,
             )
         )
 
@@ -388,11 +403,15 @@ def main(params: Optional[List[str]] = None):
     print("  Final Test Set Evaluation")
     print("=" * 60)
     game.eval()
+    device = next(game.parameters()).device
     test_loss = 0.0
     test_n = 0
     with torch.no_grad():
         for batch in test_loader:
             sender_input, labels, receiver_input = batch
+            sender_input = sender_input.to(device)
+            labels = labels.to(device)
+            receiver_input = receiver_input.to(device)
             # Forward pass through the full game
             # EGG games return (loss, interaction) regardless of mode
             loss_val, interaction = game(

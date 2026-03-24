@@ -36,7 +36,6 @@ RECEIVER_STATE_DIM = 16               # features actually fed to MLP
 # Entity-level reconstruction target (40 individual entities)
 # This forces the sender to encode WHICH entity it sees, not just what TYPE,
 # enabling the receiver to make entity-specific action decisions.
-N_ENTITY_TYPES = 5
 N_ENTITIES = len(ALL_ENTITIES)  # 40
 
 

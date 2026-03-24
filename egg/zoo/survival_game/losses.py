@@ -120,16 +120,32 @@ def _reconstruct_entity(entity_vec: torch.Tensor, entity_idx: int) -> Entity:
     # Fallback: reconstruct from vector
     vec = entity_vec.tolist()
     vec = [int(v) for v in vec]
-    return Entity(
-        name="unknown",
-        vector=vec,
-        entity_type=vec[0],
-        subtype=vec[1],
-        danger_level=vec[2],
-        energy_value=vec[3],
-        tool_required=vec[4],
-        weather_dep=vec[5],
-    )
+    return Entity(name="unknown", vector=vec, description="fallback-from-label")
+
+
+def _resolve_entity_and_target_idx(
+    entity_vec: torch.Tensor,
+    entity_idx: int,
+) -> Tuple[Entity, int, bool]:
+    """
+    Resolve both entity object and its 40-class reconstruction target index.
+
+    Returns:
+        entity: resolved Entity instance
+        target_idx: valid index in [0, len(ALL_ENTITIES)-1]
+        used_fallback: True if entity_idx was invalid and fallback matching was used
+    """
+    idx = int(entity_idx)
+    if 0 <= idx < len(ALL_ENTITIES):
+        return ALL_ENTITIES[idx], idx, False
+
+    vec = [int(v) for v in entity_vec.tolist()]
+    for cand_idx, cand in enumerate(ALL_ENTITIES):
+        if cand.vector == vec:
+            return cand, cand_idx, True
+
+    # Last-resort safety fallback to keep training running.
+    return Entity(name="unknown", vector=vec, description="fallback-from-label"), 0, True
 
 
 def _reconstruct_state(state_vec: torch.Tensor, weather: int,
@@ -522,10 +538,16 @@ class SurvivalLoss(nn.Module):
         is_endure = torch.zeros(batch_size, device=device)
         is_eat = torch.zeros(batch_size, device=device)
         is_craft = torch.zeros(batch_size, device=device)
+        invalid_entity_idx = torch.zeros(batch_size, device=device)
 
         for i in range(batch_size):
             action_id = int(actions[i].item())
-            entity = _reconstruct_entity(entity_vecs[i], int(entity_idxs[i].item()))
+            entity, _target_idx, used_fallback = _resolve_entity_and_target_idx(
+                entity_vecs[i],
+                int(entity_idxs[i].item()),
+            )
+            if used_fallback:
+                invalid_entity_idx[i] = 1.0
             state = _reconstruct_state(
                 state_vecs[i],
                 int(weather[i].item()),
@@ -569,6 +591,7 @@ class SurvivalLoss(nn.Module):
             "endure_rate": is_endure,
             "eat_rate": is_eat,
             "craft_rate": is_craft,
+            "invalid_entity_idx_rate": invalid_entity_idx,
         }
 
         return loss, aux
@@ -616,9 +639,15 @@ class SurvivalLoss(nn.Module):
 
         # Entity indices for reconstruction loss (40-class: which specific entity)
         entity_targets = torch.zeros(batch_size, dtype=torch.long, device=device)
+        invalid_entity_idx = torch.zeros(batch_size, device=device)
 
         for i in range(batch_size):
-            entity = _reconstruct_entity(entity_vecs[i], int(entity_idxs[i].item()))
+            entity, target_idx, used_fallback = _resolve_entity_and_target_idx(
+                entity_vecs[i],
+                int(entity_idxs[i].item()),
+            )
+            if used_fallback:
+                invalid_entity_idx[i] = 1.0
             state = _reconstruct_state(
                 state_vecs[i],
                 int(weather[i].item()),
@@ -628,11 +657,7 @@ class SurvivalLoss(nn.Module):
 
             # Entity INDEX for reconstruction target (not type!)
             # Forces sender to encode WHICH of the 40 entities it sees.
-            idx = int(entity_idxs[i].item())
-            if 0 <= idx < len(ALL_ENTITIES):
-                entity_targets[i] = idx
-            else:
-                entity_targets[i] = 0  # fallback (should not happen)
+            entity_targets[i] = target_idx
 
             # Compute deterministic expected rewards for ALL actions
             all_rewards = _compute_expected_rewards(entity, state)
@@ -737,6 +762,7 @@ class SurvivalLoss(nn.Module):
             "endure_rate": is_endure,
             "eat_rate": is_eat,
             "craft_rate": is_craft,
+            "invalid_entity_idx_rate": invalid_entity_idx,
         }
 
         return loss, aux

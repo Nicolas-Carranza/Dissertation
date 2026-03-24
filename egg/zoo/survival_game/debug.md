@@ -1,5 +1,20 @@
 # Survival Game Debug Q&A Log
 
+
+Comands ran:
+
+
+CUDA_VISIBLE_DEVICES=0 python -m egg.zoo.survival_game.train --mode gs --sender_hidden 128 --receiver_hidden 128 --sender_embedding 32 --receiver_embedding 32 --sender_cell lstm --receiver_cell lstm --vocab_size 50 --max_len 2 --temperature 2.0 --temperature_decay 1.0 --temperature_minimum 0.1 --recon_weight 1.5 --action_entropy_coeff 0.1 --action_temperature 2.0 --reward_normalise --reward_scale 0.5 --lr 0.001 --batch_size 64 --n_epochs 50 --n_episodes 10000 --max_turns 20 --eval_freq 5 --track_topsim --topsim_max_samples 1000 --analyze_freq 10 --top_k_messages 10 --output_dir outputs --run_name run14 --log_file outputs/train_run14.log --message_progression_file outputs/message_progression_run14.jsonl --final_snapshot_file outputs/message_snapshot_final_run14.json --random_seed 14 --data_seed 14
+
+CUDA_VISIBLE_DEVICES=0 python -m egg.zoo.survival_game.train --mode gs --sender_hidden 128 --receiver_hidden 128 --sender_embedding 32 --receiver_embedding 32 --sender_cell lstm --receiver_cell lstm --vocab_size 50 --max_len 2 --temperature 2.0 --temperature_decay 1.0 --temperature_minimum 0.1 --recon_weight 1.5 --action_entropy_coeff 0.1 --action_temperature 2.0 --reward_normalise --reward_scale 0.5 --lr 0.001 --batch_size 64 --n_epochs 50 --n_episodes 10000 --max_turns 20 --eval_freq 5 --track_topsim --topsim_max_samples 1000 --analyze_freq 10 --top_k_messages 10 --output_dir outputs --run_name run15 --log_file outputs/train_run15.log --message_progression_file outputs/message_progression_run15.jsonl --final_snapshot_file outputs/message_snapshot_final_run15.json --random_seed 15 --data_seed 15
+
+CUDA_VISIBLE_DEVICES=0 python -m egg.zoo.survival_game.train --mode gs --sender_hidden 128 --receiver_hidden 128 --sender_embedding 32 --receiver_embedding 32 --sender_cell lstm --receiver_cell lstm --vocab_size 50 --max_len 2 --temperature 2.0 --temperature_decay 1.0 --temperature_minimum 0.1 --recon_weight 1.5 --action_entropy_coeff 0.1 --action_temperature 2.0 --reward_normalise --reward_scale 0.5 --lr 0.001 --batch_size 64 --n_epochs 50 --n_episodes 10000 --max_turns 20 --eval_freq 5 --track_topsim --topsim_max_samples 1000 --analyze_freq 10 --top_k_messages 10 --output_dir outputs --run_name run16 --log_file outputs/train_run16.log --message_progression_file outputs/message_progression_run16.jsonl --final_snapshot_file outputs/message_snapshot_final_run16.json --random_seed 16 --data_seed 16
+
+CUDA_VISIBLE_DEVICES=0 python -m egg.zoo.survival_game.train --mode gs --sender_hidden 128 --receiver_hidden 128 --sender_embedding 32 --receiver_embedding 32 --sender_cell lstm --receiver_cell lstm --vocab_size 50 --max_len 2 --temperature 2.0 --temperature_decay 1.0 --temperature_minimum 0.1 --recon_weight 1.5 --action_entropy_coeff 0.1 --action_temperature 2.0 --reward_normalise --reward_scale 0.5 --lr 0.001 --batch_size 64 --n_epochs 50 --n_episodes 10000 --max_turns 20 --eval_freq 5 --track_topsim --topsim_max_samples 1000 --analyze_freq 10 --top_k_messages 10 --output_dir outputs --run_name run17 --log_file outputs/train_run17.log --message_progression_file outputs/message_progression_run17.jsonl --final_snapshot_file outputs/message_snapshot_final_run17.json --random_seed 17 --data_seed 17
+
+CUDA_VISIBLE_DEVICES=0 python -m egg.zoo.survival_game.train --mode gs --sender_hidden 128 --receiver_hidden 128 --sender_embedding 32 --receiver_embedding 32 --sender_cell lstm --receiver_cell lstm --vocab_size 50 --max_len 2 --temperature 2.0 --temperature_decay 1.0 --temperature_minimum 0.1 --recon_weight 1.5 --action_entropy_coeff 0.1 --action_temperature 2.0 --reward_normalise --reward_scale 0.5 --lr 0.001 --batch_size 64 --n_epochs 50 --n_episodes 10000 --max_turns 20 --eval_freq 5 --track_topsim --topsim_max_samples 1000 --analyze_freq 10 --top_k_messages 10 --output_dir outputs --run_name run18 --log_file outputs/train_run18.log --message_progression_file outputs/message_progression_run18.jsonl --final_snapshot_file outputs/message_snapshot_final_run18.json --random_seed 18 --data_seed 18
+
+
 Date: 2026-03-23
 
 ## archs.py
