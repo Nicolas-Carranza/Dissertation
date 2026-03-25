@@ -1,0 +1,865 @@
+# Neural Networks, Embeddings and LLMs
+
+You may recall from the [Feature cross exercises](https://developers.google.com/machine-learning/crash-course/categorical-data/feature-cross-exercises) in the [Categorical data module](https://developers.google.com/machine-learning/crash-course/categorical-data), that the following classification problem is nonlinear:
+
+![Figure 1. Cartesian coordinate plane, divided into four
+      quadrants, each filled with random dots in a shape resembling a
+      square. The dots in the top-right and bottom-leftquadrants are blue,
+      and the dots in the top-left and bottom-right quadrants are orange.](https://developers.google.com/static/machine-learning/crash-course/neural-networks/images/nonlinear_simple.png)
+
+***Figure 1.** Nonlinear classification problem. A linear function cannot cleanly separate all the blue dots from the orange dots.*
+
+"Nonlinear" means that you can't accurately predict a label with a model of the form . In other words, the "decision surface" is not a line.
+
+However, if we perform a feature cross on our features  and , we can then represent the nonlinear relationship between the two features using a [**linear model**](https://developers.google.com/machine-learning/glossary#linear-model):  where  is the feature cross between  and :
+
+![Figure 2. The same Cartesian coordinate plane of blue and orange
+      dots as in Figure 1.  However, this time a white hyperbolic curve is
+      plotted atop the grid, which separates the blue dots in the top-right
+      and bottom-left quadrants (now shaded with a blue background) from
+      the orange dots in the top-left and bottom right quadrants (now
+      shaded with an orange background).](https://developers.google.com/static/machine-learning/crash-course/neural-networks/images/nonlinear_simple_feature_cross.png)
+
+***Figure 2.** By adding the feature cross x1x2, the linear model can learn a hyperbolic shape that separates the blue dots from the orange dots.*
+
+Now consider the following dataset:
+
+![Figure 3. Cartesian coordinate plane, divided into four quadrants.
+      A circular cluster of blue dots is centered at the origin of the
+      graph, and is surrounded by a ring of orange dots.](https://developers.google.com/static/machine-learning/crash-course/neural-networks/images/nonlinear_complex.png)
+
+***Figure 3.** A more difficult nonlinear classification problem.*
+
+You may also recall from the [Feature cross exercises](https://developers.google.com/machine-learning/crash-course/categorical-data/feature-cross-exercises) that determining the correct feature crosses to fit a linear model to this data took a bit more effort and experimentation.
+
+But what if you didn't have to do all that experimentation yourself? [**Neural networks**](https://developers.google.com/machine-learning/glossary#neural_network) are a family of model architectures designed to find [**nonlinear**](https://developers.google.com/machine-learning/glossary#nonlinear) patterns in data. During training of a neural network, the [**model**](https://developers.google.com/machine-learning/glossary#model) automatically learns the optimal feature crosses to perform on the input data to minimize loss.
+
+In the following sections, we'll take a closer look at how neural networks work.
+
+## **Nodes and hidden layers**
+
+To build a [**neural network**](https://developers.google.com/machine-learning/glossary#neural_network) that learns [**nonlinearities**](https://developers.google.com/machine-learning/glossary#nonlinear), begin with the following familiar model structure: a [**linear model**](https://developers.google.com/machine-learning/glossary#linear-model) of the form .
+
+We can visualize this equation as shown below, where , , and  are our three input nodes (in blue), and  is our output node (in green).
+
+In the model above, the [**weight**](https://developers.google.com/machine-learning/glossary#weight) and [**bias**](https://developers.google.com/machine-learning/glossary#bias) values have been randomly initialized. Perform the following tasks to familiarize yourself with the interface and explore the linear model. You can ignore the *Activation Function* dropdown for now; we'll discuss this topic later on in the module.
+
+1. Click the Play (▶️) button above the network to calculate the value of the output node for the input values , , and .
+2. Click the second node in the [**input layer**](https://developers.google.com/machine-learning/glossary#input-layer), and increase the value from 2.00 to 2.50. Note that the value of the output node changes. Select the output nodes (in green) and review the *Calculations* panel to see how the output value was calculated.
+    
+    **Notes about calculations:**
+        ◦ Values displayed are rounded to the hundredths place.
+        ◦ The **`Linear()`** function simply returns the value it is passed.
+    
+    - ◦ Values displayed are rounded to the hundredths place.
+    - ◦ The **`Linear()`** function simply returns the value it is passed.
+3. Click the output node (in green) to see the weight (, , ) and bias () parameter values. Decrease the weight value for  (again, note that the value of the output node and the calculations below have changed). Then, increase the bias value. Review how these changes have affected the model output.
+
+### Adding layers to the network
+
+Note that when you adjusted the weight and bias values of the network in [Exercise 1](https://developers.google.com/machine-learning/crash-course/neural-networks/nodes-hidden-layers?_gl=1*112vvft*_up*MQ..*_ga*MTc0MDI1NDQ2Ni4xNzU5MzQwOTg2*_ga_SM8HXJ53K2*czE3NTkzNDA5ODYkbzEkZzAkdDE3NTkzNDA5ODYkajYwJGwwJGgw#exercise_1), that didn't change the overall mathematical relationship between input and output. Our model is still a linear model.
+
+But what if we add another layer to the network, in between the input layer and the output layer? In neural network terminology, additional layers between the input layer and the output layer are called [**hidden layers**](https://developers.google.com/machine-learning/glossary#hidden_layer), and the nodes in these layers are called [**neurons**](https://developers.google.com/machine-learning/glossary#neuron).
+
+The value of each neuron in the hidden layer is calculated the same way as the output of a linear model: take the sum of the product of each of its inputs (the neurons in the previous network layer) and a unique weight parameter, plus the bias. Similarly, the neurons in the next layer (here, the output layer) are calculated using the hidden layer's neuron values as inputs.
+
+This new hidden layer allows our model to recombine the input data using another set of parameters. Can this help our model learn nonlinear relationships?
+
+## **Activation functions**
+
+You saw in the [previous exercise](https://developers.google.com/machine-learning/crash-course/neural-networks/nodes-hidden-layers#exercise_2) that just adding hidden layers to our network wasn't sufficient to represent nonlinearities. Linear operations performed on linear operations are still linear.
+
+How can you configure a neural network to learn nonlinear relationships between values? We need some way to insert nonlinear mathematical operations into a model.
+
+If this seems somewhat familiar, that's because we've actually applied nonlinear mathematical operations to the output of a linear model earlier in the course. In the [Logistic Regression](https://developers.google.com/machine-learning/crash-course/logistic-regression) module, we adapted a linear regression model to output a continuous value from 0 to 1 (representing a probability) by passing the model's output through a [**sigmoid function**](https://developers.google.com/machine-learning/glossary#sigmoid-function).
+
+We can apply the same principle to our neural network. Let's revisit our model from [Exercise 2](https://developers.google.com/machine-learning/crash-course/neural-networks/nodes-hidden-layers#exercise_2) earlier, but this time, before outputting the value of each node, we'll first apply the sigmoid function:
+
+Try stepping through the calculations of each node by clicking the **>|** button (to the right of the play button). Review the mathematical operations performed to calculate each node value in the *Calculations* panel below the graph. Note that each node's output is now a sigmoid transform of the linear combination of the nodes in the previous layer, and the output values are all squished between 0 and 1.
+
+Here, the sigmoid serves as an [**activation function**](https://developers.google.com/machine-learning/glossary#activation_function) for the neural network, a nonlinear transform of a neuron's output value before the value is passed as input to the calculations of the next layer of the neural network.
+
+Now that we've added an activation function, adding layers has more impact. Stacking nonlinearities on nonlinearities lets us model very complicated relationships between the inputs and the predicted outputs. In brief, each layer is effectively learning a more complex, higher-level function over the raw inputs. If you'd like to develop more intuition on how this works, see [Chris Olah's excellent blog post](https://colah.github.io/posts/2014-03-NN-Manifolds-Topology/).
+
+### Common activation functions
+
+Three mathematical functions that are commonly used as activation functions are sigmoid, tanh, and ReLU.
+
+The sigmoid function (discussed above) performs the following transform on input , producing an output value between 0 and 1:
+
+- $F(x) = \frac {1}{1+e^{-x}}$
+- The term *sigmoid* is often used more generally to refer to any S-shaped function. A more technically precise term for the specific function is *logistic function*.
+
+Here's a plot of this function:
+
+![Figure 4. Plot of the sigmoid function: an s-shaped curve that
+      asymptotically approaches the x-axis as x approaches negative
+      infinity and 1 as x approaches infinity.](https://developers.google.com/static/machine-learning/crash-course/neural-networks/images/sigmoid.png)
+
+***Figure 4. Plot of the sigmoid function.***
+
+The tanh (short for "hyperbolic tangent") function transforms input  to produce an output value between –1 and 1:
+
+- $F(x) = tanh(x)$
+
+Here's a plot of this function:
+
+![Figure 5. Plot of the tanh function: a slightly
+      steeper s-shaped curve than the sigmoid function, which asymptotically
+      approaches –1 as x approaches negative infinity and 1 as x approaches
+      infinity.](https://developers.google.com/static/machine-learning/crash-course/neural-networks/images/tanh.png)
+
+***Figure 5. Plot of the tanh function.***
+
+Note that the range of the sigmoid function is 0 to 1, and the range of the tanh function is –1 to 1
+
+The **rectified linear unit** activation function (or **ReLU**, for short) transforms output using the following algorithm:
+
+- If the input value  is less than 0, return 0.
+- If the input value  is greater than or equal to 0, return the input value.
+
+ReLU can be represented mathematically using the max() function:
+
+- $F(x) = max(0,x)$
+
+Here's a plot of this function:
+
+![Figure 6. Plot of the ReLU function: a horizontal line
+      along the x-axis from negative infinity to 0, which becomes a diagonal line
+      going up and to the right with slope 1 (y=x) from 0 to infinity.](https://developers.google.com/static/machine-learning/crash-course/neural-networks/images/relu.png)
+
+***Figure 6. Plot of the ReLU function.***
+
+ReLU often works a little better as an activation function than a smooth function like sigmoid or tanh, because it is less susceptible to the [**vanishing gradient problem**](https://developers.google.com/machine-learning/glossary#vanishing-gradient-problem) during [neural network training](https://developers.google.com/machine-learning/crash-course/neural-networks/backpropagation). ReLU is also significantly easier to compute than these functions.
+
+### Other activation functions
+
+In practice, any mathematical function can serve as an activation function. Suppose that  represents our activation function. The value of a node in the network is given by the following formula:
+
+- $σ(w*x+b)$
+
+[Keras](https://keras.io/) provides out-of-the-box support for many [activation functions](https://keras.io/api/layers/activations/). That said, we still recommend starting with ReLU.
+
+Now our model has all the standard components of what people usually mean when they refer to a neural network:
+
+- A set of nodes, analogous to neurons, organized in layers.
+- A set of learned weights and biases representing the connections between each neural network layer and the layer beneath it. The layer beneath may be another neural network layer, or some other kind of layer.
+- An activation function that transforms the output of each node in a layer. Different layers may have different activation functions.
+
+A caveat: neural networks aren't necessarily always better than feature crosses, but neural networks do offer a flexible alternative that works well in many cases.
+
+## **Training using backpropagation**
+
+[**Backpropagation**](https://developers.google.com/machine-learning/glossary#backpropagation) is the most common training algorithm for neural networks. It makes gradient descent feasible for multi-layer neural networks. Many machine learning code libraries (such as [Keras](https://keras.io/)) handle backpropagation automatically, so you don't need to perform any of the underlying calculations yourself. Check out the following video for a conceptual overview of how backpropagation works:
+
+To learn more about building image models, check out the [Image Classification](https://developers.google.com/machine-learning/practica/image-classification) course.
+
+### Best practices for neural network training
+
+This section explains backpropagation's failure cases and the most common way to regularize a neural network.
+
+**NOTE:** The backpropagation training algorithm makes use of the calculus concept of a [gradient](https://wikipedia.org/wiki/Gradient) to adjust model weights to minimize loss. Understanding and debugging the issues below usually requires some background in calculus.
+
+### Vanishing Gradients
+
+The [**gradients**](https://developers.google.com/machine-learning/glossary#gradient) for the lower neural network layers (those closer to the input layer) can become very small. In [**deep networks**](https://developers.google.com/machine-learning/glossary#deep-model) (networks with more than one hidden layer), computing these gradients can involve taking the product of many small terms.
+
+When the gradient values approach 0 for the lower layers, the gradients are said to "vanish". Layers with vanishing gradients train very slowly, or not at all.
+
+The ReLU activation function can help prevent vanishing gradients.
+
+### Exploding Gradients
+
+If the weights in a network are very large, then the gradients for the lower layers involve products of many large terms. In this case you can have exploding gradients: gradients that get too large to converge.
+
+Batch normalization can help prevent exploding gradients, as can lowering the learning rate.
+
+### Dead ReLU Units
+
+Once the weighted sum for a ReLU unit falls below 0, the ReLU unit can get stuck. It outputs 0, contributing nothing to the network's output, and gradients can no longer flow through it during backpropagation. With a source of gradients cut off, the input to the ReLU may not ever change enough to bring the weighted sum back above 0.
+
+Lowering the learning rate can help keep ReLU units from dying.
+
+There are also many variants of ReLU that were designed to address this specific problem, such as [LeakyReLU](https://keras.io/api/layers/activation_layers/leaky_relu/), which you may want to consider using as an activation function to prevent dead ReLU units.
+
+### Dropout Regularization
+
+Yet another form of regularization, called [**dropout regularization**](https://developers.google.com/machine-learning/glossary#dropout_regularization), is useful for neural networks. It works by randomly "dropping out" unit activations in a network for a single gradient step. The more you drop out, the stronger the regularization:
+
+- 0.0 = No dropout regularization.
+- 1.0 = Drop out all nodes. The model learns nothing.
+- Values between 0.0 and 1.0 = More useful.
+
+## **Neural networks: Multi-class classification**
+
+Earlier, you encountered [**binary classification**](https://developers.google.com/machine-learning/glossary#binary-classification) models that could pick between one of *two* possible choices, such as whether:
+
+- A given email is spam or not spam.
+- A given tumor is malignant or benign.
+
+In this section, we'll investigate [**multi-class classification**](https://developers.google.com/machine-learning/glossary#multi-class) models, which can pick from *multiple* possibilities. For example:
+
+- Is this dog a beagle, a basset hound, or a bloodhound?
+- Is this flower a Siberian Iris, Dutch Iris, Blue Flag Iris, or Dwarf Bearded Iris?
+- Is that plane a Boeing 747, Airbus 320, Boeing 777, or Embraer 190?
+- Is this an image of an apple, bear, candy, dog, or egg?
+
+Some real-world multi-class problems entail choosing from *millions* of separate classes. For example, consider a multi-class classification model that can identify the image of just about anything.
+
+This section details the two main variants of multi-class classification:
+
+- [**one-vs.-all**](https://developers.google.com/machine-learning/glossary#one-vs.-all)
+- **one-vs.-one**, which is usually known as [**softmax**](https://developers.google.com/machine-learning/glossary#softmax)
+
+## One versus all
+
+*One-vs.-all* provides a way to use binary classification for a series of yes or no predictions across multiple possible labels.
+
+Given a classification problem with N possible solutions, a one-vs.-all solution consists of N separate binary classifiers—one binary classifier for each possible outcome. During training, the model runs through a sequence of binary classifiers, training each to answer a separate classification question.
+
+For example, given a picture of a piece of fruit, four different recognizers might be trained, each answering a different yes/no question:
+
+1. Is this image an apple?
+2. Is this image an orange?
+3. Is this image a banana?
+4. Is this image a grape?
+
+The following image illustrates how this works in practice.
+
+![Figure 7. An image of a pear being passed as input into 4 different
+      binary classifier models. The first model predicts 'apple' or 'not
+      apple', and its prediction is 'not apple'. The second model predicts
+      'orange' or 'not orange', and its prediction is 'not orange'. The
+      third model predicts 'pear' or 'not pear', and its prediction is
+      'pear'. The fourth model predicts 'grape' or 'not grape', and its
+      prediction is 'not grape'.](https://developers.google.com/static/machine-learning/crash-course/neural-networks/images/one_vs_all_binary_classifiers.png)
+
+***Figure 7. An image of a pear being passed as input to four different binary classifiers. The first, second, and fourth models (predicting whether or not the image is an apple, orange, or grape, respectively) predict the negative class. The third model (predicting whether or not the image is a pear) predicts the positive class.***
+
+For more on how binary classifiers make predictions (setting a classification threshold to convert numerical model output into a positive or negative label), see the [Classification](https://developers.google.com/machine-learning/crash-course/classification) module.
+
+This approach is fairly reasonable when the total number of classes is small, but becomes increasingly inefficient as the number of classes rises.
+
+We can create a significantly more efficient one-vs.-all model with a deep neural network in which each output node represents a different class. The following image illustrates this approach.
+
+![Figure 8. A neural network with the following architecture: input layer with
+      1 node, hidden layer with 3 nodes, hidden layer with 4 nodes,
+      output layer with 4 nodes. The input node is fed an image of a pear.
+      A sigmoid activation function is applied to the output layer. Each
+      output node represents the probability that the image is a specified
+      fruit. Output node 1 represents 'Is apple?' and has a value of 0.34.
+      Output node 2 represents 'Is orange?' and has a value of 0.18.
+      Output node 3 represents 'Is pear?' and has a value of 0.84.
+      Output node 4 represents 'Is grape?' and has a value of 0.07.](https://developers.google.com/static/machine-learning/crash-course/neural-networks/images/one_vs_all_neural_net.png)
+
+***Figure 8. The same one-vs.-all classification tasks accomplished using a neural net model. A sigmoid activation function is applied to the output layer, and each output value represents the probability that the input image is a specified fruit. This model predicts that there is a 84% chance that the image is a pear, and a 7% chance that the image is a grape.***
+
+## One versus one (softmax)
+
+You may have noticed that the probability values in the output layer of Figure 8 don't sum to 1.0 (or 100%). (In fact, they sum to 1.43.) In a one-vs.-all approach, the probability of each binary set of outcomes is determined independently of all the other sets. That is, we're determining the probability of "apple" versus "not apple" without considering the likelihood of our other fruit options: "orange", "pear", or "grape."
+
+But what if we want to predict the probabilities of each fruit relative to each other? In this case, instead of predicting "apple" versus "not apple", we want to predict "apple" versus "orange" versus "pear" versus "grape". This type of multi-class classification is called *one-vs.-one classification*.
+
+We can implement a one-vs.-one classification using the same type of neural network architecture used for one-vs.-all classification, with one key change. We need to apply a different transform to the output layer.
+
+For one-vs.-all, we applied the sigmoid activation function to each output node independently, which resulted in an output value between 0 and 1 for each node, but did not guarantee that these values summed to exactly 1.
+
+For one-vs.-one, we can instead apply a function called *softmax*, which assigns decimal probabilities to each class in a multi-class problem such that all probabilities add up to 1.0. This additional constraint helps training converge more quickly than it otherwise would.
+
+The softmax equation is as follows:
+
+$$
+p(y=j|x) = \frac {e^{(w^T_jx+b_j)}}{Σ_{k∈ K}e^{(w^T_kx+b_k)}}
+$$
+
+Note that this formula basically extends the formula for logistic regression into multiple classes.
+
+The following image re-implements our one-vs.-all multi-class classification task as a one-vs.-one task. Note that in order to perform softmax, the hidden layer directly preceding the output layer (called the softmax layer) must have the same number of nodes as the output layer.
+
+![Figure 9. A neural network with the following architecture: input
+      layer with 1 node, hidden layer with 3 nodes, hidden layer with 4 nodes,
+      output layer with 4 nodes. The input node is fed an image of a pear.
+      A softmax activation function is applied to the output layer. Each
+      output node represents the probability that the image is a specified
+      fruit. Output node 1 represents 'Is apple?' and has a value of 0.19.
+      Output node 2 represents 'Is orange?' and has a value of 0.12.
+      Output node 3 represents 'Is pear?' and has a value of 0.63.
+      Output node 4 represents 'Is grape?' and has a value of 0.06.](https://developers.google.com/static/machine-learning/crash-course/neural-networks/images/one_vs_one_neural_net.png)
+
+***Figure 9. Neural net implementation of one-vs.-one classification, using a softmax layer. Each output value represents the probability that the input image is the specified fruit and not any of the other three fruits (all probabilities sum to 1.0). This model predicts that there is a 63% chance that the image is a pear.***
+
+### Softmax options
+
+Consider the following variants of softmax:
+
+- **Full softmax** is the softmax we've been discussing; that is, softmax calculates a probability for every possible class.
+- **Candidate sampling** means that softmax calculates a probability for all the positive labels but only for a random sample of negative labels. For example, if we are interested in determining whether an input image is a beagle or a bloodhound, we don't have to provide probabilities for every non-doggy example.
+
+Full softmax is fairly cheap when the number of classes is small but becomes prohibitively expensive when the number of classes climbs. Candidate sampling can improve efficiency in problems having a large number of classes.
+
+### One label versus many labels
+
+Softmax assumes that each example is a member of exactly one class. Some examples, however, can simultaneously be a member of multiple classes. For such examples:
+
+- You may not use softmax.
+- You must rely on multiple logistic regressions.
+
+For example, the one-vs.-one model in Figure 9 above assumes that each input image will depict exactly one type of fruit: an apple, an orange, a pear, or a grape. However, if an input image might contain multiple types of fruit—a bowl of both apples and oranges—you'll have to use multiple logistic regressions instead.
+
+# Embeddings
+
+Imagine you're developing a food-recommendation application, where users input their favorite meals, and the app suggests similar meals that they might like. You want to develop a machine learning (ML) model that can predict food similarity, so your app can make high quality recommendations ("Since you like pancakes, we recommend crepes").
+
+To train your model, you curate a dataset of 5,000 popular meal items, including borscht, hot dog, salad, pizza, and shawarma.
+
+![Figure 1. A set of illustrations of five food items. Clockwise from
+       top-left: borscht, hot dog, salad, pizza, shawarma.](https://developers.google.com/static/machine-learning/crash-course/embeddings/images/food_images.png)
+
+***Figure 1.** Sampling of meal items included in the food dataset.*
+
+You create a **`meal`** feature that contains a [**one-hot encoded**](https://developers.google.com/machine-learning/glossary#one-hot-encoding) representation of each of the meal items in the dataset. [**Encoding**](https://developers.google.com/machine-learning/glossary#encoder) refers to the process of choosing an initial numerical representation of data to train the model on.
+
+![Figure 2. Top: a visualization of the one-hot encoding for borscht.
+       The vector [1, 0, 0, 0, ..., 0] is displayed above six boxes,
+       each aligned from left
+       to right with one of the vector numbers. The boxes, from left to right
+       contain the following images: borscht, hot dog, salad, pizza, [empty],
+       shawarma. Middle: a visualization of the one-hot encoding for hot dog.
+       The vector [0, 1, 0, 0, ..., 0] is displayed above six boxes, each
+       aligned from left to right with one of the vector numbers. The boxes have
+       the same images from left to right as for the borscht visualization
+       above. Bottom: a visualization of the one-hot encoding for shawarma. The
+       vector [0, 0, 0, 0, ..., 1] is displayed above six boxes, each aligned
+       from left to right with one of the vector numbers. The boxes have
+       the same images from left to right as for the borscht and hot dog
+       visualizations.](https://developers.google.com/static/machine-learning/crash-course/embeddings/images/food_images_one_hot_encodings.png)
+
+***Figure 2.** One-hot encodings of borscht, hot dog, and shawarma. Each one-hot encoding vector has a length of 5,000 (one entry for each menu item in the dataset). The ellipsis in the diagram represents the 4,995 entries not shown.*
+
+### Pitfalls of sparse data representations
+
+Reviewing these one-hot encodings, you notice several problems with this representation of the data.
+
+- **Number of weights.** Large input vectors mean a huge number of [**weights**](https://developers.google.com/machine-learning/glossary#weight) for a [**neural network**](https://developers.google.com/machine-learning/glossary#neural-network). With M entries in your one-hot encoding, and N nodes in the first layer of the network after the input, the model has to train MxN weights for that layer.
+- **Number of datapoints.** The more weights in your model, the more data you need to train effectively.
+- **Amount of computation.** The more weights, the more computation required to train and use the model. It's easy to exceed the capabilities of your hardware.
+- **Amount of memory.** The more weights in your model, the more memory that is needed on the accelerators that train and serve it. Scaling this up efficiently is very difficult.
+- **Difficulty of supporting on-device machine learning (ODML).** If you're hoping to run your ML model on local devices (as opposed to serving them), you'll need to be focused on making your model smaller, and will want to decrease the number of weights.
+
+In this module, you'll learn how to create **embeddings**, lower-dimensional representations of sparse data, that address these issues.
+
+## **Embeddings: Embedding space and static embeddings**
+
+An [**embedding**](https://developers.google.com/machine-learning/glossary#embedding-vector) is a vector representation of data in [**embedding space**](https://developers.google.com/machine-learning/glossary#embedding-space). Generally speaking, a model finds potential embeddings by projecting the high-dimensional space of initial data vectors into a lower-dimensional space. For a discussion of high-dimensional versus low-dimensional data, see the [Categorical Data](https://developers.google.com/machine-learning/crash-course/categorical-data/one-hot-encoding) module.
+
+Embeddings make it easier to do machine learning on large [**feature vectors**](https://developers.google.com/machine-learning/glossary#feature-vector), such as the sparse vectors representing meal items discussed in the [previous section](https://developers.google.com/machine-learning/crash-course/embeddings). Sometimes the relative positions of items in embedding space have a potential semantic relationship, but often the process of finding a lower-dimensional space, and relative positions in that space, is not interpretable by humans, and the resulting embeddings are difficult to understand.
+
+Still, for the sake of human understanding, to give an idea of how embedding vectors represent information, consider the following one-dimensional representation of the dishes hot dog, pizza, salad, shawarma, and borscht, on a scale of "least like a sandwich" to "most like a sandwich." The single dimension is an imaginary measure of "sandwichness."
+
+![Figure 3. Along an axis of sandwichness, from least to most:
+    borscht, salad, pizza, hot dog, shawarma.](https://developers.google.com/static/machine-learning/crash-course/images/embeddings_1D.png)
+
+***Figure 3.** Foods along an imagined dimension of "sandwichness."*
+
+Where on this line would an apple strudel fall? Arguably, it could be placed between **`hot dog`** and **`shawarma`**. But apple strudel also seems to have an additional dimension of *sweetness* or *dessertness* that makes it very different from the other options. The following figure visualizes this by adding a "dessertness" dimension:
+
+![Figure 4. Same image as before, but with a vertical axis of
+    dessertness. Apple strudel is between hot dog and shawarma but high up on
+    the horizontal axis, but higher up the desserteness axis.](https://developers.google.com/static/machine-learning/crash-course/images/embeddings_2D.png)
+
+***Figure 4.** Foods plotted by both "sandwichness" and "dessertness."*
+
+An embedding represents each item in *n*-dimensional space with *n* floating-point numbers (typically in the range –1 to 1 or 0 to 1). The embedding in Figure 3 represents each food in one-dimensional space with a single coordinate, while Figure 4 represents each food in two-dimensional space with two coordinates. In Figure 4, "apple strudel" is in the upper-right quadrant of the graph and could be assigned the point (0.5, 0.3), whereas "hot dog" is in the bottom-right quadrant of the graph and could be assigned the point (0.2, –0.5).
+
+In an embedding, the distance between any two items can be calculated mathematically, and can be interpreted as a measure of relative similarity between those two items. Two things that are close to each other, like **`shawarma`** and **`hot dog`** in Figure 4, are more closely related in the model's representation of the data than two things more distant from each other, like **`apple strudel`** and **`borscht`**.
+
+To learn about different methods of calculating distance between embedding vectors, see [Measuring Similarity from Embeddings](https://developers.google.com/machine-learning/clustering/dnn-clustering/supervised-similarity).
+
+Notice also that in the 2D space in Figure 4, **`apple strudel`** is much farther from **`shawarma`** and **`hot dog`** than it would be in the 1D space, which matches intuition: **`apple strudel`** is not as similar to a hot dog or a shawarma as hot dogs and shawarmas are to each other.
+
+Now consider borscht, which is much more liquid than the other items. This suggests a third dimension, *liquidness*, or how liquid a food might be. Adding that dimension, the items could be visualized in 3D in this way:
+
+![Figure 5. Same image as before, but with a third axis of liquidness
+    orthogonal to the other two, and borscht moved far along that axis.](https://developers.google.com/static/machine-learning/crash-course/images/embeddings_3D.png)
+
+***Figure 5.** Foods plotted by "sandwichness," "dessertness," and "liquidness."*
+
+Where in this 3D space would tangyuan go? It's soupy, like borscht, and a sweet dessert, like apple strudel, and most definitely not a sandwich. Here is one possible placement:
+
+![Figure 6. Same image as before, but with tangyuan placed high on
+    dessertness and liquidness and low on sandwichness.](https://developers.google.com/static/machine-learning/crash-course/images/embeddings_3D_tangyuan.png)
+
+***Figure 6.** Adding tangyuan to the previous image, high on "dessertness" and "liquidness" and low on "sandwichness."*
+
+Notice how much information is expressed in these three dimensions. You could imagine adding additional dimensions, like how meaty or baked a food might be, though 4D, 5D, and higher-dimensional spaces are difficult to visualize.
+
+### Real-world embedding spaces
+
+In the real world, embedding spaces are *d*-dimensional, where *d* is much higher than 3, though lower than the dimensionality of the data, and relationships between data points are not necessarily as intuitive as in the contrived illustration above. (For word embeddings, *d* is often 256, 512, or 1024.[1](https://developers.google.com/machine-learning/crash-course/embeddings/embedding-space?_gl=1*sn5ngw*_up*MQ..*_ga*MTc0MDI1NDQ2Ni4xNzU5MzQwOTg2*_ga_SM8HXJ53K2*czE3NTkzNDA5ODYkbzEkZzAkdDE3NTkzNDA5ODYkajYwJGwwJGgw#fn1))
+
+In practice, the ML practitioner usually sets the specific task and the number of embedding dimensions. The model then tries to arrange the training examples to be close in an embedding space with the specified number of dimensions, or tunes for the number of dimensions, if *d* is not fixed. The individual dimensions are rarely as understandable as "dessertness" or "liquidness." Sometimes what they "mean" can be inferred but this is not always the case.
+
+Embeddings will usually be specific to the task, and differ from each other when the task differs. For example, the embeddings generated by a vegetarian versus non-vegetarian classification model will be different from the embeddings generated by a model that suggests dishes based on time of day or season. "Cereal" and "breakfast sausage" would probably be close together in the embedding space of a time-of-day model but far apart in the embedding space of a vegetarian versus non-vegetarian model, for example.
+
+### Static embeddings
+
+While embeddings differ from task to task, one task has some general applicability: predicting the context of a word. Models trained to predict the context of a word assume that words appearing in similar contexts are semantically related. For example, training data that includes the sentences "They rode a burro down into the Grand Canyon" and "They rode a horse down into the canyon" suggests that "horse" appears in similar contexts to "burro." It turns out that embeddings based on semantic similarity work well for many general language tasks.
+
+While it's an older example, and largely superseded by other models, the **word2vec** model remains useful for illustration. **`word2vec`** trains on a corpus of documents to obtain a single global embedding per word. When each word or data point has a single embedding vector, this is called a **static embedding**. The following video walks through a simplified illustration of **`word2vec`** training.
+
+**Note**: **word2vec** can refer to both an algorithm for obtaining static word embeddings and a set of word vectors that were pretrained with that algorithm. It's used in both senses in this module.
+
+Research suggests that these static embeddings, once trained, encode some degree of semantic information, particularly in relationships between words. That is, words that are used in similar contexts will be closer to each other in embedding space. The specific embeddings vectors generated will depend on the corpus used for training. See T. Mikolov et al (2013), ["Efficient estimation of word representations in vector space"](https://arxiv.org/abs/1301.3781), for details.
+
+## **Embeddings: Obtaining embeddings**
+
+This section covers several means of obtaining embeddings, as well as how to transform static embeddings into contextual embeddings.
+
+### Dimensionality reduction techniques
+
+There are many mathematical techniques that capture the important structures of a high-dimensional space in a low-dimensional space. In theory, any of these techniques can be used to create an embedding for a machine learning system.
+
+For example, [principal component analysis](https://wikipedia.org/wiki/Principal_component_analysis) (PCA) has been used to create word embeddings. Given a set of instances like [**bag of words**](https://developers.google.com/machine-learning/glossary#bag-of-words) vectors, PCA tries to find highly correlated dimensions that can be collapsed into a single dimension.
+
+### Training an embedding as part of a neural network
+
+You can create an embedding while training a [**neural network**](https://developers.google.com/machine-learning/crash-course/neural-networks) for your target task. This approach gets you an embedding well customized for your particular system, but may take longer than training the embedding separately.
+
+In general, you can create a hidden layer of size *d* in your neural network that is designated as the [**embedding layer**](https://developers.google.com/machine-learning/glossary#embedding-layer), where *d* represents both the number of nodes in the hidden layer and the number of dimensions in the embedding space. This embedding layer can be combined with any other features and hidden layers. As in any deep neural network, the parameters will be optimized during training to minimize loss on the nodes in the network's output layer.
+
+Returning to our [food recommendation example](https://developers.google.com/machine-learning/crash-course/embeddings), our goal is to predict new meals a user will like based on their current favorite meals. First, we can compile additional data on our users' top five favorite foods. Then, we can model this task as a supervised learning problem. We set four of these top five foods to be feature data, and then randomly set aside the fifth food as the positive label that our model aims to predict, optimizing the model's predictions using a [**softmax**](https://developers.google.com/machine-learning/glossary#softmax) loss.
+
+During training, the neural network model will learn the optimal weights for the nodes in the first hidden layer, which serves as the embedding layer. For example, if the model contains three nodes in the first hidden layer, it might determine that the three most relevant dimensions of food items are sandwichness, dessertness, and liquidness. Figure 12 shows the one-hot encoded input value for "hot dog" transformed into a three-dimensional vector.
+
+![Figure 12. Neural net for one-hot encoding of hot dog. The first layer is an
+    input layer with 5 nodes, each annotated with an icon of the food it
+    represents (borscht, hot dog, salad, ..., and shawarma). These nodes have
+    the values [0, 1, 0, ..., 0], respectively, representing the one-hot
+    encoding of 'hot dog'. The input layer is connected to a 3-node embedding
+    layer, whose nodes have the values 2.98, -0.75, and 0, respectively. The
+    embedding layer is connected to a 5-node hidden layer, which is then
+    connected to a 5-node output layer.](https://developers.google.com/static/machine-learning/crash-course/embeddings/images/one_hot_hot_dog_embedding.png)
+
+***Figure 12.** A one-hot encoding of **`hot dog`** provided as input to a deep neural network. An embedding layer translates the one-hot encoding into the three-dimensional embedding vector **`[2.98, -0.75, 0]`**.*
+
+In the course of training, the weights of the embedding layer will be optimized so that the [**embedding vectors**](https://developers.google.com/machine-learning/glossary#embedding-vector) for similar examples are closer to each other. As previously mentioned, the dimensions that an actual model chooses for its embeddings are unlikely to be as intuitive or understandable as in this example.
+
+### Contextual embeddings
+
+One limitation of **`word2vec`** static embedding vectors is that words can mean different things in different contexts. "Yeah" means one thing on its own, but the opposite in the phrase "Yeah, right." "Post" can mean "mail," "to put in the mail," "earring backing," "marker at the end of a horse race," "postproduction," "pillar," "to put up a notice," "to station a guard or soldier," or "after," among other possibilities.
+
+However, with static embeddings, each word is represented by a single point in vector space, even though it may have a variety of meanings. In the [last exercise](https://developers.google.com/machine-learning/crash-course/embeddings/embedding-space#exercise), you discovered the limitations of static embeddings for the word *orange,* which can signify either a color or a type of fruit. With only one static embedding, *orange* will always be closer to other colors than to *juice* when trained on the **`word2vec`** dataset.
+
+**Contextual embeddings** were developed to address this limitation. Contextual embeddings allow a word to be represented by multiple embeddings that incorporate information about the surrounding words as well as the word itself. *Orange* would have a different embedding for every unique sentence containing the word in the dataset.
+
+Some methods for creating contextual embeddings, like [ELMo](https://wikipedia.org/wiki/ELMo), take the static embedding of an example, such as the **`word2vec`** vector for a word in a sentence, and transform it by a function that incorporates information about the words around it. This produces a contextual embedding.
+
+- For ELMo models specifically, the static embedding is aggregated with embeddings taken from other layers, which encode front-to-back and back-to-front readings of the sentence.
+- [BERT](https://developers.google.com/machine-learning/glossary#bert-bidirectional-encoder-representations-from-transformers) models mask part of the sequence that the model takes as input.
+- Transformer models use a [self-attention](https://developers.google.com/machine-learning/glossary#self-attention-also-called-self-attention-layer) layer to weight the relevance of the other words in a sequence to each individual word. They also add the relevant column from a **positional embedding matrix** (see [positional encoding](https://developers.google.com/machine-learning/glossary#positional-encoding)) to each previously learned token embedding, element by element, to produce the input embedding that is fed into the rest of the model for inference. This **input embedding**, unique to each distinct textual sequence, is a contextual embedding.
+
+**NOTE:** See the [LLM module](https://developers.google.com/machine-learning/ml-crash-course/llm/whats-an-llm#whats_a_transformer) for more details on transformers and encoder-decoder architecture.
+
+While the models described above are language models, contextual embeddings are useful in other generative tasks, like images. An embedding of the pixel RGB values in a photo of a horse provides more information to the model when combined with a positional matrix representing each pixel and some encoding of the neighboring pixels, creating contextual embeddings, than the original static embeddings of the RGB values alone.
+
+# **Large language models**
+
+### What is a language model?
+
+A [**language model**](https://developers.google.com/machine-learning/glossary#language-model) estimates the probability of a [**token**](https://developers.google.com/machine-learning/glossary#token) or sequence of tokens occurring within a longer sequence of tokens. A token could be a word, a subword (a subset of a word), or even a single character.
+
+Most modern language models tokenize by subwords, that is, by chunks of text containing semantic meaning. The chunks could vary in length from single characters like punctuation or the possessive *s* to whole words. Prefixes and suffixes might be represented as separate subwords. For example, the word *unwatched* might be represented by the following three subwords:
+
+- un (the prefix)
+- watch (the root)
+- ed (the suffix)
+
+The word *cats* might be represented by the following two subwords:
+
+- cat (the root)
+- s (the suffix)
+
+A more complex word like "antidisestablishmentarianism" might be represented as six subwords:
+
+- anti
+- dis
+- establish
+- ment
+- arian
+- ism
+
+Tokenization is language specific, so the number of characters per token differs across languages. For English, one token corresponds to ~4 characters or about 3/4 of a word, so 400 tokens ~= 300 English words.
+
+Tokens are the atomic unit or smallest unit of language modeling.
+
+Tokens are now also being successfully applied to [computer vision](https://ai.googleblog.com/2023/03/scaling-vision-transformers-to-22.html) and [audio generation](https://ai.googleblog.com/2022/10/audiolm-language-modeling-approach-to.html).
+
+Consider the following sentence and the token(s) that might complete it:
+
+```
+When I hear rain on my roof, I _______ in my kitchen.
+
+```
+
+A language model determines the probabilities of different tokens or sequences of tokens to complete that blank. For example, the following probability table identifies some possible tokens and their probabilities:
+
+| **Probability** | **Token(s)** |
+| --- | --- |
+| 9.4% | cook soup |
+| 5.2% | warm up a kettle |
+| 3.6% | cower |
+| 2.5% | nap |
+| 2.2% | relax |
+
+In some situations, the sequence of tokens could be an entire sentence, paragraph, or even an entire essay.
+
+An application can use the probability table to make predictions. The prediction might be the highest probability (for example, "cook soup") or a random selection from tokens having a probability greater than a certain threshold.
+
+Estimating the probability of what fills in the blank in a text sequence can be extended to more complex tasks, including:
+
+- Generating text.
+- Translating text from one language to another.
+- Summarizing documents.
+
+By modeling the statistical patterns of tokens, modern language models develop extremely powerful internal representations of language and can generate plausible language.
+
+### N-gram language models
+
+[**N-grams**](https://developers.google.com/machine-learning/glossary#n-gram) are ordered sequences of words used to build language models, where N is the number of words in the sequence. For example, when N is 2, the N-gram is called a **2-gram** (or a [**bigram**](https://developers.google.com/machine-learning/glossary#bigram)); when N is 5, the N-gram is called a 5-gram. Given the following phrase in a training document:
+
+```
+you are very nice
+
+```
+
+The resulting 2-grams are as follows:
+
+- you are
+- are very
+- very nice
+
+When N is 3, the N-gram is called a **3-gram** (or a [**trigram**](https://developers.google.com/machine-learning/glossary#trigram)). Given that same phrase, the resulting 3-grams are:
+
+- you are very
+- are very nice
+
+Given two words as input, a language model based on 3-grams can predict the likelihood of the third word. For example, given the following two words:
+
+```
+orange is
+
+```
+
+A language model examines all the different 3-grams derived from its training corpus that start with **`orange is`** to determine the most likely third word. Hundreds of 3-grams could start with the two words **`orange is`**, but you can focus solely on the following two possibilities:
+
+```
+orange is ripe
+orange is cheerful
+
+```
+
+The first possibility (**`orange is ripe`**) is about orange the fruit, while the second possibility (**`orange is cheerful`**) is about the color orange.
+
+### Context
+
+Humans can retain relatively long contexts. While watching Act 3 of a play, you retain knowledge of characters introduced in Act 1. Similarly, the punchline of a long joke makes you laugh because you can remember the context from the joke's setup.
+
+In language models, **context** is helpful information before or after the target token. Context can help a language model determine whether "orange" refers to a citrus fruit or a color.
+
+Context can help a language model make better predictions, but does a 3-gram provide sufficient context? Unfortunately, the only context a 3-gram provides is the first two words. For example, the two words **`orange is`** doesn't provide enough context for the language model to predict the third word. Due to lack of context, language models based on 3-grams make a lot of mistakes.
+
+Longer N-grams would certainly provide more context than shorter N-grams. However, as N grows, the relative occurrence of each instance decreases. When N becomes very large, the language model typically has only a single instance of each occurrence of N tokens, which isn't very helpful in predicting the target token.
+
+### Recurrent neural networks
+
+[**Recurrent neural networks**](https://developers.google.com/machine-learning/glossary#recurrent-neural-network) provide more context than N-grams. A recurrent neural network is a type of [**neural network**](https://developers.google.com/machine-learning/glossary#neural-network) that trains on a sequence of tokens. For example, a recurrent neural network can *gradually* learn (and learn to ignore) selected context from each word in a sentence, kind of like you would when listening to someone speak. A large recurrent neural network can gain context from a passage of several sentences.
+
+Although recurrent neural networks learn more context than N-grams, the amount of useful context recurrent neural networks can intuit is still relatively limited. Recurrent neural networks evaluate information "token by token." In contrast, large language models—the topic of the next section—can evaluate the whole context at once.
+
+Note that training recurrent neural networks for long contexts is constrained by the [**vanishing gradient problem**](https://developers.google.com/machine-learning/glossary#vanishing-gradient-problem).
+
+## **LLMs: What's a large language model?**
+
+A newer technology, [**large language models** (**LLMs**)](https://developers.google.com/machine-learning/glossary#large-language-model) predict a token or sequence of tokens, sometimes many paragraphs worth of predicted tokens. Remember that a token can be a word, a subword (a subset of a word), or even a single character. LLMs make much better predictions than N-gram language models or recurrent neural networks because:
+
+- LLMs contain far more [**parameters**](https://developers.google.com/machine-learning/glossary#parameter) than recurrent models.
+- LLMs gather far more context.
+
+This section introduces the most successful and widely used architecture for building LLMs: the Transformer.
+
+# What's a Transformer?
+
+Transformers are the state-of-the-art architecture for a wide variety of language model applications, such as translation:
+
+![Figure 1. The input is: I am a good dog. A Transformer-based
+            translator transforms that input into the output: Je suis un bon
+            chien, which is the same sentence translated into French.](https://developers.google.com/static/machine-learning/crash-course/images/Iamagooddog.png)
+
+***Figure 1.** A Transformer-based application that translates from English to French.*
+
+Full transformers consist of an encoder and a decoder:
+
+- An [**encoder**](https://developers.google.com/machine-learning/glossary#encoder) converts input text into an intermediate representation. An encoder is an enormous [**neural net**](https://developers.google.com/machine-learning/glossary#neural-net).
+- A [**decoder**](https://developers.google.com/machine-learning/glossary#decoder) converts that intermediate representation into useful text. A decoder is also an enormous neural net.
+
+For example, in a translator:
+
+- The encoder processes the input text (for example, an English sentence) into some intermediate representation.
+- The decoder converts that intermediate representation into output text (for example, the equivalent French sentence).
+
+![Figure 2. The Transformer-based translator starts with an encoder,
+            which generates an intermediate representation of an English
+            sentence. A decoder converts that intermediate representation into
+            a French output sentence.](https://developers.google.com/static/machine-learning/crash-course/images/TransformerBasedTranslator.png)
+
+***Figure 2.** A full Transformer contains both an encoder and a decoder.*
+
+This module focuses on full Transformers, which contain both an encoder and a decoder; however, encoder-only and decoder-only architectures also exist:
+
+- Encoder-only architectures map input text into an intermediate representation (often, an [**embedding layer**](https://developers.google.com/machine-learning/glossary#embedding_layer)). Use cases for encoder-only architectures include:
+    - Predicting any token in the input sequence (which is the conventional role of language models).
+    - Creating a sophisticated embedding, which could serve as the input for another system, such as a classifier.
+- Decoder-only architectures generate new tokens from the text already generated. Decoder-only models typically excel at generating sequences; modern decoder-only models can use their generation power to create continuations of dialog histories and other prompts.
+
+### What is self-attention?
+
+To enhance context, Transformers rely heavily on a concept called [**self-attention**](https://developers.google.com/machine-learning/glossary#self-attention). Effectively, on behalf of each token of input, self-attention asks the following question:
+
+> "How much does each other token of input affect the interpretation of this token?"
+> 
+
+The "self" in "self-attention" refers to the input sequence. Some attention mechanisms weigh relations of input tokens to tokens in an output sequence like a translation or to tokens in some other sequence. But *self*-attention only weighs the importance of relations between tokens in the input sequence.
+
+To simplify matters, assume that each token is a word and the complete context is only a single sentence. Consider the following sentence:
+
+```
+The animal didn't cross the street because it was too tired.
+
+```
+
+The preceding sentence contains eleven words. Each of the eleven words is paying attention to the other ten, wondering how much each of those ten words matters to itself. For example, notice that the sentence contains the pronoun **it**. Pronouns are often ambiguous. The pronoun **it** typically refers to a recent noun or noun phrase, but in the example sentence, which recent noun does **it** refer to—the animal or the street?
+
+The self-attention mechanism determines the relevance of *each* nearby word to the pronoun **it**. Figure 3 shows the results—the bluer the line, the more important that word is to the pronoun **it.** That is, **animal** is more important than **street** to the pronoun **it**.
+
+![Figure 3. The relevance of each of the eleven words in the sentence:
+            'The animal didn't cross the street because it was too tired'
+            to the pronoun 'it'. The word 'animal' is the most relevant to
+            the pronoun 'it'.](https://developers.google.com/static/machine-learning/crash-course/images/Theanimaldidntcrossthestreet.png)
+
+***Figure 3.** Self-attention for the pronoun it. From [Transformer: A Novel Neural Network Architecture for Language Understanding](https://ai.googleblog.com/2017/08/transformer-novel-neural-network.html).*
+
+Conversely, suppose the final word in the sentence changes as follows:
+
+```
+The animal didn't cross the street because it was too wide.
+
+```
+
+In this revised sentence, self-attention would hopefully rate **street** as more relevant than **animal** to the pronoun **it**.
+
+Some self-attention mechanisms are **bidirectional**, meaning that they calculate relevance scores for tokens *preceding* and *following* the word being attended to. For example, in Figure 3, notice that words on both sides of **it** are examined. So, a bidirectional self-attention mechanism can gather context from words on either side of the word being attended to. By contrast, a **unidirectional** self-attention mechanism can only gather context from words on one side of the word being attended to. Bidirectional self-attention is especially useful for generating representations of whole sequences, while applications that generate sequences token-by-token require unidirectional self-attention. For this reason, encoders use bidirectional self-attention, while decoders use unidirectional.
+
+### What is multi-head multi-layer self-attention?
+
+Each self-attention layer is typically comprised of multiple **self-attention heads**. The output of a layer is a mathematical operation (for example, weighted average or dot product) of the output of the different heads.
+
+Since the parameters of each head are initialized to random values, different heads can learn different relationships between each word being attended to and the nearby words. For example, the self-attention head described in the previous section focused on determining which noun the pronoun **it** referred to. However, other self-attention heads within the same layer might learn the grammatical relevance of each word to every other word, or learn other interactions.
+
+A complete transformer model stacks multiple **self-attention layers** on top of one another. The output from the previous layer becomes the input for the next. This stacking allows the model to build progressively more complex and abstract understandings of the text. While earlier layers might focus on basic syntax, deeper layers can integrate that information to grasp more nuanced concepts like sentiment, context, and thematic links across the entire input.
+
+Self-attention forces every word in the context to learn the relevance of all the other words in the context. So, it is tempting to proclaim this an O($N^2$) problem, where:
+
+- N is the number of tokens in the context.
+
+As if the preceding Big O weren't disturbing enough, Transformers contain multiple self-attention layers and multiple self-attention heads per self-attention layer, so Big O is actually:
+
+```
+O($N^2$ · S · D)
+
+```
+
+where:
+
+- S is the number of self-attention layers.
+- D is the number of heads per layer.
+
+You probably will never train an LLM from scratch. Training an industrial-strength LLM requires enormous amounts of ML expertise, computational resources, and time. Regardless, you clicked the icon to learn more, so we owe you an explanation.
+
+The primary ingredient in building a LLM is a phenomenal amount of training data (text), typically somewhat filtered. The first phase of training is usually some form of [**unsupervised learning**](https://developers.google.com/machine-learning/glossary#unsupervised-machine-learning) on that training data. Specifically, the model trains on **masked predictions**, meaning that certain tokens in the training data are intentionally hidden. The model trains by trying to predict those missing tokens. For example, assume the following sentence is part of the training data:
+
+```
+The residents of the sleepy town weren't prepared for what came next.
+
+```
+
+Random tokens are removed, for example:
+
+```
+The ___ of the sleepy town weren't prepared for ___ came next.
+
+```
+
+An LLM is just a neural net, so loss (the number of masked tokens the model correctly considered) guides the degree to which backpropagation updates parameter values.
+
+A Transformer-based model trained to predict missing data gradually learns to detect patterns and higher-order structures in the data to get clues about the missing token. Consider the following example masked instance:
+
+```
+Oranges are traditionally ___ by hand. Once clipped from a tree, __ don't ripen.
+
+```
+
+Extensive training on enormous numbers of masked examples enable an LLM to learn that "harvested" or "picked" are high probability matches for the first token and "oranges" or "they" are good choices for the second token.
+
+An optional further training step called
+
+[**instruction tuning**](https://developers.google.com/machine-learning/glossary#instruction-tuning)
+
+can improve an LLM's ability to follow instructions.
+
+### Why are Transformers so large?
+
+Transformers contain hundreds of billion or even trillions of [**parameters**](https://developers.google.com/machine-learning/glossary#parameter). This course has generally recommended building models with a smaller number of parameters over those with a larger number of parameters. After all, a model with a smaller number of parameters uses fewer resources to make predictions than a model with a larger number of parameters. However, research shows that Transformers with more parameters consistently outperform Transformers with fewer parameters.
+
+### But how does an LLM *generate* text?
+
+You've seen how researchers train LLMs to predict a missing word or two, and you might be unimpressed. After all, predicting a word or two is essentially the autocomplete feature built into various text, email, and authoring software. You might be wondering how LLMs can generate sentences or paragraphs or haikus about arbitrage.
+
+In fact, LLMs are essentially autocomplete mechanisms that can automatically predict (complete) thousands of tokens. For example, consider a sentence followed by a masked sentence:
+
+```
+My dog, Max, knows how to perform many traditional dog tricks.
+___ (masked sentence)
+
+```
+
+An LLM can generate probabilities for the masked sentence, including:
+
+| **Probability** | **Word(s)** |
+| --- | --- |
+| 3.1% | For example, he can sit, stay, and roll over. |
+| 2.9% | For example, he knows how to sit, stay, and roll over. |
+
+A sufficiently large LLM can generate probabilities for paragraphs and entire essays. You can think of a user's questions to an LLM as the "given" sentence followed by an imaginary mask. For example:
+
+```
+User's question: What is the easiest trick to teach a dog?
+LLM's response:  ___
+
+```
+
+The LLM generates probabilities for various possible responses.
+
+As another example, an LLM trained on a massive number of mathematical "word problems" can give the appearance of doing sophisticated mathematical reasoning. However, those LLMs are basically just autocompleting a word problem prompt.
+
+### Benefits of LLMs
+
+LLMs can generate clear, easy-to-understand text for a wide variety of target audiences. LLMs can make predictions on tasks they are explicitly trained on. Some researchers claim that LLMs can also make predictions for input they were *not* explicitly trained on, but other researchers have refuted this claim.
+
+### Problems with LLMs
+
+*Training* an LLM entails many problems, including:
+
+- Gathering an enormous training set.
+- Consuming multiple months and enormous computational resources and electricity.
+- Solving parallelism challenges.
+
+Using LLMs to *infer* predictions causes the following problems:
+
+- LLMs [**hallucinate**](https://developers.google.com/machine-learning/glossary#hallucination), meaning their predictions often contain mistakes.
+- LLMs consume enormous amounts of computational resources and electricity. Training LLMs on larger datasets typically reduces the amount of resources required for inference, though the larger training sets incur more training resources.
+- Like all ML models, LLMs can exhibit all sorts of bias.
+
+## **LLMs: Fine-tuning, distillation, and prompt engineering**
+
+The [previous unit](https://developers.google.com/machine-learning/crash-course/llm/transformers) described general-purpose LLMs, variously known as:
+
+- **foundation LLMs**
+- **base LLMs**
+- **pre-trained LLMs**
+
+A foundation LLM is trained on enough natural language to "know" a remarkable amount about grammar, words, and idioms. A foundation language model can generate helpful sentences about topics it is trained on. Furthermore, a foundation LLM can perform certain tasks traditionally called "creative," like writing poetry. However, a foundation LLM's generative text output isn't a solution for other kinds of common ML problems, such as regression or classification. For these use cases, a foundation LLM can serve as a *platform* rather than a solution.
+
+Transforming a foundation LLM into a solution that meets an application's needs requires a process called *fine-tuning*. A secondary process called *distillation* generates a smaller (fewer parameters) version of the fine-tuned model.
+
+### Fine-tuning
+
+Research shows that the pattern-recognition abilities of foundation language models are so powerful that they sometimes require relatively little additional training to learn specific tasks. That additional training helps the model make better predictions on a specific task. This additional training, called [**fine-tuning**](https://developers.google.com/machine-learning/glossary#fine-tuning), unlocks an LLM's practical side.
+
+Fine-tuning trains on examples *specific* to the task your application will perform. Engineers can sometimes fine-tune a foundation LLM on just a few hundred or a few thousand training examples.
+
+Despite the relatively tiny number of training examples, standard fine-tuning is often computationally expensive. That's because standard fine-tuning involves updating the weight and bias of every parameter on each [**backpropagation**](https://developers.google.com/machine-learning/glossary#backpropagation) iteration. Fortunately, a smarter process called [**parameter-efficient tuning**](https://developers.google.com/machine-learning/glossary#parameter-efficient-tuning) can fine-tune an LLM by adjusting only a *subset* of parameters on each backpropagation iteration.
+
+A fine-tuned model's predictions are usually better than the foundation LLM's predictions. However, a fine-tuned model contains the same number of parameters as the foundation LLM. So, if a foundation LLM contains ten billion parameters, then the fine-tuned version will also contain ten billion parameters.
+
+### Distillation
+
+Most fine-tuned LLMs contain enormous numbers of parameters. Consequently, foundation LLMs require enormous computational and environmental resources to generate predictions. Note that large swaths of those parameters are typically irrelevant for a specific application.
+
+[**Distillation**](https://developers.google.com/machine-learning/glossary#distillation) creates a smaller version of an LLM. The distilled LLM generates predictions much faster and requires fewer computational and environmental resources than the full LLM. However, the distilled model's predictions are generally not quite as good as the original LLM's predictions. Recall that LLMs with more parameters almost always generate better predictions than LLMs with fewer parameters.
+
+The most common form of distillation uses bulk inference to label data. This labeled data is then used to train a new, smaller model (known as the student model) that can be more affordably served. The labeled data serves as a channel by which the larger model (known as the teacher model) funnels its knowledge to the smaller model.
+
+For example, suppose you need an online toxicity scorer for automatic moderation of comments. In this case, you can use a large offline toxicity scorer to label training data. Then, you can use that training data to distill a toxicity scorer model small enough to be served and handle live traffic.
+
+A teacher model can sometimes provide more labeled data than it was trained on. Alternatively, a teacher model can funnel a numerical score instead of a binary label to the student model. A numerical score provides a richer training signal than a binary label, enabling the student model to predict not only positive and negative classes but also borderline classes.
+
+### Prompt engineering
+
+[**Prompt engineering**](https://developers.google.com/machine-learning/glossary#prompt-engineering) enables an LLM's *end users* to customize the model's output. That is, end users clarify how the LLM should respond to their prompt.
+
+Humans learn well from examples. So do LLMs. Showing one example to an LLM is called [**one-shot prompting**](https://developers.google.com/machine-learning/glossary#one-shot-prompting). For example, suppose you want a model to use the following format to output a fruit's family:
+
+> User inputs the name of a fruit: LLM outputs that fruit's class.
+> 
+
+A one-shot prompt shows the LLM a single example of the preceding format and then asks the LLM to complete a query based on that example. For instance:
+
+```
+peach: drupe
+apple: ______
+
+```
+
+A single example is sometimes sufficient. If it is, the LLM outputs a useful prediction. For instance:
+
+```
+apple: pome
+
+```
+
+In other situations, a single example is insufficient. That is, the user must show the LLM *multiple* examples. For instance, the following prompt contains two examples:
+
+```
+plum: drupe
+pear: pome
+lemon: ____
+
+```
+
+Providing multiple examples is called [**few-shot prompting**](https://developers.google.com/machine-learning/glossary#few-shot-prompting). You can think of the first two lines of the preceding prompt as training examples.
+
+Can an LLM provide useful predictions with no examples ([**zero-shot prompting**](https://developers.google.com/machine-learning/glossary#zero-shot-prompting))? Sometimes, but LLMs like context. Without context, the following zero-shot prompt might return information about the technology company rather than the fruit:
+
+```
+apple: _______
+
+```
+
+**Note:** Prompt engineering doesn't alter the model's parameters. Prompts leverage the pattern-recognition abilities of the existing LLM.
+
+### Offline inference
+
+The number of parameters in an LLM is sometimes so large that [**online inference**](https://developers.google.com/machine-learning/glossary#online-inference) is too slow to be practical for real-world tasks like regression or classification. Consequently, many engineering teams rely on [**offline inference**](https://developers.google.com/machine-learning/glossary#offline-inference) (also known as *bulk inference* or *static inference*) instead. In other words, rather than responding to queries at serving time, the trained model makes predictions in advance and then caches those predictions.
+
+It doesn't matter if it takes a long time for an LLM to complete its task if the LLM only has to perform the task once a week or once a month.
+
+For example, Google Search [used an LLM](https://blog.google/products/search/how-mum-improved-google-searches-vaccine-information/) to perform offline inference in order to cache a list of over 800 synonyms for Covid vaccines in more than 50 languages. Google Search then used the cached list to identify queries about vaccines in live traffic.
+
+### Use LLMs responsibly
+
+Like any form of machine learning, LLMs generally share the biases of:
+
+- The data they were trained on.
+- The data they were distilled on.
+
+Use LLMs fairly and responsibly, following the guidelines presented in the [**data modules**](https://developers.google.com/machine-learning/crash-course/numerical-data) and the [**Fairness module**](https://developers.google.com/machine-learning/crash-course/fairness).
