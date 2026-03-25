@@ -1,0 +1,165 @@
+---
+
+![image.png](attachment:1fa86e97-6488-4c40-b7d8-811404a56b98:image.png)
+
+## 1. Protocol Stability
+
+**Vocabulary size stabilises rapidly.** The protocol expands from 37 unique messages at epoch 10 to 40 by epoch 30, and stays exactly at 40 for every subsequent epoch through 300. This early saturation suggests the agents reached a functional communicative equilibrium within the first ~30 epochs.
+
+**Entity-level mapping is highly stable for well-sampled entities.** Approximately two-thirds of all entities converge to a fixed message by epoch 30–60 and never deviate again. The strongest examples are:
+
+- **Flint** → `38 16 0` : unchanged across all 30 epochs logged (10–300)
+- **Firewood** → `38 38 0` : fully stable throughout
+- **Mushrooms** → `38 3 0` : fully stable throughout
+- **Wolf** → `38 23 0` : fully stable throughout
+- **Supply Cache** → `16 34 0` : fully stable throughout
+- **Rocky Outcrop** → `44 0 0` : fully stable throughout
+- **Storm** → `47 0 0` at epoch 10, stabilises to `22 0 0` from epoch 160 onward
+
+**Symbolic drift is present but concentrated.** For roughly one-third of entities, the first symbol (position 1) is stable but the second symbol wanders between a small set of alternatives. The clearest examples are in type 2 (Hazards):
+
+- **Fever**: `20 46 0` → `21 44 0` → `49 44 0` → `40 44 0` → `24 44 0` , the second symbol changes repeatedly while the first migrates through a smaller range
+- **Blizzard**: `31 30 0` → `30 21 0` → `30 30 0` → `49 49 0` → `24 24 0` , highly unstable, cycling through several forms, often settling on repeated-token messages
+- **Infection**: cycles between `16 49 0`, `16 21 0`, `16 13 0`, `22 49 0`, `22 24 0`
+
+This drift is not random noise: it is limited to a small set of symbols from the active vocabulary. It reflects continued exploration around a partially-fixed first token rather than full remapping.
+
+**No evidence of full semantic drift.** Meanings (entity–signal pairings) do not swap or migrate between entities , the same entity consistently uses variants of the same message family. This rules out catastrophic forgetting or meaning rotation.
+
+---
+
+## 2. Vocabulary Structure
+
+**Symbol 38 functions as the dominant category marker for Type 1 (Resources).** 
+
+Looking at the by-type top messages, `38` appears as the first token in the three most frequent type-1 messages across nearly every epoch (`38 16 0`, `38 30 0`, `38 38 0`). At the entity level, five of the eight type-1 entities consistently use `38` as their prefix:
+
+- Flint: `38 16 0`, Firewood: `38 38 0`, Water: `38 30 0`, Stone: `38 34 0`, Mushrooms: `38 3 0`
+
+The exceptions, Herbs (`3 3 0`), Wood (`27 3 0`), Muddy Water (`47 44 0`) and Berries, do not use the `38` prefix, suggesting the prefix encodes something more specific than just "resource". It may correspond to the shared attribute pattern among these entities (their first attribute vector dimension is uniformly `1`, which these five entities also share).
+
+**Symbol 16 serves as a second-tier marker for Type 2 (Hazards/Threats) and Type 4 (Locations).** 
+
+Within type 2: Infection (`16 49 0` / `16 13 0`), Cliff (`16 7 0`), and in type 4: Supply Cache (`16 34 0`). It is consistently used as a first token only (never second), suggesting it is a category signal.
+
+**Symbol 34 anchors the Type 0 (Animals) cluster**
+
+Appearing as a first token for Lion (`34 7 0`), Goat (`34 23 0` / `34 41 0`), and also in the second-token position for Stone (`38 34 0`) and Supply Cache (`16 34 0`). Its use is concentrated but not exclusive to any single type.
+
+**The second position is clearly a differentiator within a category, not a category marker.** Within the `38-*` resource cluster, the second tokens (16, 38, 30, 34, 3) all distinguish different specific entities. The second position does vary substantially for type-2 hazards, where both positions can shift.
+
+---
+
+## 3. Compositional Structure
+
+**The language shows partial compositionality, with position 1 encoding semantic category and position 2 encoding within-category identity.** This is the clearest finding of the analysis:
+
+- **Position 1 = category signal**: `38` → resources, `16` → threats/locations, `34` → large animals, `23` → small animals, `0` → null/absent
+- **Position 2 = entity discriminator within category**: within `38-*`, tokens 16, 38, 30, 34, 3 each uniquely identify Flint, Firewood, Water, Stone, and Mushrooms respectively
+
+This structure closely mirrors what the emergent communication literature calls "weak compositionality" or "prefix compositionality" , the language is not fully compositional (the same second token does not consistently encode the same attribute across all categories), but it is not holistic either.
+
+**There is no evidence of second-position attribute regularity across categories.** For instance, token `3` appears as position 2 for both Mushrooms (`38 3 0`) and Wood (`27 3 0`), and as position 1 for Herbs (`3 3 0`). It does not encode a specific attribute dimension (e.g. "edible" or "danger level") that holds across entity types. The compositionality is structural (positional roles) rather than fully semantic.
+
+---
+
+## 4. Message Reuse
+
+**Symbols are strongly and systematically reused**, but within-type rather than across-type. The symbol `38` appears as position 1 for five distinct entities, all of type 1. Symbol `16` appears as position 1 for three entities spanning types 2 and 4. Symbol `26` is reused as position 2 for Rabbit (`26 26 0`) and Herb Garden (`26 47 0`).
+
+**Repeated-token messages are remarkably common.** Several entities generate messages where both content tokens are identical:
+
+- Firewood: `38 38 0`
+- Poison Plant: `22 22 0`
+- Deer: `23 23 0`
+- Rabbit: `26 26 0`
+- River Crossing: `48 48 0`
+- Blizzard (at epochs 120–150): `30 30 0`, and at epoch 150: `49 49 0`
+- Squirrel (at epoch 40–300): `44 44 0`
+
+The prevalence of repeated-token messages , which cannot encode more information than a single token , suggests the agents discovered a compression strategy: for entities where the position-1 category token alone is near-sufficient for disambiguation, the second slot is "filled" by repeating the first rather than expending a new symbol. This is a form of low-cost padding.
+
+---
+
+## 5. Communication Efficiency
+
+**The protocol makes heavy use of early EOS (single-content-token messages).** A substantial cluster of entities, almost exclusively within type 2 (Hazards), communicate using only one content token followed immediately by EOS:
+
+- Storm: `47 0 0`
+- Thorns: `23 0 0` (from epoch 50 onward)
+- Quicksand: `41 0 0` / `12 0 0`
+- Cold Night: `4 0 0` / `17 0 0`
+- Frost: `9 0 0` / `42 0 0`
+- Rocky Outcrop: `44 0 0`
+- Cave: `46 0 0` / `45 0 0`
+- Bear: `8 0 0`
+- Riverbank: `21 0 0`
+- Berry Patch: `2 0 0`
+
+These entities are consistently lower-frequency (smaller count values) and may be encountered less often in training. The agents apparently discovered that a single content symbol suffices for identification when these entities appear, and the second slot can be collapsed to EOS. This is consistent with efficiency pressure in emergent communication: rarely-encountered referents get cheaper codes.
+
+**The null message `0 0 0` is used by Fish (persistently) and, transiently, by Salmon, Cold Night, and Frost.** This is the protocol's most extreme efficiency signal , a fully silent or zero-information message, where even the EOS marker is the entire content. Fish persists on `0 0 0` for the entire training run, suggesting the agents treat Fish as not worth communicating about (possibly because Fish is always present, always avoidable, or functionally irrelevant to survival decisions), rather than generating an identifying signal at all.
+
+---
+
+## 6. Semantic Clustering
+
+**Type 1 (Resources) shows the strongest semantic clustering.** 
+
+Five of eight type-1 entities share the `38-*` prefix, grouping them into a recognisable "resource" cluster that is visually and structurally distinct from other types.
+
+**Type 2 (Hazards) shows functional clustering but poor message regularity.** 
+
+All hazard entities use short messages (mostly 1-content-token or 2-content-token) and none use the `38` prefix. However, the specific tokens are not shared in any organised way , Blizzard, Frost, Cold Night, and Storm each receive completely different codes, with no shared prefix that would indicate a "weather hazard" sub-cluster. The clustering is defined by what the hazard entities do *not* have (no `38`, often no second content token) rather than by what they share.
+
+**Type 0 (Animals) shows partial clustering around `34` and `23`.** 
+
+Large predators (Lion `34 7 0`, Goat `34 23 0` early) share the `34` prefix, while smaller animals cluster differently: Deer `23 23 0`, Rabbit `26 26 0`, Squirrel `44 47 0`. There is no single clean prefix for all animals.
+
+**Semantically similar pairs occasionally receive structurally similar messages.** Fish and Salmon are both type-0 aquatic animals with very low encounter counts, and both receive degenerate/null-like messages (`0 0 0` and `43 0 0` / `33 0 0` respectively). Deer (`23 23 0`) and Lizard (`23 44 0` / `23 0 0`) share `23` as a first token , both are relatively docile type-0 animals , suggesting the `23` prefix may encode "small/harmless animal."
+
+---
+
+## 7. Interesting Emergent Behaviours
+
+Several patterns stand out from an emergent communication research perspective:
+
+**The null message as a communicative strategy.**
+
+ Fish receiving `0 0 0` persistently is one of the most striking findings. In Lewis signalling games, a null signal can emerge when a state has zero decision-relevant information , agents learn to "say nothing" about states that don't require action. Fish (attribute vector `0 3 0 3 2 2`) may be low-value and low-danger, making it communication-irrelevant.
+
+**Repeated-token messages as a compression artefact.** 
+
+The agents did not have access to a "repeat" instruction , the identical second token in `38 38 0`, `22 22 0`, `23 23 0`, `26 26 0`, `48 48 0` is learned independently. This suggests the second position became a low-information slot for these entities, and the agents "filled" it with the most salient symbol (the first), effectively using repetition as a do-nothing filler , a pattern analogous to phonological reduplication in natural language.
+
+**Symbol 38 as a super-productive prefix.** 
+
+With 50 tokens and position 2 ranging over the full vocabulary, the `38-*` prefix space could theoretically encode up to 50 distinct entities. Only 5–7 are currently exploited. The protocol has significant unused generative capacity within this cluster.
+
+**Late-stage drift in previously-stable entities (epoch 200+).** 
+
+Goat, which held `34 23 0` stably from epoch 20 through 190, shifts to `19 26 0` at epoch 210 and retains it through 300. This late-stage remapping, after an extremely long stable plateau, is consistent with occasional phase transitions reported in MARL communication literature , the protocol locally reorganises around a different equilibrium without global reorganisation. Herbs similarly shifts from `3 3 0` (stable for 270 epochs) to `38 28 0` at epoch 280, notably adopting the type-1 `38` prefix, which could reflect a delayed "alignment" to the resource cluster.
+
+**Symbol 0 (EOS) used as a content token.** 
+
+In single-content-token messages like `47 0 0`, the second symbol is EOS, but 0 also appears as the first content token in `0 0 0` (Fish, Salmon epoch 10). The agents have repurposed the EOS symbol as a content-carrying token in at least one case, blurring the line between message termination and message content , a form of cheap signalling that exploits the structural ambiguity of the EOS position.
+
+---
+
+## 8. Overall Language Characterisation
+
+**Classification: Partially Compositional with a strong category-based backbone**
+
+The protocol cannot be cleanly assigned to a single class. It exhibits properties of both **category-based signalling** and **partial compositionality**, with a residual holistic codebook for less-frequent or harder-to-categorise entities.
+
+The strongest argument for **partial compositionality** is the clear positional role split: position 1 encodes entity type / broad category (with `38` for resources, `16` for threats/locations, `34` for large animals), and position 2 encodes within-category identity. This is a productively structured two-slot system, not a flat lookup table.
+
+The strongest qualification is that the compositionality is shallow and asymmetric. Position 2 does not encode a consistent attribute across categories , `16` in position 2 (Flint: `38 16 0`) does not mean the same thing as `16` in position 1 (Infection: `16 49 0`). The system is closer to a prefixed codebook , like a phone extension system , than to a genuinely compositional grammar.
+
+For type 2 (Hazards) in particular, the language is closer to **symbolic but non-compositional**: each entity has its own arbitrary atomic code, with no shared structure that would allow systematic interpretation. The ongoing drift in this cluster further suggests the agents never fully converged on a stable solution for hazard communication.
+
+The null-message and single-token strategies for rare entities add a layer of **cheap signalling**, where information content is sacrificed for communicative economy , a well-documented phenomenon in iterated learning and emergent language games.
+
+In summary, this is a **partially compositional language with a dominant category marker in position 1, within-category differentiation in position 2, and a cheap-signalling residue for low-priority and rarely-encountered referents.** The core resource cluster (type 1, `38-*` prefix) is the most structured and stable region; the hazard cluster (type 2) is the least stable and most holistic.
+
+![image.png](attachment:887e3290-badb-452e-9d03-d9f2aa2c2813:image.png)

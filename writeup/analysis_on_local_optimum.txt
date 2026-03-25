@@ -1,0 +1,36 @@
+### **Why Gather/Eat Dominates**
+
+The gather/eat strategy is a **reward-maximising equilibrium** given the game mechanics:
+
+1. **Gather is always valid,** unlike hunt (requires Animal entity + optionally Spear), flee (requires Danger entity), or mitigate (requires Danger), gather can be performed on any encounter. It has zero risk and always yields some resources.
+2. **Eat is always valid,** as long as you have any food (berries, fish, cooked meat), eat restores energy. Since you gather food constantly, you always have something to eat.
+3. **The strategy is self-reinforcing**: `gather → accumulate food → eat → restore energy → survive → gather more`. This loop has no risk and a moderately positive reward.
+4. **Context-dependent actions have higher variance,** hunting when an Animal is present yields high reward but requires the right tool. Fleeing when Danger is present is critical but only relevant ~25% of the time (10/40 entities are Danger). The learning signal for these conditional strategies is sparse.
+
+### **Why the Agent Can't Break Out**
+
+The gradient dynamics create a trap:
+
+1. **SoftMax concentration**
+    1. Once `gather` has slightly higher logits than other actions, SoftMax amplifies this, if gather has logit 2.0 and hunt has 1.0, the probability ratio is $e^2/e^1≈2.7×$. After a few epochs: logit 5.0 vs 1.0 → ratio  $e^5/e^1≈55×$.
+2. **Gradient starvation for rare actions**
+    1. When $p(hunt) < 0.01$, the gradient $∂L/∂z_{hunt}$
+     is proportional to $p(hunt)$ and becomes negligible. Even if hunting would give 10× the reward, the gradient is 10× smaller than for gather.
+3. **The entropy bonus is a blunt instrument**
+    1. It pushes probability mass toward *all*  11 actions equally, including useless ones like endure (which is always bad). What we actually need is to push mass toward *contextually appropriate* actions, not toward uniform exploration.
+4. **Communication-action coupling**
+    1. The receiver must learn two things simultaneously: 
+        1. decode the message to know what entity it faces
+        2. map that entity knowledge to the right action. 
+    2. In the current architecture, the same network does both. When the action head collapses to gather/eat, there's no gradient signal telling the receiver *which* entity-message pairs should trigger *which*  alternative actions.
+
+### **Fundamental Issues**
+
+1. **Reward structure**
+    1. Gather gives reliable + small reward. Hunt gives occasional + big reward but frequent + 0 or - penalty. The agent correctly learns the risk-adjusted strategy is to always gather, unless we make the penalty for *not hunting when you should* much larger or the reward for successful hunting much larger.
+2. **Missing reward shaping**
+    1. There's no explicit penalty for using gather when a Danger entity is present and unaddressed. The "unaddressed danger" penalty is implicit (danger reduces health at turn end), but it's temporally delayed and not attributable to the specific action.
+3. **Single-step RL**
+    1. The agent sees one entity and picks one action. It can't plan a multi-step strategy like "gather wood now to craft spear later for hunting." The episode-level survival rate integrates over 20 turns, but each action decision is independent.
+4. **No advantage estimation**
+    1. In standard RL, we compute advantages $A(s,a)=Q(s,a)−V(s)$ to tell the agent whether an action is better than average. Our loss uses raw rewards, so "gather gives +2" looks equally good regardless of whether "hunt would have given +5."

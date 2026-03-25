@@ -1,0 +1,499 @@
+[Machine Learning Crash Course](https://www.notion.so/Machine-Learning-Crash-Course-27cbe7b27195803a9ffafc259e8b158c?pvs=21)
+
+[PyTorch Tutorial](https://www.notion.so/PyTorch-Tutorial-288be7b2719580a39c2ec06339b1b8a2?pvs=21)
+
+# Supervisor meetings
+
+## Week Two
+
+Learning materials:
+
+- Google developers ML course
+- Geek for geeks ML
+- Pytorch foundation, tutorials
+
+Homework:
+
+- Learn about ML
+- Implement a MNIST classifier from scratch
+
+## Week Three
+
+Research more on gradient descent.
+
+Cross entropy for log loss
+
+## Week Four
+
+Watch the video
+
+Backpropagation
+
+Matrix 
+
+Vector
+
+Next steps:
+
+- Pytorch familiarity
+
+## Week Five:
+
+Familiarize with matrix calculus
+
+Implement MNIST model on my own
+
+important to:
+
+- read before
+- replicate without looking at document
+
+## Week Six
+
+Look at the EGG library and in the zoo folder at basic games.
+
+[Zoo Folder](https://www.notion.so/Zoo-Folder-2a0be7b271958037acafd4dbd21accfe?pvs=21)
+
+## Week Seven
+
+Adapt the code so input is images from MNIST where sender picks up 9 for example
+
+Receiver receives the message with a couple of images, and then it has to select which one is the correct.
+
+[Results from MNIST Classifier](https://www.notion.so/Results-from-MNIST-Classifier-2a0be7b2719580488bdee532c1cc0c1d?pvs=21)
+
+Not much attention to reinforcement. 
+
+If complete just look gs and reforcement
+
+Questions:
+
+- Why are there two numbers with equal messages?
+- How are the messages produced?
+- I learnt in signals about adding a bias neuron in each layer, why do we not have this??
+    - Like neuron with value 1 and a given weight
+- How do you save a model? Like when we train and get really good results, how can we save that run with the weights?
+- What about a confusion matrix to show results?
+    
+    ![image.png](attachment:def54fcc-62b1-411f-ad6c-e8135c9fd980:image.png)
+    
+- Are my results overfitted?
+
+![image.png](attachment:d94ef166-a282-488c-b60a-47b86b9e683b:image.png)
+
+![image.png](attachment:74363bc9-67d8-406e-837c-5112ec9ce993:image.png)
+
+Week nine
+
+Start think about the survival game, think about what the signal could be.
+
+## Week Nine
+
+[Game design](https://www.notion.so/Game-design-2aebe7b27195807190e5ead8dc5d3596?pvs=21)
+
+Ideas:
+
+- RasNet 50? trained on image net animals
+
+# SEM 2
+
+### Week One
+
+Confirm with him (email him)
+
+Report on progress and game (3 pages)
+
+### Week Two
+
+Design, inputs outputs, arch, evaluation
+
+### Week Three
+
+[Game Implementation](https://www.notion.so/Game-Implementation-303be7b271958034ac45dc7702aa8dc3?pvs=21)
+
+**Should we start with fixed-length turn horizons and fixed numbers of distractors/options per turn, or allow variable numbers per episode/turn?**
+
+Do gumbol softmax first
+
+there is concern of having the ai not learn a lot due to complexity.
+
+### Week Four
+
+[Game implementation](https://www.notion.so/Game-implementation-306be7b2719580d59dace63bdeb77fa2?pvs=21)
+
+Could analyse the loss?
+
+### Week Five
+
+Keep temp on 1
+
+Message length to 3
+
+Vocab length 50
+
+[Results with new settings - 50 epochs](https://www.notion.so/Results-with-new-settings-50-epochs-30dbe7b271958014b685c4969315debb?pvs=21)
+
+[Results with new settings - 60 epochs](https://www.notion.so/Results-with-new-settings-60-epochs-30dbe7b27195809eab01caf6129594c8?pvs=21)
+
+Boost up the hunting, play around the option. 
+
+Make profiles for agents. Risk / no risk.
+
+### Week Six
+
+[Results after improvements](https://www.notion.so/Results-after-improvements-310be7b271958042b90ae533b1065b95?pvs=21)
+
+should  i do k fold validation?
+
+Look at if the test overlaps the training. Do as many as possible
+
+Reduce message length
+
+### Week Seven
+
+**12.4% of validation samples are exact duplicates of training samples.**
+
+Was using around 2200 episodes, so bumped up to 10k, generated now 164K samples in 9 seconds. 
+
+I’ve added a three way split now with a 80/10/10 policy (didn't have the train before)
+
+| Split | Samples | Overlap |
+| --- | --- | --- |
+| Train | 131,361 |  |
+| Val | 13,517 | 0.0% |
+| Test | 13,821 | 0.0% |
+
+Added fingerprint-based deduplication to prevent data leakage between splits
+
+Did a 5 hour long run which did not yield results.
+
+Continued work and tried to make the ai agents specify more on the entities encountered.
+
+Expanded entity set from 5 classes to 40 classes (11 Animal, 9 Resource, 10 Danger, 5 CraftOpp, 5 Event). 
+
+- The 5-class reconstruction was too easy, the agent achieved 100% recon but only had 5 unique messages (one per class). With only 5 possible messages, the receiver wasn't getting enough information to make good action decisions.
+
+Then to accommodate this change I also changed the recon head:
+
+- Changed the reconstruction head from `Linear(128→64→5)` (5 entity classes) to `Linear(128→64→40)` (40 individual entities)
+- `recon_weight` set to 1.5 (from 2.0)
+- `reward_scale` set to 0.5 (from 0.2)
+- `temperature` = 2.0, `temp_decay` = 0.975
+
+Higher `reward_scale` (0.5 vs 0.2) was meant to give more weight to the reward component of the loss.
+
+Lower `recon_weight` (1.5 vs 2.0) was a slight reduction to balance the higher reward scale.
+
+This was a success, run 5 proved to have 100% recon acc by epoch 22 (vs epoch 3-5), generating 40 unique messages, so every entity has its own message. Despite this, the action policy was still not good, with a range of 32% to 40% survival rate.
+
+Potential cause for this is that when the action logits go through the SoftMax without temp scaling, one action dominates and the SoftMax output becomes a near one hot vector. Once the gradient through the reward term is effectively zeroed out for non-dominant actions, exploration stops.
+
+Tried to fix this action policy problem via three directions
+
+1. Added an action entropy bonus to the loss which penalises low entropy (peaked) distributions, which coeff = 0.1
+2. Added an action temperature, going from SoftMax(z) to SoftMax(z/t), with t = 2.0 for the test.
+3. Normalized the rewards, so for each sample the 11 action reward vector is normalized to zero mean and unit variance, making the gradient equally strong for all samples regardless of absolute reward magnitude.
+
+Without temperature scaling, the SoftMax concentrates probability mass on one action very quickly. Without entropy bonus, there's no incentive to maintain exploration. Without reward normalisation, samples where all actions give similar rewards produce near-zero gradients.
+
+Run 6 proved this right, with an increase in the survival rate of a mean of 41% and a peak of 49%. Although i need to run it longer as the recon acc got to 96.7% only in 50 epochs.
+
+ The action policy is stuck in a local optimum. The agent has learned to communicate (especially in Run 5 with perfect reconstruction), but cannot translate entity knowledge into context-dependent actions. Gather/eat always yields safe, positive reward, risky context-dependent actions (hunt, flee) require coordinating entity-type understanding with the correct action, and the gradient signal for this is too weak relative to the stable gather/eat baseline. 
+
+Run 7 and 8 where experiments on hyperparameter tunning, 7 had no temperature decay and 8 was a failure.
+
+Run 7:
+
+1. **Higher entropy** (`action_entropy_coeff=0.5`): 5× stronger exploration pressure
+2. **Lower action temperature** (`action_temperature=1.0`): Standard softmax (no temperature scaling), so the agent's logit differences directly translate to probability differences
+3. **No temperature decay** (`temperature_decay=0.0`): Keep GS communication temperature at 1.0 throughout. No annealing.
+4. **Lower initial GS temperature** (`temperature=1.0`): Start with a sharper communication channel from the beginning (vs 2.0 which starts soft and anneals)
+5. **Longer training** (70 epochs vs 50)
+
+The results gave a survival mean of 39.4% with a peak of 49% but a much higher variance. There was also a problem with the recon acc as it only got to 52.2% with 26 messages, but having the same action distribution as before. This proved that abusing the entropy bonus damages the recon loss and competes with it, making the model not learn good communication and maintain exploration simultaneously. 
+
+[Analysis on local optimum](https://www.notion.so/Analysis-on-local-optimum-31fbe7b271958080931dfdbb5aea8d60?pvs=21)
+
+Entropy bonus fights gradient from recon loss.
+
+Did 70 epochs, maybe with more the results would have been better.
+
+Run 8 tried to do this with 300 epoch, but I used the wrong command.
+
+| Metric | Run 5 | Run 6 | Run 7 |
+| --- | --- | --- | --- |
+| **Mean Survival** | 37.2% | 41.1% | 39.4% |
+| **Peak Survival** | 40% | 49% | 49% |
+| **Final Recon Acc** | 100.0% | 96.7% | 52.5% |
+| **Unique Messages** | 40 (perfect) | 36 | 26 |
+| **Dominant Actions** | gather 39.8%, eat 26.9% | gather 41.5%, eat 26.7% | gather 40.6%, eat 27.2% |
+| **Hunt Rate** | 4.6% | 5.0% | 3.8% |
+| **Epochs Trained** | 50 | 50 | 70 |
+
+Questions:
+
+1. Should we add another ai to separate the processing of the action logits and the recon head? 
+    1. If we do this and add a separate action reasoning layer that takes both the shared representation and the decoded entity type, the action selection could condition on the entity understanding rather than learning both tasks from scratch.
+2. Would advantage estimation help? 
+    1. Instead of `loss = -(probs * rewards).sum()`, use 
+        1. `loss = -(probs * advantages).sum()` 
+        2. where `advantage_a = reward_a - mean(rewards)`. 
+    2. This is what reward normalisation does partially, but we could also subtract a learned baseline (value function).
+3. Should we try lower lr (5e-4 or 1e-4) to prevent oscillating around the optimum? Or use lr scheduling?
+4. Is the survival rate the right metric?
+5. Should we reduce the vocab to 10/20?
+6. What can I do to make it run faster? How many epochs is enough? Should I do early stopping?
+7. Should we try Reinforce mode instead of Gumbel-SoftMax?
+
+could try to have the tools already, and simplify the game.
+
+could try reducing lr
+
+shouldnt expect anything from messages
+
+dont try reinforce
+
+focus on analysis now
+
+50 max is good
+
+temperature goes down to quickly, could try 0.99 for decay
+
+looking at how agents evolve, so early stopping makes no sense
+
+possible ways to analyse:
+
+depends on what i want to see, in conversonality egg lib may TopographicSimilarity be good.
+
+Research on topological similarity description
+
+note he will send paper later
+
+### Week Eight
+
+Results:
+
+Multiple runs, main two runs (9h long each), one small run (8h long)
+
+Good results, no temp decay shows best results for our focus on communication and survival
+
+**Expressivity (entropy and vocabulary size)**
+
+**Entropy:**
+
+- Run 11: final **4.49**, mean **4.75**
+- Run 12: final **5.05**, mean **5.04**
+
+Higher entropy gives a more uniform message distribution, meaning a richer use of the vocab
+
+- Run 12 has higher entropy, agents use messages more evenly which indicates greater communication expressivity
+- Run 11 show partial collapse (domination of messages)
+
+**Vocabulary size**
+
+- Run 11 final: **33**
+- Run 12 final: **40 (full capacity)**
+
+Run 12 consistently maintains the **full message space**, which suggests:
+
+- **no pruning of the vocabulary**
+- agents exploit **maximum signal diversity**
+
+Run 11 loses some signals which means less expressive language.
+
+**Structure & compositionality**
+
+Relevant metrics
+
+- posdis (positional disentanglement)
+- bosdis
+- TopSim
+
+These measure whether message structure corresponds to semantic structure.
+
+**Positional disentanglement (posdis):**
+
+Mean:
+
+- Run 11: 0.013
+- Run 12: 0.039
+
+Final:
+
+- Run 11: 0.0178
+- Run 12: 0.0136
+
+Values close to 0 mean almost no compositional structure.
+
+So in both runs:
+
+- communication is largely holistic
+- messages behave like atomic symbols
+
+Run 12 slightly higher mean posdis suggests minor structural emergence, but still extremely low.
+
+**Bag-of-Symbols Disentanglement (bosdis):**
+
+Checks:
+
+Does a **symbol consistently encode one specific attribute?**
+
+Mean:
+
+- Run 11: low (not strongly structured)
+- Run 12: higher than Run 11 (stronger signal)
+
+Final:
+
+- Run 11: low
+- Run 12: low–moderate
+
+Interpretation:
+
+- Values are still relatively low overall
+- However, higher bosdis (especially in Run 12) suggests:
+    - some symbols are reused systematically
+    - weak **category-level encoding** (e.g. same token for similar entities)
+
+So:
+
+- not compositional
+- but not fully random either
+
+This indicates **proto-structure at the symbol level**, likely acting as prefixes or category markers.
+
+**Topographic Similarity (TopSim):**
+
+Ran on a sub sample of 2000 per epoch
+
+Mean:
+
+- Run 11: ~0.30–0.33
+- Run 12: ~0.32–0.35
+
+Final:
+
+- Run 11: ~0.30
+- Run 12: ~0.32
+
+TopSim measures correlation between:
+
+- distance in meaning space
+- distance in message space
+
+Interpretation:
+
+- Values around **0.3** indicate **moderate alignment**
+- Far from 1 → not compositional
+- Above 0 → not random
+
+So in both runs:
+
+- semantically similar entities tend to have somewhat similar messages
+- but this structure is weak and inconsistent
+
+This matches a **clustered or category-based signalling system**, rather than a fully compositional language.
+
+**Overall interpretation:**
+
+- posdis ≈ 0 → no positional compositionality
+- bosdis > 0 → weak symbol-level regularities
+- TopSim ~0.3 → moderate semantic alignment
+
+**Protocol stability (convergence and survival rate)**
+
+Convergence:
+
+Run 11:
+
+- No convergence
+- unstable tail
+- vocabulary keeps fluctuating
+
+Run 12:
+
+- stable early
+- reaches 40 messages quickly
+- remains consistent
+
+Run 12 forms a stable protocol
+
+Survival rate:
+
+Mean survival:
+
+- Run 11: 40.17%
+- Run 12: 41.38%
+
+Final:
+
+- Run 11: 34%
+- Run 12: 41%
+
+Run 12 slightly better where communication more reliable.
+
+**Task performance vs communication:**
+
+Sometimes agents solve the task without real language.
+
+Reconstruction accuracy:
+
+- Run 11: **0.76**
+- Run 12: **1.00**
+
+Run 12 achieves perfect communication decoding.
+
+Reward and behaviour:
+
+Mean reward almost identical:
+
+- Run 11: **1.3009**
+- Run 12: **1.3030**
+
+Task behaviours also identical:
+
+- Hunt rate
+- Gather rate
+- Craft rate
+
+Language differences did not strongly affect task policy
+
+Decay likely **penalizes message persistence** or introduces turnover.
+
+Looking at the actual messages from the run 12:
+
+We have semantic stability with symbolic drift, meaning stays constant but the exact code changes.
+
+Example:
+
+| Entity | Epoch 50 | Epoch 300 |
+| --- | --- | --- |
+| Goat | `34 23 0` | `19 26 0` |
+| Fever | `21 44 0` | `24 44 0` |
+| Weapon Cache | `38 26 0` | `38 41 0` |
+
+Many **type 1 resources share prefix `38`**.
+
+Examples:
+
+| Entity | Message |
+| --- | --- |
+| Water | `38 30` |
+| Firewood | `38 38` |
+| Flint | `38 16` |
+| Stone | `38 34` |
+| Mushrooms | `38 3` |
+
+posdis sometimes misses partial compositionality due to short messages or multi-dimensional attributes.
+
+Also, an interesting result is that fish is `0 0 0`  meaning agents are learning cheap signalling.
+
+The emergent protocol is **largely holistic**, with **weak category-level structure** but **no true compositionality**.
+
+[Deep Message Progression Analysis](https://www.notion.so/Deep-Message-Progression-Analysis-326be7b271958023bb41fdd294ccb135?pvs=21)
+
+Make graphics with the metrics
+
+Hungarian Algorithm for message analysis
+
+Focus on token semantics, try the algorithm

@@ -1,0 +1,847 @@
+[**Linear regression**](https://developers.google.com/machine-learning/glossary#linear-regression) is a statistical technique used to find the relationship between variables. In an ML context, linear regression finds the relationship between [**features**](https://developers.google.com/machine-learning/glossary#feature) and a [**label**](https://developers.google.com/machine-learning/glossary#label).
+
+For example, suppose we want to predict a car's fuel efficiency in miles per gallon based on how heavy the car is, and we have the following dataset:
+
+| **Pounds in 1000s (feature)** | **Miles per gallon (label)** |
+| --- | --- |
+| 3.5 | 18 |
+| 3.69 | 15 |
+| 3.44 | 18 |
+| 3.43 | 16 |
+| 4.34 | 15 |
+| 4.42 | 14 |
+| 2.37 | 24 |
+
+If we plotted these points, we'd get the following graph:
+
+![Figure 1. Data points showing downward-sloping trend from left to right.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/car-data-points.png)
+
+**Figure 1**. Car heaviness (in pounds) versus miles per gallon rating. As a car gets heavier, its miles per gallon rating generally decreases.
+
+We could create our own model by drawing a best fit line through the points:
+
+![Figure 2. Data points with a best fit line drawn through them representing the model.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/car-data-points-with-model.png)
+
+**Figure 2**. A best fit line drawn through the data from the previous figure.
+
+# Linear regression equation
+
+In algebraic terms, the model would be defined as $y=mx+b$, where
+
+- $y$ is miles per gallon, the value we want to predict.
+- $m$ is the slope of the line.
+- $x$ is pounds, our input value.
+- $b$  is the y-intercept.
+
+In ML, we write the equation for a linear regression model as follows:
+
+- $y' = b + w_1x_1$
+
+where:
+
+- $y’$ is the predicted label—the output.
+- $b$ is the [**bias**](https://developers.google.com/machine-learning/glossary#bias-math-or-bias-term) of the model. Bias is the same concept as the y-intercept in the algebraic equation for a line. In ML, bias is sometimes referred to as $w_0$. Bias is a [**parameter**](https://developers.google.com/machine-learning/glossary#parameter) of the model and is calculated during training.
+- $w_1$ is the [**weight**](https://developers.google.com/machine-learning/glossary#weight) of the feature. Weight is the same concept as the slope $m$  in the algebraic equation for a line. Weight is a [**parameter**](https://developers.google.com/machine-learning/glossary#parameter) of the model and is calculated during training.
+- $x_1$ is a [**feature**](https://developers.google.com/machine-learning/glossary#feature)—the input.
+
+During training, the model calculates the weight and bias that produce the best model.
+
+![equation.png](attachment:ff5678de-e25a-45bb-a675-d6823f04fa25:equation.png)
+
+**Figure 3**. Mathematical representation of a linear model.
+
+In our example, we'd calculate the weight and bias from the line we drew. The bias is 34 (where the line intersects the y-axis), and the weight is –4.6 (the slope of the line). The model would be defined as $y′=34+(−4.6)(x_1)$, and we could use it to make predictions. For instance, using this model, a 4,000-pound car would have a predicted fuel efficiency of 15.6 miles per gallon.
+
+![model-prediction.png](attachment:d56af4da-05ab-4369-bb72-c8db003856b9:model-prediction.png)
+
+**Figure 4**. Using the model, a 4,000-pound car has a predicted fuel efficiency of 15.6 miles per gallon.
+
+### Models with multiple features
+
+Although the example in this section uses only one feature—the heaviness of the car—a more sophisticated model might rely on multiple features, each having a separate weight ($w_1, w_2$, etc.). For example, a model that relies on five features would be written as follows:
+
+- $y′=b+w_1x_1+w_2x_2+w_3x_3+w_4x_4+w_5x_5$
+
+For example, a model that predicts gas mileage could additionally use features such as the following:
+
+- Engine displacement
+- Acceleration
+- Number of cylinders
+- Horsepower
+
+This model would be written as follows:
+
+![Figure 5. Linear regression equation with five features.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/equation-multiple-features.png)
+
+**Figure 5**. A model with five features to predict a car's miles per gallon rating.
+
+By graphing a couple of these additional features, we can see that they also have a linear relationship to the label, miles per gallon:
+
+![Figure 6. Displacement in cubic centimeters graphed against miles per gallon showing a negative linear relationship.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/displacement.png)
+
+**Figure 6**. A car's displacement in cubic centimetres and its miles per gallon rating. As a car's engine gets bigger, its miles per gallon rating generally decreases.
+
+![Figure 7. Acceleration from zero to sixty in seconds graphed against miles per gallon showing a positive linear relationship.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/acceleration.png)
+
+**Figure 7**. A car's acceleration and its miles per gallon rating. As a car's acceleration takes longer, the miles per gallon rating generally increases.
+
+## Loss in Linear Regression
+
+[**Loss**](https://developers.google.com/machine-learning/glossary#loss) is a numerical metric that describes how wrong a model's [**predictions**](https://developers.google.com/machine-learning/glossary#prediction) are. Loss measures the distance between the model's predictions and the actual labels. The goal of training a model is to minimize the loss, reducing it to its lowest possible value.
+
+In the following image, you can visualize loss as arrows drawn from the data points to the model. The arrows show how far the model's predictions are from the actual values.
+
+![Figure 8. Loss lines connect the data points to the
+model.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/loss-lines.png)
+
+**Figure 8**. Loss is measured from the actual value to the predicted value.
+
+# Distance of loss
+
+In statistics and machine learning, loss measures the difference between the predicted and actual values. Loss focuses on the *distance* between the values, not the direction. For example, if a model predicts 2, but the actual value is 5, we don't care that the loss is negative (2−5=−3). Instead, we care that the *distance* between the values is 3. Thus, all methods for calculating loss remove the sign.
+
+The two most common methods to remove the sign are the following:
+
+- Take the absolute value of the difference between the actual value and the prediction.
+- Square the difference between the actual value and the prediction.
+
+# Types of loss
+
+In linear regression, there are four main types of loss, which are outlined in the following table.
+
+| **Loss type** | **Definition** | **Equation** |
+| --- | --- | --- |
+| [**$L_1$ loss**](https://developers.google.com/machine-learning/glossary#l1-loss) | The sum of the absolute values of the difference between the predicted values and the actual values. | $∑ | \ actual \ value−predicted \ value \|$ |
+| [**Mean absolute error (MAE)**](https://developers.google.com/machine-learning/glossary#mean-absolute-error-mae) | The average of $L_1$ losses across a set of *N* examples. | $1/N∑|actual value−predicted value|$ |
+| [**L2 loss**](https://developers.google.com/machine-learning/glossary#l2-loss) | The sum of the squared difference between the predicted values and the actual values. | $∑(actual value−predicted value)^2$ |
+| [**Mean squared error (MSE)**](https://developers.google.com/machine-learning/glossary#mean-squared-error-mse) | The average of $L_2$ losses across a set of *N* examples. | $1/N∑(actual value−predicted value)^2$ |
+
+The functional difference between L1 loss and L2 loss (or between MAE and MSE) is squaring. When the difference between the prediction and label is large, squaring makes the loss even larger. When the difference is small (less than 1), squaring makes the loss even smaller.
+
+When processing multiple examples at once, we recommend averaging the losses across all the examples, whether using MAE or MSE.
+
+# Calculating loss example
+
+Using the previous [best fit line](https://developers.google.com/machine-learning/crash-course/linear-regression#linear_regression_equation), we'll calculate L2 loss for a single example. From the best fit line, we had the following values for weight and bias:
+
+- Weight: −4.6
+- Bias: 34
+
+If the model predicts that a 2,370-pound car gets 23.1 miles per gallon, but it actually gets 26 miles per gallon, we would calculate the L2 loss as follows:
+
+**Note:** The formula uses 2.37 because the graphs are scaled to 1000s of pounds
+
+| **Value** | **Equation** | **Result** |
+| --- | --- | --- |
+| Prediction | bias+(weight∗feature value)
+34+(−4.6∗2.37) | 23.1 |
+| Actual value | label | 26 |
+| L2 loss | $(actual value−predicted value)^2
+= 
+(26−23.1)^2$ | 8.41 |
+
+In this example, the L2 loss for that single data point is 8.41.
+
+# Choosing a loss
+
+Deciding whether to use MAE or MSE can depend on the dataset and the way you want to handle certain predictions. Most feature values in a dataset typically fall within a distinct range. For example, cars are normally between 2000 and 5000 pounds and get between 8 to 50 miles per gallon. An 8,000-pound car, or a car that gets 100 miles per gallon, is outside the typical range and would be considered an [**outlier**](https://developers.google.com/machine-learning/glossary#outliers).
+
+An outlier can also refer to how far off a model's predictions are from the real values. For instance, 3,000 pounds is within the typical car-weight range, and 40 miles per gallon is within the typical fuel-efficiency range. However, a 3,000-pound car that gets 40 miles per gallon would be an outlier in terms of the model's prediction because the model would predict that a 3,000-pound car would get around 20 miles per gallon.
+
+When choosing the best loss function, consider how you want the model to treat outliers. For instance, MSE moves the model more toward the outliers, while MAE doesn't. L2 loss incurs a much higher penalty for an outlier than L1 loss. For example, the following images show a model trained using MAE and a model trained using MSE. The red line represents a fully trained model that will be used to make predictions. The outliers are closer to the model trained with MSE than to the model trained with MAE.
+
+![Figure 9. The model is tilted more toward the outliers.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/model-mse.png)
+
+**Figure 9**. A model trained with MSE moves the model closer to the outliers.
+
+![Figure 10. The model is tilted further away from the outliers.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/model-mae.png)
+
+**Figure 10**. A model trained with MAE is farther from the outliers.
+
+Note the relationship between the model and the data:
+
+- **MSE**. The model is closer to the outliers but further away from most of the other data points.
+- **MAE**. The model is further away from the outliers but closer to most of the other data points.
+
+## **Linear regression: Gradient descent**
+
+[**Gradient descent**](https://developers.google.com/machine-learning/glossary#gradient-descent) is a mathematical technique that iteratively finds the weights and bias that produce the model with the lowest loss. Gradient descent finds the best weight and bias by repeating the following process for a number of user-defined iterations.
+
+The model begins training with randomized weights and biases near zero, and then repeats the following steps:
+
+1. Calculate the loss with the current weight and bias.
+2. Determine the direction to move the weights and bias that reduce loss.
+3. Move the weight and bias values a small amount in the direction that reduces loss.
+4. Return to step one and repeat the process until the model can't reduce the loss any further.
+
+The diagram below outlines the iterative steps gradient descent performs to find the weights and bias that produce the model with the lowest loss.
+
+![Figure 11. Illustration of the gradient descent process.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/gradient-descent.png)
+
+**Figure 11**. Gradient descent is an iterative process that finds the weights and bias that produce the model with the lowest loss.
+
+# Math behind gradient descent.
+
+At a concrete level, we can walk through the gradient descent steps using a small dataset with seven examples for a car's heaviness in pounds and its miles per gallon rating:
+
+| **Pounds in 1000s (feature)** | **Miles per gallon (label)** |
+| --- | --- |
+| 3.5 | 18 |
+| 3.69 | 15 |
+| 3.44 | 18 |
+| 3.43 | 16 |
+| 4.34 | 15 |
+| 4.42 | 14 |
+| 2.37 | 24 |
+1. The model starts training by setting the weight and bias to zero:
+    
+    $Weight: 0$
+    
+    $Bias: 0$
+    
+    $y=0+0(x_1)$
+    
+2. Calculate MSE loss with the current model parameters:
+
+$$
+Loss=(18−0)^2+(15−0)^2+(18−0)^2+(16−0)^2+(15−0)^2+(14−0)^2+(24−0)^2 / 7
+$$
+
+$$
+Loss=303.71
+$$
+
+1. Calculate the slope of the tangent to the loss function at each weight and the bias:
+
+$$
+Weight slope:−119.7
+$$
+
+$$
+Bias slope:−34.3
+$$
+
+To get the slope for the lines tangent to the weight and bias, we take the derivative of the loss function with respect to the weight and the bias, and then solve the equations.
+
+We'll write the equation for making a prediction as:
+
+$$
+f_w,_b(x)=(w∗x)+b.
+$$
+
+We'll write the actual value as: y
+
+We'll calculate MSE using:
+
+$$
+1/M∑^M i=1 (fw,b(x(i))−y(i))^2
+$$
+
+where i represents the ith training example and M represents the number of examples.
+
+**Weight derivative**
+
+The derivative of the loss function with respect to the weight is written as:
+
+∂∂w1M∑i=1M(fw,b(x(i))−y(i))2
+
+and evaluates to:
+
+1M∑i=1M(fw,b(x(i))−y(i))∗2x(i)
+
+First we sum each predicted value minus the actual value and then multiply it by two times the feature value. Then we divide the sum by the number of examples. The result is the slope of the line tangent to the value of the weight.
+
+If we solve this equation with a weight and bias equal to zero, we get -119.7 for the line's slope.
+
+**Bias derivative**
+
+The derivative of the loss function with respect to the bias is written as:
+
+∂∂b1M∑i=1M(fw,b(x(i))−y(i))2
+
+and evaluates to:
+
+1M∑i=1M(fw,b(x(i))−y(i))∗2
+
+First we sum each predicted value minus the actual value and then multiply it by two. Then we divide the sum by the number of examples. The result is the slope of the line tangent to the value of the bias.
+
+If we solve this equation with a weight and bias equal to zero, we get -34.3 for the line's slope
+
+1. Move a small amount in the direction of the negative slope to get the next weight and bias. For now, we'll arbitrarily define the "small amount" as 0.01:
+
+$$
+New weight=old weight−(small amount∗weight slope)
+$$
+
+$$
+New bias=old bias−(small amount∗bias slope)
+$$
+
+$$
+New weight=0−(0.01)∗(−119.7)
+$$
+
+$$
+New bias=0−(0.01)∗(−34.3)
+$$
+
+$$
+New weight=1.2
+$$
+
+$$
+New bias=0.34
+$$
+
+Use the new weight and bias to calculate the loss and repeat. Completing the process for six iterations, we'd get the following weights, biases, and losses:
+
+| **Iteration** | **Weight** | **Bias** | **Loss (MSE)** |
+| --- | --- | --- | --- |
+| 1 | 0 | 0 | 303.71 |
+| 2 | 1.20 | 0.34 | 170.84 |
+| 3 | 2.05 | 0.59 | 103.17 |
+| 4 | 2.66 | 0.78 | 68.70 |
+| 5 | 3.09 | 0.91 | 51.13 |
+| 6 | 3.40 | 1.01 | 42.17 |
+
+You can see that the loss gets lower with each updated weight and bias. In this example, we stopped after six iterations. In practice, a model trains until it [**converges**](https://developers.google.com/machine-learning/glossary#convergence). When a model converges, additional iterations don't reduce loss more because gradient descent has found the weights and bias that nearly minimize the loss.
+
+If the model continues to train past convergence, loss begins to fluctuate in small amounts as the model continually updates the parameters around their lowest values. This can make it hard to verify that the model has actually converged. To confirm the model has converged, you'll want to continue training until the loss has stabilized.
+
+# Model convergence and loss curves
+
+When training a model, you'll often look at a [**loss curve**](https://developers.google.com/machine-learning/glossary#loss-curve) to determine if the model has [**converged**](https://developers.google.com/machine-learning/glossary#convergence). The loss curve shows how the loss changes as the model trains. The following is what a typical loss curve looks like. Loss is on the y-axis and iterations are on the x-axis:
+
+![Figure 12. Graph of loss curve showing a steep decline and then a gentle decline.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/convergence.png)
+
+**Figure 12**. Loss curve showing the model converging around the 1,000th-iteration mark.
+
+You can see that loss dramatically decreases during the first few iterations, then gradually decreases before flattening out around the 1,000th-iteration mark. After 1,000 iterations, we can be mostly certain that the model has converged.
+
+In the following figures, we draw the model at three points during the training process: the beginning, the middle, and the end. Visualizing the model's state at snapshots during the training process solidifies the link between updating the weights and bias, reducing loss, and model convergence.
+
+In the figures, we use the derived weights and bias at a particular iteration to represent the model. In the graph with the data points and the model snapshot, blue loss lines from the model to the data points show the amount of loss. The longer the lines, the more loss there is.
+
+In the following figure, we can see that around the second iteration the model would not be good at making predictions because of the high amount of loss.
+
+![Figure 13. Loss curve and corresponding graph of the model, which tilts away from the data points.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/large-loss.png)
+
+**Figure 13**. Loss curve and snapshot of the model at the beginning of the training process.
+
+At around the 400th-iteration, we can see that gradient descent has found the weight and bias that produce a better model.
+
+![Figure 14. Loss curve and corresponding graph of the model, which cuts through the data points but not at the optimal angle.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/med-loss.png)
+
+**Figure 14**. Loss curve and snapshot of model about midway through training.
+
+And at around the 1,000th-iteration, we can see that the model has converged, producing a model with the lowest possible loss.
+
+![Figure 15. Loss curve and corresponding graph of the model, which fits the data well.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/low-loss.png)
+
+**Figure 15**. Loss curve and snapshot of the model near the end of the training process.
+
+### Convergence and convex functions
+
+The loss functions for linear models always produce a [**convex**](https://developers.google.com/machine-learning/glossary#convex-function) surface. As a result of this property, when a linear regression model converges, we know the model has found the weights and bias that produce the lowest loss.
+
+If we graph the loss surface for a model with one feature, we can see its convex shape. The following is the loss surface for a hypothetical miles per gallon dataset. Weight is on the x-axis, bias is on the y-axis, and loss is on the z-axis:
+
+![Figure 16. 3-D graph of loss surface.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/convexity.png)
+
+**Figure 16.** Loss surface that shows its convex shape.
+
+In this example, a weight of -5.44 and bias of 35.94 produce the lowest loss at 5.54:
+
+![Figure 17. 3-D graph of loss surface, with (-5.44, 35.94, 5.54) at the bottom.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/loss-weight-bias.png)
+
+**Figure 17**. Loss surface showing the weight and bias values that produce the lowest loss.
+
+A linear model converges when it's found the minimum loss. Therefore, additional iterations only cause gradient descent to move the weight and bias values in very small amounts around the minimum. If we graphed the weights and bias points during gradient descent, the points would look like a ball rolling down a hill, finally stopping at the point where there's no more downward slope.
+
+![Figure 18. Convex 3-D loss surface with gradient descent points moving to the lowest point.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/loss-surface-points.png)
+
+**Figure 18**. Loss graph showing gradient descent points stopping at the lowest point on the graph.
+
+Notice that the black loss points create the exact shape of the loss curve: a steep decline before gradually sloping down until they've reached the lowest point on the loss surface.
+
+It's important to note that the model almost never finds the exact minimum for each weight and bias, but instead finds a value very close to it. It's also important to note that the minimum for the weights and bias don't correspond to zero loss, only a value that produces the lowest loss for that parameter.
+
+Using the weight and bias values that produce the lowest loss—in this case a weight of -5.44 and a bias of 35.94—we can graph the model to see how well it fits the data:
+
+![Figure 19. Graph of pounds in 1000s vs miles per gallon, with the model fitting the data.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/graphed-model.png)
+
+**Figure 19.** Model graphed using the weight and bias values that produce the lowest loss.
+
+This would be the best model for this dataset because no other weight and bias values produce a model with lower loss.
+
+## **Hyperparameters**
+
+[**Hyperparameters**](https://developers.google.com/machine-learning/glossary#hyperparameter) are variables that control different aspects of training. Three common hyperparameters are:
+
+- [**Learning rate**](https://developers.google.com/machine-learning/glossary#learning-rate)
+- [**Batch size**](https://developers.google.com/machine-learning/glossary#batch-size)
+- [**Epochs**](https://developers.google.com/machine-learning/glossary#epoch)
+
+In contrast, [**parameters**](https://developers.google.com/machine-learning/glossary#parameter) are the variables, like the weights and bias, that are part of the model itself. In other words, hyperparameters are values that you control; parameters are values that the model calculates during training.
+
+# Learning rate
+
+[**Learning rate**](https://developers.google.com/machine-learning/glossary#learning-rate) is a floating point number you set that influences how quickly the model converges. If the learning rate is too low, the model can take a long time to converge. However, if the learning rate is too high, the model never converges, but instead bounces around the weights and bias that minimize the loss. The goal is to pick a learning rate that's not too high nor too low so that the model converges quickly.
+
+The learning rate determines the magnitude of the changes to make to the weights and bias during each step of the gradient descent process. The model multiplies the gradient by the learning rate to determine the model's parameters (weight and bias values) for the next iteration. In the third step of [gradient descent](https://developers.google.com/machine-learning/crash-course/linear-regression/gradient-descent), the "small amount" to move in the direction of negative slope refers to the learning rate.
+
+The difference between the old model parameters and the new model parameters is proportional to the slope of the loss function. For example, if the slope is large, the model takes a large step. If small, it takes a small step. For example, if the gradient's magnitude is 2.5 and the learning rate is 0.01, then the model will change the parameter by 0.025.
+
+The ideal learning rate helps the model to converge within a reasonable number of iterations. In Figure 20, the loss curve shows the model significantly improving during the first 20 iterations before beginning to converge:
+
+![Figure 20. Loss curve that shows a steep slope before flattening out.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/correct-lr.png)
+
+**Figure 20**. Loss graph showing a model trained with a learning rate that converges quickly.
+
+In contrast, a learning rate that's too small can take too many iterations to converge. In Figure 21, the loss curve shows the model making only minor improvements after each iteration:
+
+![Figure 21. Loss curve that shows an almost 45-degree slope.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/small-lr.png)
+
+**Figure 21**. Loss graph showing a model trained with a small learning rate.
+
+A learning rate that's too large never converges because each iteration either causes the loss to bounce around or continually increase. In Figure 22, the loss curve shows the model decreasing and then increasing loss after each iteration, and in Figure 23 the loss increases at later iterations:
+
+![Figure 22. Loss curve that shows jagged up-and-down line.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/high-lr.png)
+
+**Figure 22**. Loss graph showing a model trained with a learning rate that's too big, where the loss curve fluctuates wildly, going up and down as the iterations increase.
+
+![Figure 23. Loss curve that shows the loss increasing at later iterations](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/increasing-loss.png)
+
+**Figure 23**. Loss graph showing a model trained with a learning rate that's too big, where the loss curve drastically increases in later iterations.
+
+# Batch size
+
+[**Batch size**](https://developers.google.com/machine-learning/glossary#batch-size) is a hyperparameter that refers to the number of [**examples**](https://developers.google.com/machine-learning/glossary#example) the model processes before updating its weights and bias. You might think that the model should calculate the loss for *every* example in the dataset before updating the weights and bias. However, when a dataset contains hundreds of thousands or even millions of examples, using the full batch isn't practical.
+
+Two common techniques to get the right gradient on *average* without needing to look at every example in the dataset before updating the weights and bias are [**stochastic gradient descent**](https://developers.google.com/machine-learning/glossary#SGD) and [**mini-batch stochastic gradient descent**](https://developers.google.com/machine-learning/glossary#mini-batch-stochastic-gradient-descent):
+
+- **Stochastic gradient descent (SGD)**: Stochastic gradient descent uses only a single example (a batch size of one) per iteration. Given enough iterations, SGD works but is very noisy. "Noise" refers to variations during training that cause the loss to increase rather than decrease during an iteration. The term "stochastic" indicates that the one example comprising each batch is chosen at random.
+    
+    Notice in the following image how loss slightly fluctuates as the model updates its weights and bias using SGD, which can lead to noise in the loss graph:
+    
+    ![Figure 24. Steep loss curve that flattens out, but with a lot of tiny fluctuations.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/noisy-gradient.png)
+    
+    **Figure 24**. Model trained with stochastic gradient descent (SGD) showing noise in the loss curve.
+    
+    Note that using stochastic gradient descent can produce noise throughout the entire loss curve, not just near convergence.
+    
+- **Mini-batch stochastic gradient descent (mini-batch SGD)**: Mini-batch stochastic gradient descent is a compromise between full-batch and SGD. For N number of data points, the batch size can be any number greater than 1 and less than N. The model chooses the examples included in each batch at random, averages their gradients, and then updates the weights and bias once per iteration.
+    
+    Determining the number of examples for each batch depends on the dataset and the available compute resources. In general, small batch sizes behaves like SGD, and larger batch sizes behaves like full-batch gradient descent.
+    
+    ![Figure 25. Steep loss curve that begins to flatten out, with much smaller fluctuations near convergence.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/mini-batch-sgd.png)
+    
+    **Figure 25**. Model trained with mini-batch SGD.
+    
+
+When training a model, you might think that noise is an undesirable characteristic that should be eliminated. However, a certain amount of noise can be a good thing. In later modules, you'll learn how noise can help a model [**generalize**](https://developers.google.com/machine-learning/glossary#generalization) better and find the optimal weights and bias in a [**neural network**](https://developers.google.com/machine-learning/glossary#neural-network).
+
+# Epochs
+
+During training, an [**epoch**](https://developers.google.com/machine-learning/glossary#epoch) means that the model has processed every example in the training set *once*. For example, given a training set with 1,000 examples and a mini-batch size of 100 examples, it will take the model 10 [**iterations**](https://developers.google.com/machine-learning/glossary#iteration) to complete one epoch.
+
+Training typically requires many epochs. That is, the system needs to process every example in the training set multiple times.
+
+The number of epochs is a hyperparameter you set before the model begins training. In many cases, you'll need to experiment with how many epochs it takes for the model to converge. In general, more epochs produces a better model, but also takes more time to train.
+
+![Figure 26. A full batch is the entire dataset, a mini batch is a subset of the dataset, and an epoch is a full pass through ten mini batches.](https://developers.google.com/static/machine-learning/crash-course/linear-regression/images/batch-size.png)
+
+**Figure 26**. Full batch versus mini batch.
+
+The following table describes how batch size and epochs relate to the number of times a model updates its parameters.
+
+| **Batch type** | **When weights and bias updates occur** |
+| --- | --- |
+| Full batch | After the model looks at all the examples in the dataset. For instance, if a dataset contains 1,000 examples and the model trains for 20 epochs, the model updates the weights and bias 20 times, once per epoch. |
+| Stochastic gradient descent | After the model looks at a single example from the dataset. For instance, if a dataset contains 1,000 examples and trains for 20 epochs, the model updates the weights and bias 20,000 times. |
+| Mini-batch stochastic gradient descent | After the model looks at the examples in each batch. For instance, if a dataset contains 1,000 examples, and the batch size is 100, and the model trains for 20 epochs, the model updates the weights and bias 200 times. |
+
+# **Logistic regression: Calculating a probability with the sigmoid function**
+
+Many problems require a probability estimate as output. [**Logistic regression**](https://developers.google.com/machine-learning/glossary#logistic_regression) is an extremely efficient mechanism for calculating probabilities. Practically speaking, you can use the returned probability in either of the following two ways:
+
+- Applied "as is." For example, if a spam-prediction model takes an email as input and outputs a value of **`0.932`**, this implies a **`93.2%`** probability that the email is spam.
+- Converted to a [**binary category**](https://developers.google.com/machine-learning/glossary#binary-classification) such as **`True`** or **`False`**, **`Spam`** or **`Not Spam`**.
+
+This module focuses on using logistic regression model output as-is. In the [Classification module](https://developers.google.com/machine-learning/crash-course/classification/index.md), you'll learn how to convert this output into a binary category.
+
+# Sigmoid function
+
+You might be wondering how a logistic regression model can ensure its output represents a probability, always outputting a value between 0 and 1. As it happens, there's a family of functions called **logistic functions** whose output has those same characteristics. The standard logistic function, also known as the [**sigmoid function**](https://developers.google.com/machine-learning/glossary#sigmoid-function) (*sigmoid* means "s-shaped"), has the formula:
+
+$$
+f(x)= \frac{1}{1 + e^{-x}}
+$$
+
+where:
+
+- *f(x)* is the output of the sigmoid function.
+- *e* is [Euler's number](https://wikipedia.org/wiki/E_(mathematical_constant)): a mathematical constant ≈ 2.71828.
+- *x* is the input to the sigmoid function.
+
+Figure 1 shows the corresponding graph of the sigmoid function.
+
+![Sigmoid (s-shaped) curve plotted on the Cartesian coordinate plane,
+         centered at the origin.](https://developers.google.com/static/machine-learning/crash-course/logistic-regression/images/sigmoid_function_with_axes.png)
+
+***Figure 1.** Graph of the sigmoid function. The curve approaches 0 as x values decrease to negative infinity, and 1 as x values increase toward infinity.*
+
+As the input, **`x`**, increases, the output of the sigmoid function approaches but never reaches **`1`**. Similarly, as the input decreases, the sigmoid function's output approaches but never reaches **`0`**.
+
+The table below shows the output values of the sigmoid function for input values in the range –7 to 7. Note how quickly the sigmoid approaches 0 for decreasing negative input values, and how quickly the sigmoid approaches 1 for increasing positive input values.
+
+However, no matter how large or how small the input value, the output will always be greater than 0 and less than 1.
+
+| **Input** | **Sigmoid output** |
+| --- | --- |
+| -7 | 0.001 |
+| -6 | 0.002 |
+| -5 | 0.007 |
+| -4 | 0.018 |
+| -3 | 0.047 |
+| -2 | 0.119 |
+| -1 | 0.269 |
+| 0 | 0.50 |
+| 1 | 0.731 |
+| 2 | 0.881 |
+| 3 | 0.952 |
+| 4 | 0.982 |
+| 5 | 0.993 |
+| 6 | 0.997 |
+| 7 | 0.999 |
+
+### Transforming linear output using the sigmoid function
+
+The following equation represents the linear component of a logistic regression model:
+
+$$
+z=b+w_1x_1+w_2x_2+…+w_Nx_N
+$$
+
+where:
+
+- *z* is the output of the linear equation, also called the [**log odds**](https://developers.google.com/machine-learning/glossary#log-odds).
+- *b* is the bias.
+- The *w* values are the model's learned weights.
+- The *x* values are the feature values for a particular example.
+
+To obtain the logistic regression prediction, the *z* value is then passed to the sigmoid function, yielding a value (a probability) between 0 and 1:
+
+$$
+y′=\frac {1}{1+e^{−z}}
+$$
+
+where:
+
+- *y'* is the output of the logistic regression model.
+- *e* is [Euler's number](https://wikipedia.org/wiki/E_(mathematical_constant)): a mathematical constant ≈ 2.71828.
+- *z* is the linear output (as calculated in the preceding equation).
+
+In the equation z=b+w1x1+w2x2+…+wNxN, *z* is referred to as the *log-odds* because if you start with the following sigmoid function (where y is the output of a logistic regression model, representing a probability):
+
+$$
+y=\frac {1}{1+e^{−z}}
+$$
+
+And then solve for *z*:
+
+$$
+z=ln⁡(\frac{y}{1−y})
+$$
+
+Then *z* is defined as the natural logarithm of the ratio of the probabilities of the two possible outcomes: *y* and *1 – y*.
+
+Figure 2 illustrates how linear output is transformed to logistic regression output using these calculations.
+
+![Left: Line with the points (-7.5, –10), (-2.5, 0), and (0, 5)
+         highlighted. Right: Sigmoid curve with the corresponding transformed
+         points (-10, 0.00004), (0, 0.5), and (5, 0.9933) highlighted.](https://developers.google.com/static/machine-learning/crash-course/logistic-regression/images/linear_to_logistic.png)
+
+***Figure 2.** Left: graph of the linear function z = 2x + 5, with three points highlighted. Right: Sigmoid curve with the same three points highlighted after being transformed by the sigmoid function.*
+
+In Figure 2, a linear equation becomes input to the sigmoid function, which bends the straight line into an s-shape. Notice that the linear equation can output very big or very small values of z, but the output of the sigmoid function, y', is always between 0 and 1, exclusive. For example, the yellow square on the left graph has a z value of –10, but the sigmoid function in the right graph maps that –10 into a y' value of 0.00004.
+
+## **Logistic regression: Loss and regularization**
+
+[**Logistic regression**](https://developers.google.com/machine-learning/glossary#logistic_regression) models are trained using the same process as [**linear regression**](https://developers.google.com/machine-learning/crash-course/linear-regression) models, with two key distinctions:
+
+- Logistic regression models use [**Log Loss**](https://developers.google.com/machine-learning/glossary#Log_Loss) as the loss function instead of [**squared loss**](https://developers.google.com/machine-learning/glossary#l2-loss).
+- Applying [regularization](https://developers.google.com/machine-learning/crash-course/overfitting/regularization) is critical to prevent [**overfitting**](https://developers.google.com/machine-learning/glossary#overfitting).
+
+The following sections discuss these two considerations in more depth.
+
+### Log Loss
+
+In the [Linear regression module](https://developers.google.com/machine-learning/crash-course/linear-regression), you used [**squared loss**](https://developers.google.com/machine-learning/glossary#l2-loss) (also called L2 loss) as the [**loss function**](https://developers.google.com/machine-learning/glossary#loss-function). Squared loss works well for a linear model where the rate of change of the output values is constant. For example, given the linear model y′=b+3x1, each time you increment the input value x1 by 1, the output value y′ increases by 3.
+
+However, the rate of change of a logistic regression model is *not* constant. As you saw in [Calculating a probability](https://developers.google.com/machine-learning/crash-course/logistic-regression/sigmoid-function), the [**sigmoid**](https://developers.google.com/machine-learning/glossary#sigmoid-function) curve is s-shaped rather than linear. When the log-odds (z) value is closer to 0, small increases in z result in much larger changes to y than when z is a large positive or negative number. The following table shows the sigmoid function's output for input values from 5 to 10, as well as the corresponding precision required to capture the differences in the results.
+
+| **input** | **logistic output** | **required digits of precision** |
+| --- | --- | --- |
+| 5 | 0.993 | 3 |
+| 6 | 0.997 | 3 |
+| 7 | 0.999 | 3 |
+| 8 | 0.9997 | 4 |
+| 9 | 0.9999 | 4 |
+| 10 | 0.99998 | 5 |
+
+If you used squared loss to calculate errors for the sigmoid function, as the output got closer and closer to **`0`** and **`1`**, you would need more memory to preserve the precision needed to track these values.
+
+Instead, the loss function for logistic regression is [**Log Loss**](https://developers.google.com/machine-learning/glossary#Log_Loss). The Log Loss equation returns the logarithm of the magnitude of the change, rather than just the distance from data to prediction. Log Loss is calculated as follows:
+
+$$
+Log Loss=∑_{(x,y)∈D} − ylog⁡(y′)−(1−y)log⁡(1−y′)
+$$
+
+where:
+
+- (x,y)∈D is the dataset containing many labeled examples, which are (x,y) pairs.
+- y is the label in a labeled example. Since this is logistic regression, every y value of  must either be 0 or 1.
+- y’ is your model's prediction (somewhere between 0 and 1), given the set of features in x.
+
+### Regularization in logistic regression
+
+[**Regularization**](https://developers.google.com/machine-learning/glossary#regularization), a mechanism for penalizing model complexity during training, is extremely important in logistic regression modeling. Without regularization, the asymptotic nature of logistic regression would keep driving loss towards 0 in cases where the model has a large number of features. Consequently, most logistic regression models use one of the following two strategies to decrease model complexity:
+
+- [L2 regularization](https://developers.google.com/machine-learning/crash-course/overfitting/regularization)
+- [Early stopping](https://developers.google.com/machine-learning/crash-course/overfitting/regularization#early_stopping_an_alternative_to_complexity-based_regularization): Limiting the number of training steps to halt training while loss is still decreasing.
+
+# Classification
+
+In the [Logistic regression module](https://developers.google.com/machine-learning/crash-course/logistic-regression), you learned how to use the [**sigmoid function**](https://developers.google.com/machine-learning/glossary#sigmoid-function) to convert raw model output to a value between 0 and 1 to make probabilistic predictions—for example, predicting that a given email has a 75% chance of being spam. But what if your goal is not to output probability but a category—for example, predicting whether a given email is "spam" or "not spam"?
+
+[**Classification**](https://developers.google.com/machine-learning/glossary#classification-model) is the task of predicting which of a set of [**classes**](https://developers.google.com/machine-learning/glossary#class) (categories) an example belongs to. In this module, you'll learn how to convert a logistic regression model that predicts a probability into a [**binary classification**](https://developers.google.com/machine-learning/glossary#binary-classification) model that predicts one of two classes. You'll also learn how to choose and calculate appropriate metrics to evaluate the quality of a classification model's predictions. Finally, you'll get a brief introduction to [**multi-class classification**](https://developers.google.com/machine-learning/glossary#multi-class) problems, which are discussed in more depth later in the course.
+
+## **Thresholds and the confusion matrix**
+
+Let's say you have a logistic regression model for spam-email detection that predicts a value between 0 and 1, representing the probability that a given email is spam. A prediction of 0.50 signifies a 50% likelihood that the email is spam, a prediction of 0.75 signifies a 75% likelihood that the email is spam, and so on.
+
+You'd like to deploy this model in an email application to filter spam into a separate mail folder. But to do so, you need to convert the model's raw numerical output (e.g., **`0.75`**) into one of two categories: "spam" or "not spam."
+
+To make this conversion, you choose a threshold probability, called a [**classification threshold**](https://developers.google.com/machine-learning/glossary#classification-threshold). Examples with a probability above the threshold value are then assigned to the [**positive class**](https://developers.google.com/machine-learning/glossary#positive_class), the class you are testing for (here, **`spam`**). Examples with a lower probability are assigned to the [**negative class**](https://developers.google.com/machine-learning/glossary#negative_class), the alternative class (here, **`not spam`**).
+
+You may be wondering: what happens if the predicted score is equal to the classification threshold (for instance, a score of 0.5 where the classification threshold is also 0.5)? Handling for this case depends on the particular implementation chosen for the classification model. The [Keras](https://keras.io/) library predicts the negative class if the score and threshold are equal, but other tools/frameworks may handle this case differently.
+
+Suppose the model scores one email as 0.99, predicting that email has a 99% chance of being spam, and another email as 0.51, predicting it has a 51% chance of being spam. If you set the classification threshold to 0.5, the model will classify both emails as spam. If you set the threshold to 0.95, only the email scoring 0.99 will be classified as spam.
+
+While 0.5 might seem like an intuitive threshold, it's not a good idea if the cost of one type of wrong classification is greater than the other, or if the classes are imbalanced. If only 0.01% of emails are spam, or if misfiling legitimate emails is worse than letting spam into the inbox, labeling anything the model considers at least 50% likely to be spam as spam produces undesirable results.
+
+# Confusion matrix
+
+The probability score is not reality, or [**ground truth**](https://developers.google.com/machine-learning/glossary#ground_truth). There are four possible outcomes for each output from a binary classifier. For the spam classifier example, if you lay out the ground truth as columns and the model's prediction as rows, the following table, called a [**confusion matrix**](https://developers.google.com/machine-learning/glossary#confusion_matrix), is the result:
+
+|  | **Actual positive** | **Actual negative** |
+| --- | --- | --- |
+| **Predicted positive** | **True positive (TP)**: A spam email correctly classified as a spam email. These are the spam messages automatically sent to the spam folder. | **False positive (FP)**: A not-spam email misclassified as spam. These are the legitimate emails that wind up in the spam folder. |
+| **Predicted negative** | **False negative (FN)**: A spam email misclassified as not-spam. These are spam emails that aren't caught by the spam filter and make their way into the inbox. | **True negative (TN)**: A not-spam email correctly classified as not-spam. These are the legitimate emails that are sent directly to the inbox. |
+
+Notice that the total in each row gives all predicted positives (TP + FP) and all predicted negatives (FN + TN), regardless of validity. The total in each column, meanwhile, gives all real positives (TP + FN) and all real negatives (FP + TN) regardless of model classification.
+
+When the total of actual positives is not close to the total of actual negatives, the dataset is [**imbalanced**](https://developers.google.com/machine-learning/glossary#class_imbalanced_data_set). An instance of an imbalanced dataset might be a set of thousands of photos of clouds, where the rare cloud type you are interested in, say, volutus clouds, only appears a few times.
+
+# Effect of threshold on true and false positives and negatives
+
+Different thresholds usually result in different numbers of true and false positives and true and false negatives. The following video explains why this is the case.
+
+This widget includes three toy datasets:
+
+- **Separated**, where positive examples and negative examples are generally well differentiated, with most positive examples having higher scores than negative examples.
+- **Unseparated**, where many positive examples have lower scores than negative examples, and many negative examples have higher scores than positive examples.
+- **Imbalanced**, containing only a few examples of the positive class.
+
+**In general, what happens to the number of false positives when the classification threshold increases? What about true positives? Experiment with the slider above.**
+
+Both true and false positives decrease.
+As the threshold increases, the model will likely predict fewer positives overall, both true and false. A spam classifier with a threshold of .9999 will only label an email as spam if it considers the classification to be at least 99.99% likely, which means it is highly unlikely to mislabel a legitimate email, but also likely to miss actual spam email.
+
+## Classification: Accuracy, recall, precision, and related metricsbookmark_border
+
+True and false positives and negatives are used to calculate several useful metrics for evaluating models. Which evaluation metrics are most meaningful depends on the specific model and the specific task, the cost of different misclassifications, and whether the dataset is balanced or imbalanced.
+
+All of the metrics in this section are calculated at a single fixed threshold, and change when the threshold changes. Very often, the user tunes the threshold to optimize one of these metrics.
+
+### Accuracy
+
+[**Accuracy**](https://developers.google.com/machine-learning/glossary#accuracy) is the proportion of all classifications that were correct, whether positive or negative. It is mathematically defined as:
+
+$$
+Accuracy = \frac{correct classifications}{total classifications}= \frac {TP+TN}{TP+TN+FP+FN}
+$$
+
+In the spam classification example, accuracy measures the *fraction of all emails correctly classified.*
+
+A perfect model would have zero false positives and zero false negatives and therefore an accuracy of 1.0, or 100%.
+
+Because it incorporates all four outcomes from the [confusion matrix](https://developers.google.com/machine-learning/crash-course/classification/thresholding#confusion_matrix) (TP, FP, TN, FN), given a balanced dataset, with similar numbers of examples in both classes, accuracy can serve as a coarse-grained measure of model quality. For this reason, it is often the default evaluation metric used for generic or unspecified models carrying out generic or unspecified tasks.
+
+However, when the dataset is imbalanced, or where one kind of mistake (FN or FP) is more costly than the other, which is the case in most real-world applications, it's better to optimize for one of the other metrics instead.
+
+For heavily imbalanced datasets, where one class appears very rarely, say 1% of the time, a model that predicts negative 100% of the time would score 99% on accuracy, despite being useless.
+
+**Note:** In machine learning (ML), words like *recall*, *precision*, and *accuracy* have mathematical definitions that may differ from, or be more specific than, more commonly used meanings of the word.
+
+# Recall, or true positive rate
+
+The **true positive rate (TPR)**, or the proportion of all actual positives that were classified correctly as positives, is also known as [**recall**](https://developers.google.com/machine-learning/glossary#recall).
+
+Recall is mathematically defined as:
+
+$$
+Recall (or TPR)=\frac {correctly classified actual positives}{all actual positives}=\frac {TP}{TP+FN}
+$$
+
+False negatives are actual positives that were misclassified as negatives, which is why they appear in the denominator. In the spam classification example, recall measures the *fraction of spam emails that were correctly classified as spam.* This is why another name for recall is **probability of detection**: it answers the question "What fraction of spam emails are detected by this model?"
+
+A hypothetical perfect model would have zero false negatives and therefore a recall (TPR) of 1.0, which is to say, a 100% detection rate.
+
+In an imbalanced dataset where the number of actual positives is very low, recall is a more meaningful metric than accuracy because it measures the ability of the model to correctly identify all positive instances. For applications like disease prediction, correctly identifying the positive cases is crucial. A false negative typically has more serious consequences than a false positive. For a concrete example comparing recall and accuracy metrics, see the notes in the definition of [**recall**](https://developers.google.com/machine-learning/glossary#recall).
+
+# False positive rate
+
+The [**false positive rate (FPR)**](https://developers.google.com/machine-learning/glossary#false-positive-rate-fpr) is the proportion of all actual negatives that were classified *incorrectly* as positives, also known as the **probability of false alarm.** It is mathematically defined as:
+
+$$
+FPR = \frac{incorrectly\ classified\ actual\ negatives}{all\ actual\ negatives} = \frac{FP}{FP+TN}
+$$
+
+False positives are actual negatives that were misclassified, which is why they appear in the denominator. In the spam classification example, FPR measures the *fraction of legitimate emails that were incorrectly classified as spam,* or the model's rate of false alarms.
+
+A perfect model would have zero false positives and therefore a FPR of 0.0, which is to say, a 0% false alarm rate.
+
+In an imbalanced dataset where the number of actual negatives is very, very low, say 1-2 examples in total, FPR is less meaningful and less useful as a metric.
+
+# Precision
+
+[**Precision**](https://developers.google.com/machine-learning/glossary#precision) is the proportion of all the model's positive classifications that are actually positive. It is mathematically defined as:
+
+$$
+Precision = \frac{correctly\ classified\ actual\ positives}{everything\ classified as\ positives} = \frac{TP}{TP+FP}
+$$
+
+In the spam classification example, precision measures the *fraction of emails classified as spam that were actually spam.*
+
+A hypothetical perfect model would have zero false positives and therefore a precision of 1.0.
+
+In an imbalanced dataset where the number of actual positives is very, very low, say 1-2 examples in total, precision is less meaningful and less useful as a metric.
+
+Precision improves as false positives decrease, while recall improves when false negatives decrease. But as seen in the previous section, increasing the classification threshold tends to decrease the number of false positives and increase the number of false negatives, while decreasing the threshold has the opposite effects. As a result, precision and recall often show an inverse relationship, where improving one of them worsens the other.
+
+NaN, or "not a number," appears when dividing by 0, which can happen with any of these metrics. When TP and FP are both 0, for example, the formula for precision has 0 in the denominator, resulting in NaN. While in some cases NaN can indicate perfect performance and could be replaced by a score of 1.0, it can also come from a model that is practically useless. A model that never predicts positive, for example, would have 0 TPs and 0 FPs and thus a calculation of its precision would result in NaN.
+
+# Choice of metric and tradeoffs
+
+The metric(s) you choose to prioritize when evaluating the model and choosing a threshold depend on the costs, benefits, and risks of the specific problem. In the spam classification example, it often makes sense to prioritize recall, nabbing all the spam emails, or precision, trying to ensure that spam-labeled emails are in fact spam, or some balance of the two, above some minimum accuracy level.
+
+| **Metric** | **Guidance** |
+| --- | --- |
+| Accuracy | Use as a rough indicator of model training progress/convergence for balanced datasets.
+For model performance, use only in combination with other metrics.
+Avoid for imbalanced datasets. Consider using another metric. |
+| Recall(True positive rate) | Use when false negatives are more expensive than false positives. |
+| False positive rate | Use when false positives are more expensive than false negatives. |
+| Precision | Use when it's very important for positive predictions to be accurate. |
+
+### The optimal advance F1 Score
+
+The **F1 score** is the harmonic mean (a kind of average) of precision and recall.
+
+Mathematically, it is given by:
+
+$$
+F1 \ Score = 2 * \frac{Precision * Recall}{Precision + Recall} = \frac {2TP}{2TP+FP+FN}
+$$
+
+This metric balances the importance of precision and recall, and is preferable to accuracy for class-imbalanced datasets. When precision and recall both have perfect scores of 1.0, F1 will also have a perfect score of 1.0. More broadly, when precision and recall are close in value, F1 will be close to their value. When precision and recall are far apart, F1 will be similar to whichever metric is worse.
+
+# Classification: ROC and AUC
+
+The previous section presented a set of model metrics, all calculated at a single classification threshold value. But if you want to evaluate a model's quality across all possible thresholds, you need different tools.
+
+# Receiver-operating characteristic curve (ROC)
+
+The [**ROC curve**](https://developers.google.com/machine-learning/glossary#roc-receiver-operating-characteristic-curve) is a visual representation of model performance across all thresholds. The long version of the name, receiver operating characteristic, is a holdover from WWII radar detection.
+
+The ROC curve is drawn by calculating the true positive rate (TPR) and false positive rate (FPR) at every possible threshold (in practice, at selected intervals), then graphing TPR over FPR. A perfect model, which at some threshold has a TPR of 1.0 and a FPR of 0.0, can be represented by either a point at (0, 1) if all other thresholds are ignored, or by the following:
+
+![Figure 1. A graph of TPR (y-axis) against FPR (x-axis) showing the
+            performance of a perfect model: a line from (0,1) to (1,1).](https://developers.google.com/static/machine-learning/crash-course/images/auc_1-0.png)
+
+***Figure 1.** ROC and AUC of a hypothetical perfect model.*
+
+# Area under the curve (AUC)
+
+The [**area under the ROC curve (AUC)**](https://developers.google.com/machine-learning/glossary#AUC) represents the probability that the model, if given a randomly chosen positive and negative example, will rank the positive higher than the negative.
+
+The perfect model above, containing a square with sides of length 1, has an area under the curve (AUC) of 1.0. This means there is a 100% probability that the model will correctly rank a randomly chosen positive example higher than a randomly chosen negative example. In other words, looking at the spread of data points below, AUC gives the probability that the model will place a randomly chosen square to the right of a randomly chosen circle, independent of where the threshold is set.
+
+![Figure 2. Visualization of a classifier with AUC = 1.0, where all positive examples are ranked to the right of negative examples.](https://developers.google.com/static/machine-learning/crash-course/images/no_slider_data.png)
+
+***Figure 2.** A spread of predictions for a binary classification model. AUC is the chance a randomly chosen square is positioned to the right of a randomly chosen circle.*
+
+In more concrete terms, a spam classifier with AUC of 1.0 always assigns a random spam email a higher probability of being spam than a random legitimate email. The actual classification of each email depends on the threshold that you choose.
+
+For a binary classifier, a model that does exactly as well as random guesses or coin flips has a ROC that is a diagonal line from (0,0) to (1,1). The AUC is 0.5, representing a 50% probability of correctly ranking a random positive and negative example.
+
+In the spam classifier example, a spam classifier with AUC of 0.5 assigns a random spam email a higher probability of being spam than a random legitimate email only half the time.
+
+![Figure 3. A graph of TPR (y-axis) against FPR (x-axis) showing the
+            performance of a random 50-50 guesser: a diagonal line from (0,0)
+            to (1,1).](https://developers.google.com/static/machine-learning/crash-course/images/auc_0-5.png)
+
+***Figure 3.** ROC and AUC of completely random guesses.*
+
+### Position recall curve
+
+AUC and ROC work well for comparing models when the dataset is roughly balanced between classes. When the dataset is imbalanced, precision-recall curves (PRCs) and the area under those curves may offer a better comparative visualization of model performance. Precision-recall curves are created by plotting precision on the y-axis and recall on the x-axis across all thresholds.
+
+![Precision-recall curve example with downward convex curve from (0,1)
+            to (1,0)](https://developers.google.com/static/machine-learning/crash-course/images/prauc.png)
+
+# AUC and ROC for choosing model and threshold
+
+AUC is a useful measure for comparing the performance of two different models, as long as the dataset is roughly balanced. The model with greater area under the curve is generally the better one.
+
+![Figure 4.a. ROC/AUC graph of a model with AUC=0.65.](https://developers.google.com/static/machine-learning/crash-course/images/auc_0-65.png)
+
+![Figure 4.b. ROC/AUC graph of a model with AUC=0.93.](https://developers.google.com/static/machine-learning/crash-course/images/auc_0-93.png)
+
+***Figure 4.** ROC and AUC of two hypothetical models. The curve on the right, with a greater AUC, represents the better of the two models.*
+
+The points on a ROC curve closest to (0,1) represent a range of the best-performing thresholds for the given model. As discussed in the [Thresholds](https://developers.google.com/machine-learning/crash-course/classification/thresholding), [Confusion matrix](https://developers.google.com/machine-learning/crash-course/classification/thresholding#confusion_matrix) and [Choice of metric and tradeoffs](https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall#choice_of_metric_and_tradeoffs) sections, the threshold you choose depends on which metric is most important to the specific use case. Consider the points A, B, and C in the following diagram, each representing a threshold:
+
+![Figure 5. A ROC curve of AUC=0.84 showing three points on the
+            convex part of the curve closest to (0,1) labeled A, B, C in order.](https://developers.google.com/static/machine-learning/crash-course/images/auc_abc.png)
+
+***Figure 5.** Three labeled points representing thresholds.*
+
+If false positives (false alarms) are highly costly, it may make sense to choose a threshold that gives a lower FPR, like the one at point A, even if TPR is reduced. Conversely, if false positives are cheap and false negatives (missed true positives) highly costly, the threshold for point C, which maximizes TPR, may be preferable. If the costs are roughly equivalent, point B may offer the best balance between TPR and FPR.
+
+# Classification: Prediction
+
+As mentioned in the [Linear regression](https://developers.google.com/machine-learning/crash-course/linear-regression) module, calculating [**prediction bias**](https://developers.google.com/machine-learning/glossary#prediction_bias) is a quick check that can flag issues with the model or training data early on.
+
+Prediction bias is the difference between the mean of a model's [**predictions**](https://developers.google.com/machine-learning/glossary#prediction) and the mean of [**ground-truth**](https://developers.google.com/machine-learning/glossary#ground-truth) labels in the data. A model trained on a dataset where 5% of the emails are spam should predict, on average, that 5% of the emails it classifies are spam. In other words, the mean of the labels in the ground-truth dataset is 0.05, and the mean of the model's predictions should also be 0.05. If this is the case, the model has zero prediction bias. Of course, the model might still have other problems.
+
+If the model instead predicts 50% of the time that an email is spam, then something is wrong with the training dataset, the new dataset the model is applied to, or with the model itself. Any significant difference between the two means suggests that the model has some prediction bias.
+
+Prediction bias can be caused by:
+
+- Biases or noise in the data, including biased sampling for the training set
+- Too-strong regularization, meaning that the model was oversimplified and lost some necessary complexity
+- Bugs in the model training pipeline
+- The set of features provided to the model being insufficient for the task
+
+# Classification: Multi-class classification
+
+Multi-class classification can be treated as an extension of [**binary classification**](https://developers.google.com/machine-learning/glossary#binary_classification) to more than two classes. If each example can only be assigned to one class, then the classification problem can be handled as a binary classification problem, where one class contains one of the multiple classes, and the other class contains all the other classes put together. The process can then be repeated for each of the original classes.
+
+For example, in a three-class multi-class classification problem, where you're classifying examples with the labels **A**, **B**, and **C**, you could turn the problem into two separate binary classification problems. First, you might create a binary classifier that categorizes examples using the label **A+B** and the label **C**. Then, you could create a second binary classifier that reclassifies the examples that are labeled **A+B** using the label **A** and the label **B**.
+
+An example of a multi-class problem is a handwriting classifier that takes an image of a handwritten digit and decides which digit, 0-9, is represented.
+
+If class membership isn't exclusive, which is to say, an example can be assigned to multiple classes, this is known as a *multi-label* classification problem.

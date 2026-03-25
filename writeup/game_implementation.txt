@@ -1,0 +1,37 @@
+Initial idea was to implement the game and AI at the same time. I’ve decided to change that and first develop the game, making sure it is balanced and playable, and then have the AI play.
+
+Main problems encountered at first were having random chance be the same as an ‘optimal’ selection.
+
+After tunning some of the parameters (energy and reward system) it yielded better results.
+
+The balance is now in a good place, but we can probably aim to get a 80/90% survival rate with optimal selection.
+
+### Final Balance Results
+
+| Policy | Survival | Avg Reward | Avg Length |
+| --- | --- | --- | --- |
+| RANDOM | 18.8% | +133.6 | 16.1 |
+| GREEDY | 59.2% | +479.5 | 18.8 |
+| OPTIMAL | 62.6% | +446.4 | 19.0 |
+| BLIND (no sender) | 19.0% | -61.5 | 14.6 |
+
+**Communication necessity gap: 43.6%** (OPTIMAL vs BLIND)
+
+### What was fixed (3 iterations):
+
+1. Starting energy 80 went to 100, metabolic drain avg dropped from 4.5 to 3 per turn and the action costs was reduced (hunt 12 to 8, flee 8 to 5, gather 3 to 2, craft 5 to 3)
+2. Boosted eating  so eating is strategically worthwhile (cooked_meat +7 to +15, fish +4 to +10, berries +3 to +6). This makes the `gather → craft fire → hunt → cook → eat` chain a high-value strategy.
+3. Fixed a bug where dangers with tool_required=0 (6/10 dangers) could be "mitigated" for free. Now they can only be endured or fled.
+4. GREEDY policy now crafts fire/spear before gathering (was 0 tools, now 80.4% fire, 46.6% spear)
+5. OPTIMAL policy was rewritten to be properly smarter: proactive eating, aggressive hunting with tools, endures moderate dangers instead of wasting energy fleein**g**
+6. BLIND policy ****rests instead of fleeing (conserves energy, proper "no information" baseline)
+
+Clear strategy gradient:  RANDOM < BLIND < GREEDY < OPTIMAL
+
+43.6% communication gap, sender information provides massive survival advantage
+
+Starvation is the main killer (~77-88% of deaths)
+
+Tool crafting matters, 80%+ fire rate in smart policies enables the cooking chain
+
+Need to decided if I should tweak more the game or not. There are multiple areas we can improve such as the probabilities.

@@ -1,0 +1,44 @@
+Final run time:  45 minutes
+
+The loss is a weighted sum of a negative expected reward term and a cross-entropy reconstruction term, where the expected reward is computed as the softmax-weighted sum over all possible actions, making the objective fully differentiable. Minimising it jointly maximises survival reward and enforces correct entity classification.
+
+The negative loss is equal to:
+
+- reward_scale × expected_reward + recon_weight × recon_loss =
+- `-0.2 × 11.26 + 2.0 × ~0` ≈ `-2.25`
+
+The recon loss collapsed to near-zero (perfect reconstruction), so the loss is dominated by the negative reward term.
+
+Communication still evolved during epoch 100. Need maybe more?
+
+Overview
+
+![dashboard.png](attachment:7fbb4a19-1a15-4cce-af67-69c270737e2a:dashboard.png)
+
+Action rates over time
+
+![action_distribution.png](attachment:66620485-9107-4687-b10e-729ded601a1a:action_distribution.png)
+
+Eat rate with penalty
+
+![eat_rate_breakthrough.png](attachment:532a7b48-9491-4f69-9298-3f688f13ed73:eat_rate_breakthrough.png)
+
+Breakdown of evaluation actions
+
+![eval_action_stacked.png](attachment:a56e73f7-8a4e-4ee8-b27b-f810ac18029b:eval_action_stacked.png)
+
+Message changes over time
+
+![message_evolution.png](attachment:146a01d8-428a-44b1-be54-051f5aef5937:message_evolution.png)
+
+Reconstruction accuracy over time
+
+![recon_accuracy.png](attachment:3acdb88e-8c3b-479c-a678-62ae3573c664:recon_accuracy.png)
+
+Survival rate over time
+
+![survival_rate.png](attachment:78b38a06-9ebf-423e-b543-07882668c2e7:survival_rate.png)
+
+Loss, rewards and recon loss
+
+![training_curves.png](attachment:2d57e041-02c0-4cb1-900f-64e01297faa5:training_curves.png)

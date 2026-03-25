@@ -1,0 +1,382 @@
+For the sake of this dissertation, I have designed two survival games that take two different approaches for the data source. One is an image based implementation and the other is vector based.
+
+# **GAME 1: Island Survival (Image Based)**
+
+## **Core Concept**
+
+Two agents cooperatively survive on an island through sequential decision-making stages. Agent 1 (Scout) perceives visual threats/opportunities, communicates to Agent 2 (Strategist), who decides actions affecting both agents' survival.
+
+## **Game Structure**
+
+### **Stages** (5-10 rounds per episode)
+
+Each stage presents a survival scenario:
+
+1. **Threat Detection** (animal encounters)
+2. **Resource Gathering** (food or materials)
+3. **Crafting Decisions** (tools or shelter)
+4. **Environmental Events** (weather or disasters)
+5. **Health Management** (injuries or energy)
+
+The stages will be randomly allocated, simulating nature and avoiding helping the AI agents success.
+
+### **Agent Roles**
+
+**Scout (Sender)**:
+
+- Receives: 1 image (28x28 or 64x64)
+- Produces: Variable-length message (vocab_size=50-100 to be decided)
+    - Message length be 2/3
+- Perceives the current situation but cannot act
+
+**Strategist (Receiver)**:
+
+- Receives: Message from Scout + (optionally) partial context (such as existing tools, weather…)
+- Produces: Action choice (2-5 discrete options)
+- Makes decisions that affect survival (could maybe have a third agent decide?)
+
+### **Image Sources**
+
+**Option A: Pre-rendered Symbolic Images**
+
+- Create simple 28x28 or 64x64 grayscale/color images representing:
+    - Animals: Lion, deer, fish, snake… (8-10 animals)
+    - Resources: Tree, water, berries, rocks… (8-10 resources)
+    - Weather: Sun, rain, storm, snow… (4-6 weather)
+    - Tools: Spear, fire, shelter icons… (6-8 items)
+- **Generation**: Use PIL/OpenCV to programmatically draw simple shapes and icons
+    - https://pillow.readthedocs.io/en/stable/index.html
+    - https://medium.com/jungletronics/opencv-image-basics-2e63d973851a
+    - Have chatgpt or gemini pro generate images. Maybe sora
+- With this method we have full control, infinite generation and it is compositional (can combine elements)
+- **Size**: ~100 base templates, can generate millions of combinations
+
+**Option B: Real Image Dataset** (Advanced)
+
+- Use CIFAR-10 (animals) or miniature ImageNet
+    - https://www.cs.toronto.edu/~kriz/cifar.html
+    - https://www.image-net.org/index.php
+- Filter/curate specific categories
+- This makes our images rich and realistic, but it is harder to control distribution, requires more compute power.
+
+### **Action Space Per Stage**
+
+**Example: Encounter Lion Stage**
+
+Scout sees: `[Lion image]` → Sends message → Strategist chooses:
+
+1. **Run** (Safe, -20 energy, 90% survival)
+2. **Fight** (Risky, -40 energy, 60% survival without weapon, 85% with spear)
+3. **Hide** (Medium, -10 energy, 75% survival)
+4. **Ignore** (Dangerous, -5 energy, 30% survival)
+
+**Example: Find Berries Stage**
+
+Scout sees: `[Berry bush image]` → Sends message → Strategist chooses:
+
+1. **Gather** (+30 energy, 95% safe berries, 5% poisonous)
+2. **Cook first** (+50 energy, 100% safe, requires fire, -10 energy)
+3. **Ignore** (0 energy change)
+
+### **State Tracking**
+
+Agents carry state across stages within episode:
+
+- **Energy**: 0-100 (dies at 0)
+- **Inventory**: `{has_spear, has_fire, has_shelter}` (binary flags)
+- **Health**: 0-100 (affects survival probabilities)
+
+### **Reward Structure**
+
+**Immediate Rewards**:
+
+- Survival: +10 per stage survived
+- Energy gain: +0.1 × energy_gained
+- Tool crafted: +20
+- Death: -100 (episode ends)
+
+**Long-term Rewards**:
+
+- Complete episode (10 stages): +100 bonus
+- Optimal path bonus: +50 (if found efficient crafting chain)
+- Communication efficiency: -0.1 × message_length (encourages concise messages)
+
+**Training Set**: 40k episodes, test: 10k, evaluation: 10k
+
+**Why This Studies EC**
+
+1. **Context Dependency**: Same image (lion) requires different messages based on inventory state
+2. **Compositional Pressure**: Must develop concepts for {animal-type, threat-level, required-tool}
+3. **Sequential Coherence**: Messages across stages must maintain consistency
+4. **Emergent Referentiality**: Will agents develop symbols for specific animals vs. threat levels?
+5. **Efficiency Pressure**: Shorter messages save "energy," encouraging compression
+
+# **GAME 2: Resource Chain Survival (Vector-based)**
+
+## **Core Concept**
+
+Two agents must collaboratively survive by managing resources, hunting animals, avoiding dangers, and building tools. Animals serve as both threats and food sources, creating risk-reward trade-offs that require clear communication.
+
+## **Game Structure**
+
+### **Input Representation**
+
+Each entity (resource/animal/event) represented as a discrete attribute vector:
+
+**Vector Format**: 
+
+- `[entity_type, subtype, danger_level, energy_value, tool_required, weather_dependency]`
+
+### **Example vectors**
+
+**Animals**:
+
+- Lion (aggressive):
+    - `[0, 0, 3, 8, 1, 0]` (entity=animal, subtype=predator, high danger, high energy reward, spear required, any weather)
+- Deer (passive):
+    - `[0, 1, 1, 6, 1, 0]` (entity=animal, subtype=herbivore, low danger, medium energy, spear required, any weather)
+- Snake (hidden):
+    - `[0, 2, 2, 3, 0, 0]` (entity=animal, subtype=reptile, medium danger, low energy, bare hands ok, any weather)
+- Fish:
+    - `[0, 3, 0, 4, 2, 0]` (entity=animal, subtype=aquatic, no danger, medium energy, fishing tool required, any weather)
+- Rabbit (fast):
+    - `[0, 4, 0, 3, 1, 0]` (entity=animal, subtype=small-game, no danger but hard to catch, low energy, spear required, any weather)
+
+**Resources**:
+
+- Raw meat (from hunt):
+    - `[1, 0, 3, 2, 0, 0]` (entity=resource, subtype=food, high danger-parasites, low energy raw, no tool to gather, any weather)
+- Cooked meat:
+    - `[1, 0, 0, 7, 3, 0]` (entity=resource, subtype=food, no danger, high energy, fire required to create, any weather)
+- Wood:
+    - `[1, 1, 1, 0, 0, 1]` (entity=resource, subtype=material, low danger-splinters, no energy, no tool, sunny weather preferred)
+- Berries:
+    - `[1, 2, 1, 3, 0, 0]` (entity=resource, subtype=food, low danger-some poisonous, medium energy, no tool, any weather)
+- Stone:
+    - `[1, 3, 0, 0, 0, 0]` (entity=resource, subtype=material, no danger, no energy, no tool, any weather)
+- Water:
+    - `[1, 4, 0, 2, 0, 0]` (entity=resource, subtype=water, no danger if clean, small energy boost, no tool, any weather)
+
+**Environmental Dangers**:
+
+- Storm:
+    - `[2, 0, 2, -5, 4, 2]` (entity=environment, subtype=weather, medium danger, energy loss, shelter required, rain weather)
+- Cold night:
+    - `[2, 1, 1, -3, 3, 0]` (entity=environment, subtype=temperature, low danger, energy loss, fire required, any weather)
+- Poisonous plant:
+    - `[2, 2, 3, -8, 0, 0]` (entity=environment, subtype=hazard, high danger, major energy loss, no tool helps, any weather)
+
+**Tools/Crafted Items**:
+
+- Spear (craftable):
+    - `[3, 0, 0, 0, 0, 0]` (entity=tool, subtype=weapon, enables hunting, made from wood+stone)
+- Fire (craftable):
+    - `[3, 1, 0, 0, 0, 0]` (entity=tool, subtype=utility, enables cooking, made from wood)
+- Shelter (craftable):
+    - `[3, 2, 0, 0, 0, 0]` (entity=tool, subtype=protection, protects from weather, made from wood)
+- Fishing rod (craftable):
+    - `[3, 3, 0, 0, 0, 0]` (entity=tool, subtype=weapon, enables fishing, made from wood)
+
+### **Dimensions Explained**:
+
+1. **Entity Type** (6 values):
+    - 0 = Animal (living creature, can be hunted)
+    - 1 = Resource (gatherable item)
+    - 2 = Environmental danger (cannot be gathered, must be avoided/mitigated)
+    - 3 = Tool (craftable, provides capabilities)
+    - 4 = Special event (rare bonuses/challenges)
+    - 5 = Reserved for future expansion
+2. **Subtype** (5 values per entity type):
+    - For animals: predator, herbivore, reptile, aquatic, small-game
+    - For resources: food, material, water, medicine, fuel
+    - For environment: weather, temperature, hazard, terrain, disaster
+    - For tools: weapon, utility, protection, weapon, container
+3. **Danger Level** (4 values):
+    - 0 = Safe
+    - 1 = Low risk (5-10% injury chance)
+    - 2 = Medium risk (20-30% injury chance)
+    - 3 = High risk (40-60% injury chance or death)
+4. **Energy Value** (10 values):
+    - -5 to -1 = Energy drain (negative outcomes)
+    - 0 = Neutral
+    - 1-8 = Energy gain (food/successful actions)
+5. **Tool Required** (5 values):
+    - 0 = None (bare hands)
+    - 1 = Spear (hunting weapon)
+    - 2 = Fishing rod
+    - 3 = Fire (for cooking/warmth)
+    - 4 = Shelter (for weather protection)
+6. **Weather Dependency** (3 values):
+    - 0 = Any weather
+    - 1 = Sunny weather only (gathering wood, hunting easier)
+    - 2 = Rain weather (fishing better, some dangers)
+
+**Total unique entities**: 6 × 5 × 4 × 10 × 5 × 3 = 18,000 possible combinations (most invalid, ~200-300 valid/meaningful entities)
+
+### **Agent Roles**
+
+**Agent 1 (Scout/Resource Identifier)**:
+
+- Sees: Current encounter (1 entity vector) + current survival state + 2-3 distractor entities
+- Sends: Variable-length message (vocab_size=100-150, to be decided)
+- Task: Identify which entity/action is optimal given current tools, energy, and dangers
+
+**Agent 2 (Decision Maker)**:
+
+- Sees: Message from Scout + current survival state (energy, inventory, weather)
+- Chooses: Action from options that depend on encounter type
+
+### **Action Space by Encounter Type**
+
+*When encountering an animal*:
+
+1. **Hunt** (requires appropriate tool, risk injury, gain meat)
+2. **Avoid/Run** (safe, costs energy, no reward)
+3. **Observe** (learn behavior, small energy cost, future advantage)
+4. **Trap** (if have materials, delayed reward, medium risk)
+
+*When encountering a resource*:
+
+1. **Gather** (collect raw resource)
+2. **Gather & Process** (if have tools, get processed version)
+3. **Ignore** (save energy for later)
+4. **Store** (if have inventory space)
+
+*When encountering danger*:
+
+1. **Use tool to mitigate** (fire for cold, shelter for storm)
+2. **Endure** (take damage, save tools)
+3. **Flee** (high energy cost, avoid damage)
+
+*Crafting actions* (available when having materials):
+
+1. **Craft spear** (wood + stone → enables hunting)
+2. **Start fire** (wood → enables cooking, warmth)
+3. **Build shelter** (wood × 2 → weather protection)
+4. **Make fishing rod** (wood + patience → enables fishing)
+
+### **Survival Mechanics**
+
+**State Variables**:
+
+- **Energy**: 0-100, decreases by -8-12 per turn (random variation for challenge)
+- **Health**: 0-100, decreases when taking damage from animals/dangers
+- **Inventory**:
+    - Tools: `{spear: bool, fire: bool, shelter: bool, fishing_rod: bool}`
+    - Materials: `{wood: 0-5, stone: 0-3, meat: 0-3}`
+- **Weather**: Changes every 4-6 turns randomly
+- **Turn counter**: Episode = 15-25 turns (variable length)
+- **Hunt success rate**: Depends on tool, animal danger level, and health
+
+### **Animal Encounter Mechanics**
+
+When Agent 2 chooses to hunt an animal:
+
+```python
+def hunt_outcome(animal_danger, has_spear, agent_health, agent_energy):
+    base_success = 0.3  # Without tools
+    if has_spear and animal_danger <= 1:  # Easy prey
+        success_rate = 0.85
+    elif has_spear:  # Dangerous prey
+        success_rate = 0.65
+    else:  # No weapon
+        success_rate = 0.20
+    
+    # Health/energy affect performance
+    success_rate *= (agent_health / 100) * (min(agent_energy, 50) / 50)
+    
+    if random() < success_rate:
+        # Success: gain meat, small injury risk
+        meat_gained = animal_energy_value
+        injury_chance = animal_danger * 0.15
+        energy_cost = 15
+    else:
+        # Failure: injury risk, no meat
+        meat_gained = 0
+        injury_chance = animal_danger * 0.4
+        energy_cost = 20
+    
+    if random() < injury_chance:
+        health_loss = 10 + (animal_danger * 10)
+    
+    return meat_gained, health_loss, energy_cost
+```
+
+### **Danger Encounter Mechanics**
+
+Environmental dangers have specific mitigation strategies:
+
+- **Storm** + no shelter → -15 health and -10 energy
+- **Storm** + shelter → -2 energy (safe inside)
+- **Cold night** + no fire → -10 health and -8 energy
+- **Cold night** + fire → +5 energy (warmth bonus)
+- **Poisonous plant** → 50% chance of -20 health if gathered without knowledge
+
+### **Transformation Chains** (agents must discover)
+
+1. **Basic Survival**:
+    - Hunt animal → Raw meat → (with fire) → Cooked meat (+7 energy vs +2 raw, eliminate parasite risk)
+2. **Tool Progression**:
+    - Gather wood + stone → Craft spear → Hunt efficiently (success rate: 30% → 70%)
+    - Gather wood → Start fire → Cook food (2× energy value) + Warmth (+5 energy in cold)
+    - Gather wood ×2 → Build shelter → Weather protection (eliminate storm damage)
+3. **Advanced Strategies**:
+    - Fish (low danger, consistent food) requires fishing rod (wood)
+    - Multiple hunts possible with one spear (durable)
+    - Fire can cook multiple meats (batch processing)
+
+### **Reward Structure**
+
+**Survival Rewards**:
+
+- Stay alive: +10 per turn
+- Maintain high energy (>70): +5 per turn
+- Maintain high health (>70): +3 per turn
+- Successfully hunt animal: +15 + (danger_level × 10) [harder prey = more reward]
+- Complete transformation chain: +40 (e.g., hunt → cook → eat cooked meat)
+- Discover new tool: +50
+- Episode completion (reach turn 20+): +150
+- Efficiency bonus: +(remaining_energy + remaining_health) / 2
+
+**Penalties**:
+
+- Energy drops to 0: -50 (each run because of starvation to death)
+- Health drops to 0: -300 (injury death)
+- Failed hunt with injury: -20
+- Eat poisonous/parasitic food: -30
+- Inefficient resource choice: -8 (e.g., gathering berries when have cooked meat available)
+- Message too long (>8 symbols): -2 per extra symbol
+- Wasted action (e.g., hunt without tool): -10
+
+**Communication Efficiency Bonus**:
+
+- Shorter messages that lead to correct decisions: +1 per saved symbol
+
+### **Key Challenges for Emergent Communication**
+
+1. **Entity Type Distinction**: 
+    - Must differentiate animals (huntable) vs resources (gatherable) vs dangers (avoidable)
+2. **Risk Communication**: 
+    - How to express "high reward but dangerous" (lion) vs "safe but low reward" (berries)?
+3. **Tool Dependencies**: 
+    - "This animal REQUIRES spear" vs "Can hunt but risky without spear"
+4. **State-Dependent Optimal Actions**: 
+    - Same animal encounter has different optimal actions depending on:
+        - Current energy (low energy → avoid risky hunts)
+        - Available tools (no spear → can't hunt lion)
+        - Current inventory (already have meat → don't hunt)
+        - Weather (storm coming → prioritize shelter materials)
+5. **Sequential Planning**: 
+    - "Gather wood NOW to craft spear for LATER hunt"
+6. **Compositional Pressure**: 
+    - Need symbols for:
+        - Animal types (predator, herbivore, etc.)
+        - Danger levels (safe, risky, deadly)
+        - Tool requirements (needs-spear, needs-fire)
+        - Urgency (immediate-threat vs opportunity)
+
+**Dataset Splits**:
+
+- **Training**: 80k episodes (~1.6M individual encounters)
+- Testing: 20k episodes (~400k encounters)
+- **Validation**: 20k episodes (~400k encounters)
