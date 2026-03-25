@@ -93,33 +93,18 @@ April 3rd 2026 *[insert signature]*
 
 = Introduction <group1>
 
-Describe the problem you set out to solve and the *extent of your success in solving it*. Here i want to mention also this is a 15 credit module so workload was limited.
-
-You should include the aims and objectives of the project in order of importance and try to outline key aspects of your project for the reader to look for in the rest of your report. *Should i keep this here or in the req section?*
-
-Communication is fundamental to coordination in natural and artificial systems, however the mechanisms through which structured communication emerges remain difficult to study in real settings due to scale, uncertainty, and time constraints. This project therefore studies the problem through computational simulation, where two agents must coordinate in survival scenarios and progressively develop useful signalling strategies. As this was a 15 credit module, the scope was deliberately bounded, balancing foundational learning, implementation, and analysis within a limited timeline.
-
-This dissertation outlines the project aims at a high level in this chapter and then formalises them in detail in the Requirements Specification chapter. Following this, the report presents the technical background, implementation process, and evaluation results, with particular emphasis on how communication behaviour changed across training runs and how those changes relate to the core research question.
-
-== Problem motivation and project context <group1>
-
-Background on the problem, where it emerges from and motivation for this project. Talk about the requirements needed to study this topic and how i had to learn about Ml and other resources first.
-
-Could cite a couple fo papers here.
-
-Understanding how communication protocols form under environmental pressure is relevant both for language emergence research and for practical multi-agent systems, where coordination quality can determine task success. In this project, the motivation was to build a controlled environment in which communication is not hard-coded, then analyse whether meaningful conventions emerge from repeated interaction and reward-driven learning. To reach that stage, the work required an initial preparation phase in machine learning, PyTorch, and the EGG framework, after which the focus shifted to custom game design, implementation, and protocol analysis.
-
-== Core research question <group1>
-
-Deep explanation of what we are searching for exactly without taking into account the learning aspect of the project.
-
-The core research question is whether meaningful communication protocols emerge when AI agents are placed in survival scenarios that require coordination, and, if they do, which factors influence their structure, stability, and effectiveness. More specifically, the project investigates how message patterns evolve under changing training conditions, how those messages relate to entity and action choices, and to what extent observed communication behaviour supports successful survival outcomes.
-
-== Contributions and dissertation roadmap <group1>
-
-Write about the plan i established, how it was followed and made.
-
 \
+Communication is a fundamental mechanism underpinning coordination in both natural and artificial systems. In biological settings, species rely on signalling to survive, whether through cooperative hunting, predator avoidance, or social organisation. These communication systems are not designed explicitly, but instead emerge over long periods of evolution, shaped by environmental pressures and the need for efficient interaction. Understanding how such communication protocols arise is a central problem in studying the origins of language and collective behaviour. However, investigating this process in natural environments is inherently difficult, as it unfolds over extended timescales and involves complex, often unobservable dynamics. As a result, isolating the factors that drive the emergence of structured communication remains a significant challenge.
+
+Advances in machine learning provide an alternative approach to this problem. By simulating environments in which artificial agents must interact to achieve shared goals, it becomes possible to observe the emergence of communication under controlled conditions. In particular, multi-agent reinforcement learning (MARL) enables agents to develop signalling strategies through repeated interaction and reward-driven learning, offering a tractable framework for studying emergent behaviour. This project explores these ideas by investigating whether artificial agents can develop meaningful communication protocols in a custom survival-based scenario, leveraging the EGG (Emergence of lanGuage in Games) library @kharitonov:etal:2021 to place agents in environments where coordination is necessary for success. To this end, the EGG toolkit is used to implement communication games with discrete signalling channels, allowing agents to coordinate under task-specific pressures. Thus, the goal is to analyse whether communication emerges naturally from these interactions, and to what extent survival constraints influence the structure and development of emergent communication.
+
+Formally, our core research question drives this investigation: *do meaningful communication protocols emerge when AI agents are constrained by survival scenarios requiring coordination?* To answer this, the project pursued four prioritised aims, first being to design and implement a tractable survival environment where communication is strictly necessary for optimal performance. Following this design, our second step is to train reinforcement learning agents within this environment to induce signalling behaviour. Once achieved, the third aim is to analyse the resulting protocols for structure, stability, and utility, finalising with our fourth aim: evaluating how specific design and training factors influence the emergence of these protocols. Given that this work was conducted as part of a 15-credit module, the scope was deliberately constrained to establishing these experimental foundations and conducting targeted analysis rather than pursuing large-scale simulations as it was initially designed for.
+
+The project achieved a functional emergent communication pipeline, demonstrating a clear performance gap between agents with communication channels and those without. Specifically, agents trained with communication consistently outperformed baseline _blind_ or _random_ policies, verifying the necessity of signalling for the survival task. My analysis revealed that while protocols did stabilise and exhibit structural patterns, the system remained sensitive to local optima, where some message collapses were observed in specific training runs where agents converged on sub-optimal strategies. These results confirm the potential of survival-based signalling games while highlighting the stability challenges inherent in multi-agent reinforcement learning.
+
+
+#pagebreak()
+
 = Context Survey <group1>
 
 Surveying the context, the background literature and any recent work with similar aims. *Should I assume that the marker know about basic Machine Learning concepts, or should I explain them?*
@@ -152,57 +137,181 @@ Introduce the work metrics used to analyse our work for the runs with concepts a
 
 Need to also list typical problems encountered with the models to setup a plausible explanation for my results (like the message collapse)
 
+#pagebreak()
 
-\
 = Requirements Specification <group1>
-
-Capturing the properties the software solution must have in the form of requirements specification. You may wish to specify different types of requirements and given them priorities if applicable.
+\
+The objectives for this project are presented below, organised into primary, secondary, and tertiary priorities. These objectives were originally defined in the DOER and provide a structured progression from foundational work to more advanced exploration of emergent communication in multi-agent systems. In practice, primary and most secondary objectives were completed, whereas tertiary objectives were partially deferred due to time and scope constraints.
 
 == Original objectives from DOER <group1>
+\
+*Primary Objectives*
 
-List all the objectives as in the DOER. Mention how the scope was very good for primary objectives and secondary objectives. Tertiary objectives were too ambitious for the project and did not have time.
+1. *Machine Learning Foundation Development:*
+   The first objective involves establishing comprehensive understanding of machine learning fundamentals and PyTorch framework. This includes mastering multi-agent reinforcement learning concepts and techniques. Additionally, studying existing literature on emergent communication in AI systems forms a crucial component of this foundational phase.
 
-The original objectives were organised into three priority levels.
+2. *Emergent Communication Background Research:*
+   This objective requires conducting thorough literature review on emergent communication research. The work involves gaining proficiency with the #underline[#link("https://github.com/facebookresearch/EGG/tree/main")[EGG library]] (Emergent Communication through Games). Furthermore, analysing existing game setups and agent architectures used in communication research will provide essential background knowledge.
 
-*Primary objectives*
-- Establish machine learning and PyTorch foundations relevant to reinforcement and multi-agent learning.
-- Build background knowledge in emergent communication research and gain working proficiency with the EGG framework.
-- Implement a baseline communication setup to establish training and evaluation methodology.
-- Design a simple survival-oriented communication game.
+3. *Baseline Implementation:*
+   The third objective focuses on implementing AI agents within an existing survival game using the EGG library. This phase involves training the agents to develop communication protocols and evaluating their performance in survival scenarios, with particular emphasis on understanding the practical aspects of training communicating agents. A key outcome of this stage will be the establishment of baseline performance metrics and evaluation methodologies.
 
-*Secondary objectives*
-- Implement and train agents in the custom game environment.
-- Analyse emergent language properties, including systematicity and efficiency.
-
-*Tertiary objectives*
-- Design a more complex game setting with richer environmental dynamics.
-- Extend communication experiments beyond two-agent settings.
-- Perform advanced cross-game language analysis.
-- Consolidate findings into the final dissertation.
-
-In practice, primary and most secondary objectives were completed, whereas tertiary objectives were partially deferred due to time and scope constraints.
-
-
-== Scope evolution and objective changes <group1>
-
-Explicitly talk about image based game branch dropped from implementation scope after the interim report.
-
-All objectives were followed but gathering the images for the game designed was too time consuming and complex, so I decided to remove the game and use my second designed game where I make the data.
-
-*Mention maybe here that the game was developed over the implementation too which was not anticipated in the objective set out?*
-
-After the interim report, the implementation scope was revised by dropping the image-based game branch and prioritising the vector-based resource-chain survival game. The main reason was practical, building and curating image data at the required quality and scale would have consumed disproportionate project time, reducing the depth of analysis possible for communication behaviour. Following this change, the project retained the same core research aim, while concentrating effort on a single environment that could be iterated quickly and evaluated rigorously. Furthermore, the game design itself evolved during implementation, as several mechanics and reward choices were adjusted in response to training behaviour, and these design iterations became central to obtaining analysable message dynamics.
-
-== Final revised objectives (for final project phase) <group1>
-
-Same as in the DOER but with the update after the revision of the game. *Should i also take out the tertiary objectives?*
+4. *Simple Game Design:*
+   This objective centres on designing a basic survival scenario optimised for studying emergent communication. The focus remains on simple two-agent communication scenarios such as predator warning and hunting coordination. Implementation of visual input processing using image-based rather than symbolic inputs constitutes an important technical requirement.
 
 \
-= Preparation and Technical Ramp-Up <group1>
+*Secondary Objectives*
 
+5. *Simple Game Implementation and Training:*
+   This objective focuses on implementing AI agents within the custom-designed simple survival game. The work involves integrating the EGG framework with the newly created game environment, training agents to develop communication protocols specific to the designed scenarios, and conducting initial experiments to validate that meaningful communication emerges. This phase emphasises debugging the game mechanics, optimising training parameters, and establishing that the custom environment successfully promotes agent communication development.
+
+6. *Language Analysis:*
+   This objective requires analysing emergent communication protocols for fundamental properties like compositionality and efficiency. The work investigates how environmental pressures shape basic language development. Initial evaluation of communication strategies provides foundational analysis for the research.
+
+\
+*Tertiary Objectives*
+
+7. *Complex Game Design:*
+   This advanced objective involves developing sophisticated survival scenarios with multiple environmental factors and complex agent interactions. Implementation of varied survival challenges and dynamic environmental conditions extends beyond basic two-agent scenarios.
+
+8. *Multi-Agent Communication:*
+   This objective explores communication emergence in scenarios involving more than two agents. The work examines how group communication protocols develop and how information propagates through larger agent populations.
+
+9. *Advanced Language Analysis Across Multiple Games:*
+   This comprehensive objective involves analysing emergent communication protocols across different game environments and scenarios. The work compares systematicity, compositionality, and efficiency across varied survival contexts to understand broader patterns in language evolution.
+
+10. *Thesis Documentation:*
+   The final objective encompasses a comprehensive evaluation of experimental results. This includes critical analysis of findings in context of existing literature. Documentation of methodology, results, and implications for understanding language evolution represents the culmination of the project work.
+
+\
+== Scope evolution and objective changes <group1>
+\
+After the interim report, the implementation scope was revised by dropping the image based game branch and prioritising the vector based resource-chain survival game. The main reason was practical, building and curating image data at the required quality and scale would have consumed disproportionate project time, reducing the depth of analysis possible for communication behaviour. Following this change, the project retained the same core research aim, while concentrating effort on a single environment that could be iterated quickly and evaluated rigorously. Furthermore, the game design itself evolved during implementation, as several mechanics and reward choices were adjusted in response to training behaviour, and these design iterations became central to obtaining analysable message dynamics.
+
+\
+== Final revised objectives <group1>
+\
+*Primary Objectives*
+
+1. *Machine Learning Foundation Development:*
+   The first objective involves establishing comprehensive understanding of machine learning fundamentals and PyTorch framework. This includes mastering multi-agent reinforcement learning concepts and techniques. Additionally, studying existing literature on emergent communication in AI systems forms a crucial component of this foundational phase.
+
+2. *Emergent Communication Background Research:*
+   This objective requires conducting thorough literature review on emergent communication research. The work involves gaining proficiency with the #underline[#link("https://github.com/facebookresearch/EGG/tree/main")[EGG library]] (Emergent Communication through Games). Furthermore, analysing existing game setups and agent architectures used in communication research will provide essential background knowledge.
+
+3. *Baseline Implementation:*
+   The third objective focuses on implementing AI agents within an existing survival game using the EGG library. This phase involves training the agents to develop communication protocols and evaluating their performance in survival scenarios, with particular emphasis on understanding the practical aspects of training communicating agents. A key outcome of this stage will be the establishment of baseline performance metrics and evaluation methodologies.
+
+
+4. *Simple Game Design (Revised):*
+   This objective centres on designing a basic survival scenario optimised for studying emergent communication. The focus remains on simple two-agent communication scenarios such as predator warning and hunting coordination. Implementation will follow a vector based resource-chain infrastructure, motivated by the basic games library from the EGG repository.
+
+\
+*Secondary Objectives*
+
+5. *Simple Game Implementation and Training:*
+   This objective focuses on implementing AI agents within the custom-designed simple survival game. The work involves integrating the EGG framework with the newly created game environment, training agents to develop communication protocols specific to the designed scenarios, and conducting initial experiments to validate that meaningful communication emerges. This phase emphasises debugging the game mechanics, optimising training parameters, and establishing that the custom environment successfully promotes agent communication development.
+
+6. *Language Analysis:*
+   This objective requires analysing emergent communication protocols for fundamental properties like compositionality and efficiency. The work investigates how environmental pressures shape basic language development. Initial evaluation of communication strategies provides foundational analysis for the research.
+
+\
+*Tertiary Objectives*
+
+7. *Complex Game Design:*
+   This advanced objective involves developing sophisticated survival scenarios with multiple environmental factors and complex agent interactions. Implementation of varied survival challenges and dynamic environmental conditions extends beyond basic two-agent scenarios.
+
+8. *Multi-Agent Communication:*
+   This objective explores communication emergence in scenarios involving more than two agents. The work examines how group communication protocols develop and how information propagates through larger agent populations.
+
+9. *Advanced Language Analysis Across Multiple Games:*
+   This comprehensive objective involves analysing emergent communication protocols across different game environments and scenarios. The work compares systematicity, compositionality, and efficiency across varied survival contexts to understand broader patterns in language evolution.
+
+10. *Thesis Documentation:*
+   The final objective encompasses a comprehensive evaluation of experimental results. This includes critical analysis of findings in context of existing literature. Documentation of methodology, results, and implications for understanding language evolution represents the culmination of the project work.
+
+
+Note: Tertiary objectives were retained for completeness and alignment with the original project scope, but were not fully pursued due to time and scope constraints, with exception of the Thesis Documentation.
+
+
+
+= Preparation and Technical Ramp-Up <group1>
+\
+This chapter documents the preparatory work completed before the core survival-game experiments and explains why that preparation was necessary for the later research claims. Although these activities were enabling work rather than the central contribution, they directly addressed the first primary objectives in the DOER and established the methodological reliability required for the implementation and evaluation chapters. The preparation process followed weekly supervisor checkpoints, where progress was reviewed, technical misunderstandings were corrected, and short-term milestones were refined in response to observed results.
+
+A central aim of this chapter is to show that later design decisions were not made ad hoc. Instead, they were grounded in a staged progression from machine learning theory, to framework-level engineering, to controlled communication experiments. This progression reduced trial-and-error development, improved reproducibility, and made it possible to interpret model behaviour in terms of known optimisation and generalisation mechanisms.
+
+== Machine Learning foundation <group1>
+\
+The first preparation stage focused on building a robust conceptual base in machine learning so that subsequent model design and experimental reasoning could be justified rigorously. The primary resource was the #underline[#link("https://developers.google.com/machine-learning/crash-course")[Google Machine Learning Crash Course]] @google:mlcrashcourse, supported by targeted readings, practical notebooks, and weekly discussion with my supervisor. The objective was not exhaustive breadth, but strong operational understanding of the concepts that directly affect experimental reliability in emergent communication work.
+
+Coverage included linear and logistic regression, loss formulation, gradient descent, convergence diagnostics, and hyperparameter sensitivity. The study then expanded to evaluation and error analysis, including confusion matrices, precision, recall, threshold effects, regularisation, and failure modes associated with overfitting. Additional modules on numerical and categorical data preparation were particularly relevant, because they addressed feature representation, normalisation, data quality checks, and split discipline, all of which later informed how game-state vectors and train/validation/test partitions were handled in this dissertation.
+
+This phase was completed over roughly four weeks and combined conceptual study with implementation-oriented exercises, including supervised classification tasks and small pipeline replications. These exercises surfaced recurrent practical issues, such as unstable training under unsuitable learning rates, metric misinterpretation when class distributions were imbalanced, and debugging difficulty when preprocessing assumptions were implicit rather than explicit. Resolving these issues at this stage prevented them from contaminating later communication experiments.
+
+The outcome of this phase was both conceptual and procedural. Conceptually, it provided a coherent explanation framework for interpreting optimisation behaviour. Procedurally, it established a repeatable workflow for model setup, metric reporting, and result validation. Together, these foundations enabled later chapters to argue from evidence rather than from isolated run outcomes.
+
+== PyTorch familiarisation and initial experiments <group1>
+\
+Following the theoretical phase, the project moved to PyTorch familiarisation to ensure that model behaviour could be controlled and diagnosed at code level. Early work focused on tensor operations, shape transformations, autograd mechanics, module design, optimiser configuration, batching logic, and device-aware execution. Particular emphasis was placed on avoiding silent shape errors and ensuring deterministic experimental setup where feasible, because these were frequent causes of misleading outcomes in initial tests.
+
+Practical exercises progressed from tutorial-scale scripts to complete training and evaluation loops, including custom classifiers on MNIST-style data. This transition was important because it exposed the full engineering path required for later communication games: data loading, model construction, loss computation, parameter updates, metric aggregation, and checkpoint management. At this stage, I also developed confidence in interpreting loss and accuracy trends across epochs, distinguishing genuine learning progress from unstable oscillation or reporting artefacts.
+
+This PyTorch phase directly improved implementation quality in later chapters. By the time communication experiments began, I had a stable development workflow for instrumenting runs, isolating code-level defects, and applying targeted hyperparameter changes. In practice, this reduced avoidable rework and made the eventual EGG adaptation substantially more efficient.
+
+== EGG framework familiarisation <group1>
+
+EGG familiarisation focused on understanding the framework as a research instrument rather than treating it as a black-box training utility. The `zoo/basic_games` modules were used as the entry point because they clearly expose sender-receiver composition, game objectives, wrapper-level message handling, and optimisation differences between training modes. This stage clarified how communication games are parameterised, where task-specific logic should be implemented, and how metrics should be interpreted in relation to each game objective.
+
+A major outcome of this phase was understanding the practical trade-off between Gumbel-Softmax relaxation and REINFORCE for discrete communication. Comparative reconstruction runs across multiple configurations showed substantial performance variance, with final accuracies spanning 3% to 17%, depending on learning rate, architecture size, message constraints, and optimisation mode. Although these scores were modest in absolute terms, the experiments were methodologically valuable because they revealed how sensitive emergent communication training can be to configuration details that might otherwise appear secondary.
+
+This familiarisation also provided a transferable mental model of data flow, from sender input encoding through message generation to receiver prediction and loss backpropagation or policy-gradient updates. That understanding later informed the custom survival-game design, especially in defining communication channels, selecting diagnostics, and recognising when observed collapse reflected optimisation dynamics rather than implementation failure.
+
+== MNIST adaptation in EGG as preparatory work <group1>
+
+The MNIST adaptation served as the culmination of the preparation phase, combining machine learning foundations, PyTorch implementation competence, and EGG-specific communication mechanics in one controlled experiment. The implemented task was a discrimination game in which a sender observed a target digit and sent a discrete message to a receiver that selected the target among distractors. This setup was intentionally chosen because it preserved the core communication loop while remaining sufficiently interpretable for detailed debugging and message-level analysis.
+
+Experiment configuration was explicit and reproducible, including sender and receiver recurrent architectures, constrained vocabulary, fixed maximum message length, entropy regularisation, and tracked epoch-wise metrics. In tracked runs, the system demonstrated strong classification capability, including test accuracies above 90% and a best recorded run at 96.5% by epoch 10 under the reported configuration. Data scale and runtime characteristics were also documented, with 60,000 training samples, 10,000 test samples, and practical CPU-only execution time suitable for iterative experimentation.
+
+Beyond raw accuracy, the MNIST stage was valuable because it established an analysis methodology later reused in the survival-game experiments. Confusion-matrix inspection showed strong diagonal concentration, while message-level analysis indicated non-random token usage, recurring symbol motifs, and entropy variation across classes. These behaviours suggested that communication was not merely noise, but was adapting to task structure in measurable ways.
+
+For this reason, the MNIST adaptation is treated in this dissertation as preparatory validation rather than a principal research contribution. Its main role was to validate tooling, calibrate instrumentation, and reduce risk before moving to the more complex survival setting, where interpretation is harder and experimental control is more limited.
+
+#pagebreak()
+
+= Preparation and Technical Ramp-Up <group1>
+\
 This section is an additional one I want to add ti talk about the first two objectives in the DOER which were about learning and did not necessarily relate to the research question directly.
 
-== Machine Learning foundation (Crash Course, core concepts) <group1>
+== Machine Learning foundation <group1>
+\
+The first phase in the project established the theoretical and practical foundations required to support subsequent model design and experimental reasoning. The primary objective was not exhaustive theoretical coverage, but the development of a working understanding of core machine learning principles that could be directly applied during implementation and evaluation. The main resource used was the #underline[#link("https://developers.google.com/machine-learning/crash-course")[Google's Machine Learning Crash Course]] provided by Google @google:mlcrashcourse, which offers a structured introduction to supervised learning through a combination of short lectures, interactive exercises, and applied examples. This was supplemented with targeted readings and implementation focused materials derived from the weekly checkpoints where my supervisor would quiz me and explain areas that I did not comprehend.
+
+This preparation phase was completed over approximately three weeks and combined conceptual study with small implementation tasks, including the construction of a simple handwritten digit classifier using the MNIST @lecun2010mnist data. These exercises served as verification of understanding and exposed common failure modes such as incorrect tensor dimensions, unstable gradients, and poor hyper-parameter selection. The outcomes of this phase were therefore both conceptual and procedural, and overlapped with the subsequent weeks where I learnt how  to use PyTorch in depth.
+
+Overall, this stage provided a stable foundation for the remainder of the project. It enabled informed decisions about model architecture, loss functions, and optimisation strategies, and it reduced reliance on trial-and-error during later development. Moreover, it supported more rigorous evaluation by allowing observed behaviours, such as training instability or performance plateaus, to be interpreted in terms of underlying learning dynamics rather than treated as opaque outcomes.
+
+\
+== PyTorch familiarisation and initial experiments <group1>
+\
+Following the conceptual foundation, work shifted to PyTorch familiarisation so that model behaviour could be understood and controlled at implementation level. Initial exercises focused on tensors, autograd, module design, forward and backward passes, optimiser setup, batching, and validation loops. Particular effort was placed on data preprocessing, dimensional consistency, and reproducibility controls, because these repeatedly affected training reliability in early experiments.
+
+The experimental progression moved from simple networks to convolutional architectures on image data, with systematic variation of learning rate, batch size, and optimiser settings. This phase clarified which training failures were due to modelling assumptions and which were due to implementation errors. Consequently, by the time communication experiments started, the project had an established workflow for logging, debugging, and interpreting model behaviour, which reduced avoidable rework in later chapters.
+
+== EGG framework familiarisation <group1>
+
+EGG familiarisation focused on understanding how emergent communication experiments are structured end to end, including sender and receiver roles, wrapper behaviour, task objectives, and training orchestration. The basic games modules were used as the main reference point, especially reconstruction and discrimination setups, because they expose the core mechanics needed for custom communication-game development. This stage also clarified practical differences between Gumbel-Softmax relaxation and REINFORCE training for discrete signalling.
+
+Hands-on runs in the basic games provided useful calibration of expected behaviour and limitations. Early reconstruction performance varied substantially across settings, with final accuracies ranging from 3% to 17%, highlighting sensitivity to learning rate, architecture configuration, and message constraints. Although these scores were modest, the experiments were valuable because they built a correct mental model of data flow and optimisation dynamics, which later informed the design and justification of the custom survival-game pipeline.
+
+== MNIST adaptation in EGG as preparatory work <group1>
+
+The MNIST adaptation served as the integration milestone that combined machine learning theory, PyTorch engineering, and EGG communication mechanics. A discrimination game was implemented in which the sender observed a target digit and transmitted a message to a receiver that selected the target among distractors. This intermediate task was deliberately chosen because it preserved the full communication loop while remaining sufficiently interpretable for controlled debugging and message analysis.
+
+The resulting performance provided strong evidence that the pipeline was functional before moving to the survival domain. In a tracked run, test accuracy reached 91.47% by epoch 10, and confusion-matrix analysis over the test set showed 97.68% diagonal mass overall, with per-class recall generally between 96% and 99%. Message analysis also indicated stable, non-random signalling tendencies, including consistent symbol reuse patterns. In this dissertation, the MNIST stage is therefore treated as preparatory validation rather than a core contribution, with its primary value being risk reduction, tooling validation, and methodological calibration for the main survival-game experiments.
+
+\
+== Machine Learning foundation <group1>
 
 Brief summary of what was studied and what resource was used. Talk about the progress, challenges and ways of learning implemented (videos, lectures, practical use and quizzes). 
 
@@ -210,10 +319,18 @@ List the sections learnt, and how they were relevant to the project and how succ
 
 The project began with a structured machine learning foundation phase using Google's Machine Learning Crash Course, complemented by lecture notes and practical exercises. This phase covered core topics including regression, classification, loss optimisation, model evaluation, and neural network fundamentals, which were necessary before implementing communication games in EGG. The learning process combined reading, quizzes, and short coding experiments, and it provided a reliable conceptual base for later decisions on training setup, metric interpretation, and error analysis.
 
+\ \ \ \
+
+The semester began with building foundational knowledge in machine learning, an area where significant gaps existed. #underline[#link("https://developers.google.com/machine-learning/crash-course")[Google's Machine Learning Crash Course]] became the primary learning resource, covering everything from linear and logistic regression through to neural network architectures, classification systems, and model evaluation. The course proved highly effective, completing it within four weeks with perfect scores on all quizzes.
+
+Alongside this structured learning, I developed PyTorch skills through self-directed experimentation and the guidance of my supervisor. The MNIST dataset served as the main training ground, supplemented by other benchmark datasets. This hands-on approach, where I was building custom neural networks with `torch.nn.Module`, implementing training loops, and experimenting with different architectures, proved invaluable for understanding how theory translates to practice.
+
+\
 == PyTorch familiarisation and initial experiments <group1>
 
 Brief summary of what was studied and how it was learnt (documentation and coding exercises/exploration).
 
+\
 == EGG framework familiarisation <group1>
 
 Summary of what was studied, how and why. Here it is now more relevant to the project so make sure to be concise but explanatory enough to be self contained.
@@ -222,6 +339,7 @@ Mention the structure of the repository but not in full detail
 
 EGG familiarisation was carried out through detailed study of the `zoo/basic_games` modules and hands-on experiments with reconstruction and discrimination setups. This phase clarified the sender-receiver architecture, message generation process, and the differences between Gumbel-Softmax and REINFORCE training modes. Although early reconstruction scores were modest, these experiments were useful because they established a working understanding of data flow, optimisation behaviour, and practical constraints when training communicating agents.
 
+\
 == MNIST adaptation in EGG as preparatory work <group1>
 
 Example of how the egg framework was learnt and combining the learning outcomes of the three learning objectives. 
@@ -230,11 +348,12 @@ Talk about the implementation and success of it but very briefly. Purpose is too
 
 To consolidate this preparation, a baseline MNIST discrimination game was implemented in EGG, where agents communicated about one target digit among distractors. The model reached 96.5% test accuracy, and message analysis showed clear symbol reuse patterns and vocabulary compression. In this dissertation, this baseline is treated as preparatory work rather than a core contribution, because its main value was to validate tooling, establish analysis workflows, and reduce implementation risk before developing the custom survival environment.
 
+\
 == Lessons from preparation phase that informed final design choices <group1>
 
 Maybe a small paragraph on how all of these learnt topics/skills helped in the development of the game, implementation and analysis.
 
-\
+#pagebreak()
 = Software Engineering Process <group1>
 
 The development approach taken and justification for its adoption.

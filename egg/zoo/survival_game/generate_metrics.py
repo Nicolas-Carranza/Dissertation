@@ -30,6 +30,7 @@ import json
 import argparse
 import sys
 import csv
+import re
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -108,10 +109,18 @@ class MetricsGenerator:
         if default_log.exists():
             return default_log
 
+        default_txt = self.run_dir / "train_run.txt"
+        if default_txt.exists():
+            return default_txt
+
         # Any run-specific log, e.g. train_run13.log
         candidates = sorted(self.run_dir.glob("train_run*.log"))
         if candidates:
             return candidates[0]
+
+        txt_candidates = sorted(self.run_dir.glob("train_run*.txt"))
+        if txt_candidates:
+            return txt_candidates[0]
 
         # Let validation raise a clear error
         return default_log
@@ -122,10 +131,10 @@ class MetricsGenerator:
             raise FileNotFoundError(f"Run directory not found: {self.run_dir}")
         
         if not self.log_file.exists():
-            available = sorted(self.run_dir.glob("*.log"))
+            available = sorted(self.run_dir.glob("*.log")) + sorted(self.run_dir.glob("*.txt"))
             available_names = ", ".join(p.name for p in available) if available else "none"
             raise FileNotFoundError(
-                f"Train log not found: {self.log_file}. Available .log files: {available_names}"
+                f"Train log not found: {self.log_file}. Available log/txt files: {available_names}"
             )
         
         print(f"✓ Run directory found: {self.run_dir}")
@@ -728,12 +737,40 @@ class MetricsGenerator:
                 return matches[0]
         return None
 
+    @staticmethod
+    def _extract_run_id(name: str) -> Optional[str]:
+        match = re.search(r"run(\d+)", name)
+        if not match:
+            return None
+        return match.group(1)
+
+    def _resolve_snapshot_paths_for_selected_log(self) -> Tuple[Optional[Path], Optional[Path]]:
+        """Resolve progression/final snapshot paths, preferring files that match selected log run id."""
+        run_id = self._extract_run_id(self.log_file.stem)
+
+        progression_path: Optional[Path] = None
+        final_path: Optional[Path] = None
+
+        if run_id is not None:
+            specific_progression = self.run_dir / f"message_progression_run{run_id}.jsonl"
+            specific_final = self.run_dir / f"message_snapshot_final_run{run_id}.json"
+            if specific_progression.exists():
+                progression_path = specific_progression
+            if specific_final.exists():
+                final_path = specific_final
+
+        if progression_path is None:
+            progression_path = self._find_first_existing(["message_progression*.jsonl"])
+        if final_path is None:
+            final_path = self._find_first_existing(["message_snapshot_final*.json"])
+
+        return progression_path, final_path
+
     def _load_hungarian_snapshots(self) -> Dict[int, Dict]:
         """Load progression + final snapshots for Hungarian analysis."""
         snapshots_by_epoch: Dict[int, Dict] = {}
 
-        progression_path = self._find_first_existing(["message_progression*.jsonl"])
-        final_path = self._find_first_existing(["message_snapshot_final*.json"])
+        progression_path, final_path = self._resolve_snapshot_paths_for_selected_log()
 
         if progression_path and progression_path.exists():
             with open(progression_path, 'r') as f:
@@ -816,6 +853,108 @@ class MetricsGenerator:
                         continue
 
         return entity_keys, entity_names, np.array(entity_vectors), messages, counts
+
+    @staticmethod
+    def _sanitize_message_for_name(message: str) -> str:
+        return message.replace(" ", "_")
+
+    def _run_message_snapshot_analysis(self) -> None:
+        """Create message/entity heatmap + reuse report from final snapshot."""
+        print("  Generating: Message snapshot heatmap and reuse analysis...")
+        _progression_path, final_path = self._resolve_snapshot_paths_for_selected_log()
+        if not final_path or not final_path.exists():
+            print("    ⚠ No final message snapshot found, skipping message heatmap...")
+            return
+
+        try:
+            with open(final_path, "r", encoding="utf-8") as f:
+                snapshot = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            print("    ⚠ Could not parse final message snapshot, skipping message heatmap...")
+            return
+
+        entity_keys, entity_names, _entity_vectors, messages, counts = self._snapshot_to_count_matrix(snapshot)
+        if not entity_keys or not messages or counts.size == 0:
+            print("    ⚠ Snapshot has no entity/message count content, skipping...")
+            return
+
+        # Row-normalized matrix makes multi-entity message reuse easier to spot visually.
+        row_sums = counts.sum(axis=1, keepdims=True)
+        row_sums[row_sums == 0.0] = 1.0
+        normalized = counts / row_sums
+
+        fig_w = max(12.0, min(26.0, 10.0 + 0.22 * len(messages)))
+        fig_h = max(10.0, min(26.0, 8.0 + 0.22 * len(entity_names)))
+        fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+        im = ax.imshow(normalized, aspect="auto", cmap="viridis")
+        cbar = fig.colorbar(im, ax=ax)
+        cbar.set_label("Entity-row normalized message frequency", fontsize=10)
+
+        msg_labels = [self._sanitize_message_for_name(m) for m in messages]
+        ax.set_xticks(np.arange(len(messages)))
+        ax.set_xticklabels(msg_labels, rotation=90, fontsize=6)
+        ax.set_yticks(np.arange(len(entity_names)))
+        ax.set_yticklabels(entity_names, fontsize=7)
+        ax.set_xlabel("Messages", fontsize=11, fontweight="bold")
+        ax.set_ylabel("Entities", fontsize=11, fontweight="bold")
+        ax.set_title("Message → Entity Heatmap (Final Snapshot)", fontsize=12, fontweight="bold")
+        plt.tight_layout()
+        plt.savefig(self.metrics_dir / "message_entity_heatmap_final.png", dpi=300, bbox_inches="tight")
+        plt.close()
+        print("    ✓ Saved: message_entity_heatmap_final.png")
+
+        msg_entity_counts = (counts > 0).sum(axis=0)
+        total_by_msg = counts.sum(axis=0)
+        reused_indices = [i for i, n in enumerate(msg_entity_counts) if int(n) >= 2]
+
+        # CSV report to explicitly inspect potential synonym messages.
+        csv_path = self.metrics_dir / "message_reuse_summary_final.csv"
+        with open(csv_path, "w", encoding="utf-8", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                "message",
+                "entities_using_message",
+                "total_count",
+                "entity_list",
+            ])
+            for i in sorted(
+                range(len(messages)),
+                key=lambda j: (int(msg_entity_counts[j]), float(total_by_msg[j])),
+                reverse=True,
+            ):
+                ents = [entity_names[r] for r in range(len(entity_names)) if counts[r, i] > 0]
+                writer.writerow([
+                    messages[i],
+                    int(msg_entity_counts[i]),
+                    float(total_by_msg[i]),
+                    "|".join(ents),
+                ])
+        print("    ✓ Saved: message_reuse_summary_final.csv")
+
+        if reused_indices:
+            ranked = sorted(
+                reused_indices,
+                key=lambda j: (int(msg_entity_counts[j]), float(total_by_msg[j])),
+                reverse=True,
+            )[:20]
+            labels = [self._sanitize_message_for_name(messages[j]) for j in ranked]
+            values = [int(msg_entity_counts[j]) for j in ranked]
+
+            fig, ax = plt.subplots(figsize=(12, max(6, 0.35 * len(ranked) + 2)))
+            y = np.arange(len(ranked))
+            ax.barh(y, values, color="#1f77b4", alpha=0.85)
+            ax.set_yticks(y)
+            ax.set_yticklabels(labels, fontsize=8)
+            ax.invert_yaxis()
+            ax.set_xlabel("Number of entities using this message", fontsize=11, fontweight="bold")
+            ax.set_title("Most Reused Messages (Potential Synonyms)", fontsize=12, fontweight="bold")
+            ax.grid(True, axis="x", alpha=0.3, linestyle="--")
+            plt.tight_layout()
+            plt.savefig(self.metrics_dir / "message_reuse_top20_final.png", dpi=300, bbox_inches="tight")
+            plt.close()
+            print("    ✓ Saved: message_reuse_top20_final.png")
+        else:
+            print("    ⚠ No reused messages found in final snapshot (each message maps to one entity).")
 
     @staticmethod
     def _hungarian_with_padding(cost_matrix: np.ndarray, dummy_cost: float) -> Tuple[np.ndarray, np.ndarray]:
@@ -1174,9 +1313,441 @@ class MetricsGenerator:
         self.plot_recall()
         self.plot_confusion_matrix()
         self.run_hungarian_analysis()
+        self._run_message_snapshot_analysis()
         self.generate_summary_report()
         
         print("\n✓ All metrics generated successfully!")
+        print(f"✓ Results saved to: {self.metrics_dir}")
+
+
+class MultiRunMetricsAggregator:
+    """
+    Aggregate metrics across multiple run logs in one directory.
+
+    Expected filenames include patterns such as train_run14.log or train_run14.txt.
+    """
+
+    def __init__(self, run_dir: Path, log_pattern: str = "train_run*"):
+        self.run_dir = Path(run_dir).resolve()
+        self.metrics_dir = self.run_dir / "metrics"
+        self.log_pattern = log_pattern
+        self.run_payloads: Dict[str, Dict] = {}
+        self.run_snapshots: Dict[str, Dict] = {}
+
+    def _discover_logs(self) -> List[Path]:
+        stem_pattern = self.log_pattern
+        if stem_pattern.endswith(".log") or stem_pattern.endswith(".txt"):
+            candidates = sorted(self.run_dir.glob(stem_pattern))
+            return [p for p in candidates if p.is_file()]
+
+        log_candidates = sorted(self.run_dir.glob(f"{stem_pattern}.log"))
+        txt_candidates = sorted(self.run_dir.glob(f"{stem_pattern}.txt"))
+        by_name: Dict[str, Path] = {}
+        for p in log_candidates + txt_candidates:
+            by_name[p.name] = p
+        return [by_name[k] for k in sorted(by_name.keys())]
+
+    @staticmethod
+    def _parse_log_file(log_file: Path) -> Tuple[Dict[str, Dict[int, Dict[str, float]]], List[int]]:
+        train_metrics: Dict[int, Dict[str, float]] = {}
+        test_metrics: Dict[int, Dict[str, float]] = {}
+        epochs = set()
+
+        with open(log_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line_stripped = line.strip()
+                if not line_stripped or not line_stripped.startswith("{"):
+                    continue
+
+                try:
+                    data = json.loads(line_stripped)
+                except json.JSONDecodeError:
+                    continue
+
+                epoch = data.get("epoch")
+                mode = data.get("mode")
+                if epoch is None or mode not in ("train", "test"):
+                    continue
+
+                epoch = int(epoch)
+                epochs.add(epoch)
+                target = train_metrics if mode == "train" else test_metrics
+                target.setdefault(epoch, {})
+                for k, v in data.items():
+                    if k in ("epoch", "mode"):
+                        continue
+                    target[epoch][k] = v
+
+        return {"train": train_metrics, "test": test_metrics}, sorted(epochs)
+
+    @staticmethod
+    def _sample_std(values: List[float]) -> float:
+        if len(values) <= 1:
+            return 0.0
+        return float(np.std(np.array(values, dtype=np.float64), ddof=1))
+
+    @staticmethod
+    def _extract_run_id(name: str) -> Optional[str]:
+        m = re.search(r"run(\d+)", name)
+        if not m:
+            return None
+        return m.group(1)
+
+    def _load_snapshot_for_log(self, log_file: Path) -> Optional[Dict]:
+        run_id = self._extract_run_id(log_file.stem)
+        candidates: List[Path] = []
+
+        if run_id is not None:
+            candidates.append(self.run_dir / f"message_snapshot_final_run{run_id}.json")
+
+        fallback_pattern = f"message_snapshot_final*{log_file.stem}*.json"
+        candidates.extend(sorted(self.run_dir.glob(fallback_pattern)))
+        candidates.extend(sorted(self.run_dir.glob("message_snapshot_final*.json")))
+
+        for path in candidates:
+            if not path.exists():
+                continue
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except (OSError, json.JSONDecodeError):
+                continue
+        return None
+
+    @staticmethod
+    def _snapshot_to_count_matrix(snapshot: Dict) -> Tuple[List[str], List[str], List[str], np.ndarray]:
+        by_entity = snapshot.get("by_entity", {})
+        if not isinstance(by_entity, dict) or not by_entity:
+            return [], [], [], np.zeros((0, 0), dtype=float)
+
+        entity_keys = sorted(by_entity.keys())
+        entity_names: List[str] = []
+        all_messages = set()
+
+        for k in entity_keys:
+            info = by_entity.get(k, {})
+            entity_names.append(str(info.get("entity", k)))
+            for tm in info.get("top_messages", []):
+                msg = tm.get("message")
+                if isinstance(msg, str):
+                    all_messages.add(msg)
+
+        messages = sorted(all_messages)
+        msg_to_idx = {m: i for i, m in enumerate(messages)}
+        counts = np.zeros((len(entity_keys), len(messages)), dtype=float)
+
+        for i, k in enumerate(entity_keys):
+            info = by_entity.get(k, {})
+            for tm in info.get("top_messages", []):
+                msg = tm.get("message")
+                cnt = tm.get("count", 0)
+                if isinstance(msg, str) and msg in msg_to_idx:
+                    try:
+                        counts[i, msg_to_idx[msg]] += float(cnt)
+                    except (TypeError, ValueError):
+                        continue
+
+        return entity_keys, entity_names, messages, counts
+
+    @staticmethod
+    def _sanitize_message_for_name(message: str) -> str:
+        return message.replace(" ", "_")
+
+    def load_all(self) -> None:
+        if not self.run_dir.exists():
+            raise FileNotFoundError(f"Run directory not found: {self.run_dir}")
+
+        logs = self._discover_logs()
+        if not logs:
+            raise FileNotFoundError(
+                f"No run files found in {self.run_dir} using pattern '{self.log_pattern}'"
+            )
+
+        self.metrics_dir.mkdir(parents=True, exist_ok=True)
+        print(f"✓ Aggregate mode: found {len(logs)} run files")
+        for log in logs:
+            payload, epochs = self._parse_log_file(log)
+            snapshot = self._load_snapshot_for_log(log)
+            self.run_payloads[log.name] = {
+                "file": log,
+                "metrics": payload,
+                "epochs": epochs,
+            }
+            if snapshot is not None:
+                self.run_snapshots[log.name] = snapshot
+            print(f"  - {log.name}: {len(payload['test'])} test epochs")
+
+    def _plot_run_snapshot_heatmap(self, run_name: str, snapshot: Dict) -> None:
+        _entity_keys, entity_names, messages, counts = self._snapshot_to_count_matrix(snapshot)
+        if not entity_names or not messages or counts.size == 0:
+            print(f"    ⚠ {run_name}: snapshot missing message/entity counts, skipping heatmap")
+            return
+
+        row_sums = counts.sum(axis=1, keepdims=True)
+        row_sums[row_sums == 0.0] = 1.0
+        normalized = counts / row_sums
+
+        fig_w = max(11.0, min(24.0, 9.0 + 0.20 * len(messages)))
+        fig_h = max(9.0, min(24.0, 7.0 + 0.20 * len(entity_names)))
+        fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+        im = ax.imshow(normalized, aspect="auto", cmap="viridis")
+        cbar = fig.colorbar(im, ax=ax)
+        cbar.set_label("Entity-row normalized message frequency", fontsize=10)
+
+        msg_labels = [self._sanitize_message_for_name(m) for m in messages]
+        ax.set_xticks(np.arange(len(messages)))
+        ax.set_xticklabels(msg_labels, rotation=90, fontsize=6)
+        ax.set_yticks(np.arange(len(entity_names)))
+        ax.set_yticklabels(entity_names, fontsize=7)
+        ax.set_xlabel("Messages", fontsize=11, fontweight="bold")
+        ax.set_ylabel("Entities", fontsize=11, fontweight="bold")
+        ax.set_title(f"Message → Entity Heatmap ({run_name})", fontsize=12, fontweight="bold")
+        plt.tight_layout()
+
+        run_id = self._extract_run_id(run_name) or run_name.replace(".", "_")
+        out_name = f"message_entity_heatmap_run{run_id}.png"
+        plt.savefig(self.metrics_dir / out_name, dpi=300, bbox_inches="tight")
+        plt.close()
+        print(f"    ✓ Saved: {out_name}")
+
+    def _save_message_reuse_group_summary(self) -> None:
+        rows: List[Dict[str, object]] = []
+
+        for run_name, snapshot in self.run_snapshots.items():
+            _entity_keys, entity_names, messages, counts = self._snapshot_to_count_matrix(snapshot)
+            if not entity_names or not messages or counts.size == 0:
+                continue
+
+            msg_entity_counts = (counts > 0).sum(axis=0)
+            total_by_msg = counts.sum(axis=0)
+            reused = [i for i, n in enumerate(msg_entity_counts) if int(n) >= 2]
+
+            rows.append({
+                "run": run_name,
+                "n_entities": len(entity_names),
+                "n_messages": len(messages),
+                "reused_messages": len(reused),
+                "reuse_ratio": (len(reused) / max(len(messages), 1)),
+                "max_entities_on_one_message": int(np.max(msg_entity_counts)) if len(messages) > 0 else 0,
+                "top_reused_message": messages[int(np.argmax(msg_entity_counts))] if len(messages) > 0 else "",
+                "top_reused_message_entity_count": int(np.max(msg_entity_counts)) if len(messages) > 0 else 0,
+                "top_reused_message_total_count": float(np.max(total_by_msg)) if len(messages) > 0 else 0.0,
+            })
+
+            # Per-run detailed csv for manual synonym inspection.
+            run_id = self._extract_run_id(run_name) or run_name.replace(".", "_")
+            detail_csv = self.metrics_dir / f"message_reuse_summary_run{run_id}.csv"
+            with open(detail_csv, "w", encoding="utf-8", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    "message",
+                    "entities_using_message",
+                    "total_count",
+                    "entity_list",
+                ])
+                for i in sorted(
+                    range(len(messages)),
+                    key=lambda j: (int(msg_entity_counts[j]), float(total_by_msg[j])),
+                    reverse=True,
+                ):
+                    ents = [entity_names[r] for r in range(len(entity_names)) if counts[r, i] > 0]
+                    writer.writerow([
+                        messages[i],
+                        int(msg_entity_counts[i]),
+                        float(total_by_msg[i]),
+                        "|".join(ents),
+                    ])
+            print(f"    ✓ Saved: message_reuse_summary_run{run_id}.csv")
+
+        if not rows:
+            print("    ⚠ No snapshot reuse summaries generated (no valid snapshots found).")
+            return
+
+        summary_csv = self.metrics_dir / "message_reuse_summary_across_runs.csv"
+        with open(summary_csv, "w", encoding="utf-8", newline="") as f:
+            fieldnames = [
+                "run",
+                "n_entities",
+                "n_messages",
+                "reused_messages",
+                "reuse_ratio",
+                "max_entities_on_one_message",
+                "top_reused_message",
+                "top_reused_message_entity_count",
+                "top_reused_message_total_count",
+            ]
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
+        print("    ✓ Saved: message_reuse_summary_across_runs.csv")
+
+        # Bar chart: count of reused messages per run for quick comparison.
+        run_labels = [r["run"] for r in rows]
+        reused_vals = [float(r["reused_messages"]) for r in rows]
+        ratio_vals = [float(r["reuse_ratio"]) for r in rows]
+
+        x = np.arange(len(run_labels))
+        fig, ax1 = plt.subplots(figsize=(12, 6))
+        ax1.bar(x, reused_vals, color="#1f77b4", alpha=0.85, label="Reused messages (count)")
+        ax1.set_ylabel("Reused messages", fontsize=11, fontweight="bold")
+        ax1.set_xticks(x)
+        ax1.set_xticklabels(run_labels, rotation=25, ha="right")
+        ax1.grid(True, axis="y", alpha=0.3, linestyle="--")
+
+        ax2 = ax1.twinx()
+        ax2.plot(x, ratio_vals, color="#ff7f0e", marker="o", linewidth=2.0, label="Reuse ratio")
+        ax2.set_ylabel("Reuse ratio", fontsize=11, fontweight="bold")
+        ax2.set_ylim(0.0, min(1.0, max(ratio_vals) * 1.2 + 0.05))
+
+        ax1.set_title("Message Reuse Across Runs (Potential Synonyms)", fontsize=12, fontweight="bold")
+        lines_1, labels_1 = ax1.get_legend_handles_labels()
+        lines_2, labels_2 = ax2.get_legend_handles_labels()
+        ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc="best")
+        plt.tight_layout()
+        plt.savefig(self.metrics_dir / "message_reuse_across_runs.png", dpi=300, bbox_inches="tight")
+        plt.close()
+        print("    ✓ Saved: message_reuse_across_runs.png")
+
+    def _final_epoch_metrics(self) -> Tuple[List[str], Dict[str, Dict[str, float]]]:
+        metric_map: Dict[str, Dict[str, float]] = {}
+        run_names = sorted(self.run_payloads.keys())
+
+        for run_name in run_names:
+            payload = self.run_payloads[run_name]
+            test_metrics: Dict[int, Dict[str, float]] = payload["metrics"]["test"]
+            if not test_metrics:
+                continue
+
+            final_epoch = max(test_metrics.keys())
+            final_row = test_metrics.get(final_epoch, {})
+            for key, value in final_row.items():
+                metric_map.setdefault(key, {})[run_name] = float(value)
+
+        return run_names, metric_map
+
+    def _save_final_summary(self) -> None:
+        run_names, metric_map = self._final_epoch_metrics()
+        report_path = self.metrics_dir / "multi_run_summary.txt"
+        json_path = self.metrics_dir / "multi_run_summary.json"
+
+        selected_metrics = [
+            "loss",
+            "mean_reward",
+            "expected_reward",
+            "recon_loss",
+            "recon_acc",
+            "topsim",
+            "length",
+            "valid_action_rate",
+            "invalid_entity_idx_rate",
+        ]
+
+        summary_json = {
+            "run_dir": str(self.run_dir),
+            "runs": run_names,
+            "n_runs": len(run_names),
+            "metrics": {},
+        }
+
+        with open(report_path, "w", encoding="utf-8") as f:
+            f.write("=" * 70 + "\n")
+            f.write("MULTI-RUN METRICS SUMMARY (FINAL TEST EPOCH)\n")
+            f.write("=" * 70 + "\n\n")
+            f.write(f"Run Directory: {self.run_dir}\n")
+            f.write(f"Runs: {len(run_names)}\n")
+            f.write("Files:\n")
+            for rn in run_names:
+                f.write(f"  - {rn}\n")
+            f.write("\n")
+
+            for metric in selected_metrics:
+                per_run = metric_map.get(metric, {})
+                values = [per_run[rn] for rn in run_names if rn in per_run]
+                if not values:
+                    continue
+
+                mean_val = float(np.mean(values))
+                std_val = self._sample_std(values)
+                f.write(f"{metric}: mean={mean_val:.6f}, std={std_val:.6f}, n={len(values)}\n")
+                summary_json["metrics"][metric] = {
+                    "mean": mean_val,
+                    "std": std_val,
+                    "n": len(values),
+                    "per_run": {rn: per_run.get(rn) for rn in run_names if rn in per_run},
+                }
+
+        with open(json_path, "w", encoding="utf-8") as jf:
+            json.dump(summary_json, jf, indent=2)
+
+        print("    ✓ Saved: multi_run_summary.txt")
+        print("    ✓ Saved: multi_run_summary.json")
+
+    def _plot_aggregate_metric(self, metric_name: str, out_name: str) -> None:
+        # Build union of epochs across runs.
+        all_epochs = sorted({
+            ep
+            for payload in self.run_payloads.values()
+            for ep in payload["metrics"]["test"].keys()
+        })
+        if not all_epochs:
+            return
+
+        means = []
+        stds = []
+        valid_epochs = []
+
+        for ep in all_epochs:
+            vals = []
+            for payload in self.run_payloads.values():
+                row = payload["metrics"]["test"].get(ep, {})
+                if metric_name in row:
+                    vals.append(float(row[metric_name]))
+            if not vals:
+                continue
+            valid_epochs.append(ep)
+            means.append(float(np.mean(vals)))
+            stds.append(self._sample_std(vals))
+
+        if not valid_epochs:
+            return
+
+        fig, ax = plt.subplots(figsize=(10, 6))
+        means_np = np.array(means)
+        stds_np = np.array(stds)
+        epochs_np = np.array(valid_epochs)
+
+        ax.plot(epochs_np, means_np, color="#1f77b4", linewidth=2.5, label=f"{metric_name} mean")
+        ax.fill_between(
+            epochs_np,
+            means_np - stds_np,
+            means_np + stds_np,
+            color="#1f77b4",
+            alpha=0.2,
+            label="mean ± std",
+        )
+        ax.set_title(f"{metric_name} across runs (test)", fontsize=12, fontweight="bold")
+        ax.set_xlabel("Epoch", fontsize=11, fontweight="bold")
+        ax.set_ylabel(metric_name, fontsize=11, fontweight="bold")
+        ax.grid(True, alpha=0.3, linestyle="--")
+        ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+        ax.legend(loc="best")
+        plt.tight_layout()
+        plt.savefig(self.metrics_dir / out_name, dpi=300, bbox_inches="tight")
+        plt.close()
+        print(f"    ✓ Saved: {out_name}")
+
+    def generate(self) -> None:
+        print("\n[Generating multi-run aggregate metrics...]")
+        self.load_all()
+        self._plot_aggregate_metric("loss", "aggregate_loss_test.png")
+        self._plot_aggregate_metric("mean_reward", "aggregate_mean_reward_test.png")
+        self._plot_aggregate_metric("recon_acc", "aggregate_recon_acc_test.png")
+        self._plot_aggregate_metric("topsim", "aggregate_topsim_test.png")
+        for run_name in sorted(self.run_snapshots.keys()):
+            self._plot_run_snapshot_heatmap(run_name, self.run_snapshots[run_name])
+        self._save_message_reuse_group_summary()
+        self._save_final_summary()
+        print("\n✓ Multi-run aggregation completed")
         print(f"✓ Results saved to: {self.metrics_dir}")
 
 
@@ -1208,6 +1779,17 @@ def main():
         default='10,20,30,40,50',
         help='Comma-separated epochs for Hungarian analysis (default: 10,20,30,40,50)'
     )
+    parser.add_argument(
+        '--all-runs',
+        action='store_true',
+        help='Aggregate all run files in run_dir (mean/std across runs)'
+    )
+    parser.add_argument(
+        '--log-pattern',
+        type=str,
+        default='train_run*',
+        help='Filename glob stem for run discovery in --all-runs mode (default: train_run*)'
+    )
     
     args = parser.parse_args()
     
@@ -1215,15 +1797,22 @@ def main():
         print("=" * 70)
         print("SURVIVAL GAME - METRICS GENERATOR")
         print("=" * 70)
-        
-        generator = MetricsGenerator(
-            args.run_dir,
-            log_file=args.log_file,
-            hungarian_mode=args.hungarian_mode,
-            hungarian_epochs=args.hungarian_epochs,
-        )
-        generator.load_metrics()
-        generator.generate_all()
+
+        if args.all_runs:
+            aggregator = MultiRunMetricsAggregator(
+                args.run_dir,
+                log_pattern=args.log_pattern,
+            )
+            aggregator.generate()
+        else:
+            generator = MetricsGenerator(
+                args.run_dir,
+                log_file=args.log_file,
+                hungarian_mode=args.hungarian_mode,
+                hungarian_epochs=args.hungarian_epochs,
+            )
+            generator.load_metrics()
+            generator.generate_all()
         
         print("\n" + "=" * 70)
         print("Process completed successfully!")

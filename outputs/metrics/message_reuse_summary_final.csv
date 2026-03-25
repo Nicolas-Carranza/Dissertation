@@ -1,0 +1,17 @@
+message,entities_using_message,total_count,entity_list
+13 14 0,7,2681.0,Wood|Water|Herbs|Berries|Stone|Rocky Outcrop|Herb Garden
+8 6 0,6,2628.0,Firewood|Flint|Weapon Cache|Dry Campsite|Riverbank|Cave
+14 1 0,6,1628.0,Storm|Frost|Poison Plant|Cliff|Quicksand|Infection
+20 30 0,3,978.0,Goat|Deer|Rabbit
+9 23 0,3,702.0,Cold Night|Thorns|Fever
+37 14 0,3,523.0,Fish|Salmon|Berry Patch
+44 44 0,2,883.0,Muddy Water|Mushrooms
+14 7 0,2,573.0,Lion|Bear
+14 23 0,1,539.0,Wolf
+37 37 0,1,517.0,Snake
+14 45 0,1,446.0,Blizzard
+39 14 0,1,384.0,River Crossing
+14 14 0,1,368.0,Animal Migration
+39 6 0,1,366.0,Supply Cache
+46 23 0,1,238.0,Squirrel
+3 23 0,1,201.0,Lizard
