@@ -8,10 +8,20 @@
 import pandas as pd
 from matplotlib import pyplot as plt
 import io
+from pathlib import Path
 
 # The following lines adjust the granularity of reporting.
 pd.options.display.max_rows = 10
 pd.options.display.float_format = "{:.1f}".format
+
+# Save all generated plots locally in the same folder as this script.
+OUTPUT_DIR = Path(__file__).resolve().parent / "metrics_ml/bad_data"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _can_show_matplotlib() -> bool:
+  backend = plt.get_backend().lower()
+  return "agg" not in backend
 
 # @title Setup - Define the dataset
 
@@ -1442,6 +1452,8 @@ evenly spaced.""")
 def plot_the_dataset(feature, label, number_of_points_to_plot):
   """Plot N random points of the dataset."""
 
+  fig = plt.figure()
+
   # Label the axes.
   plt.xlabel(feature)
   plt.ylabel(label)
@@ -1450,11 +1462,22 @@ def plot_the_dataset(feature, label, number_of_points_to_plot):
   random_examples = training_df.sample(n=number_of_points_to_plot)
   plt.scatter(random_examples[feature], random_examples[label])
 
-  # Render the scatter plot.
-  plt.show()
+  # Save locally.
+  fig.savefig(
+      OUTPUT_DIR / f"scatter_random_{feature}_vs_{label}_{number_of_points_to_plot}.png",
+      dpi=200,
+      bbox_inches='tight'
+  )
+
+  # Render only on interactive backends.
+  if _can_show_matplotlib():
+    plt.show()
+  plt.close(fig)
 
 def plot_a_contiguous_portion_of_dataset(feature, label, start, end):
   """Plot the data points from start to end."""
+
+  fig = plt.figure()
 
   # Label the axes.
   plt.xlabel(feature + "Day")
@@ -1463,8 +1486,17 @@ def plot_a_contiguous_portion_of_dataset(feature, label, start, end):
   # Create a scatter plot.
   plt.scatter(training_df[feature][start:end], training_df[label][start:end])
 
-  # Render the scatter plot.
-  plt.show()
+  # Save locally.
+  fig.savefig(
+      OUTPUT_DIR / f"scatter_contiguous_{feature}_vs_{label}_{start}_{end}.png",
+      dpi=200,
+      bbox_inches='tight'
+  )
+
+  # Render only on interactive backends.
+  if _can_show_matplotlib():
+    plt.show()
+  plt.close(fig)
 
 
 print("Defined the following functions:")

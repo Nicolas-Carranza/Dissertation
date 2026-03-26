@@ -6,12 +6,77 @@ import ml_edu.results
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import plotly.io as pio
+import matplotlib.pyplot as plt
+from pathlib import Path
+import webbrowser
+from plotly.basedatatypes import BaseFigure
 
 # The following lines adjust the granularity of reporting.
 pd.options.display.max_rows = 10
 pd.options.display.float_format = "{:.1f}".format
 
 print("Ran the import statements.")
+
+
+# All plots are stored locally in the same folder as this script.
+OUTPUT_DIR = Path(__file__).resolve().parent / "metrics_ml/classification"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+AUTO_OPEN_LOCAL = False
+
+
+def _can_show_matplotlib() -> bool:
+    backend = plt.get_backend().lower()
+    return "agg" not in backend
+
+
+_plotly_show_counter = 0
+
+
+def _patched_plotly_show(self, *args, **kwargs):
+    """Redirect any Plotly show() calls to local saved files."""
+    global _plotly_show_counter
+    _plotly_show_counter += 1
+    save_plotly_figure(self, f"plotly_show_{_plotly_show_counter:03d}", open_local=False)
+
+
+# Ensure third-party plotting helpers do not try opening browser renderers.
+pio.renderers.default = "json"
+BaseFigure.show = _patched_plotly_show
+
+
+def save_plotly_figure(fig, filename_stem: str, open_local: bool = AUTO_OPEN_LOCAL) -> None:
+    """Save Plotly figures locally and optionally open them from local files."""
+    html_path = OUTPUT_DIR / f"{filename_stem}.html"
+    fig.write_html(str(html_path), include_plotlyjs="cdn")
+
+    # PNG export is optional, because it requires kaleido.
+    try:
+        fig.write_image(str(OUTPUT_DIR / f"{filename_stem}.png"))
+    except Exception:
+        pass
+
+    if open_local:
+        webbrowser.open(html_path.resolve().as_uri())
+
+
+def save_open_matplotlib_figures(filename_stem: str) -> None:
+    """Save any currently open matplotlib figures locally and show them."""
+    figure_numbers = plt.get_fignums()
+    if not figure_numbers:
+        return
+
+    for idx, fig_num in enumerate(figure_numbers, start=1):
+        fig = plt.figure(fig_num)
+        suffix = f"_{idx}" if len(figure_numbers) > 1 else ""
+        fig.savefig(
+                OUTPUT_DIR / f"{filename_stem}{suffix}.png",
+                dpi=200,
+                bbox_inches="tight",
+        )
+        if _can_show_matplotlib():
+            fig.show()
+        plt.close(fig)
 
 # @title Load the dataset
 rice_dataset_raw = pd.read_csv("https://download.mlcc.google.com/mledu-datasets/Rice_Cammeo_Osmancik.csv")
@@ -63,7 +128,8 @@ for x_axis_data, y_axis_data in [
     ('Perimeter', 'Extent'),
     ('Eccentricity', 'Major_Axis_Length'),
 ]:
-  px.scatter(rice_dataset, x=x_axis_data, y=y_axis_data, color='Class').show()
+    fig = px.scatter(rice_dataset, x=x_axis_data, y=y_axis_data, color='Class')
+    save_plotly_figure(fig, f"scatter_{x_axis_data}_vs_{y_axis_data}")
   
 #@title Plot three features in 3D by entering their names and running this cell
 
@@ -71,25 +137,27 @@ x_axis_data = 'Eccentricity'  # @param {type: "string"}
 y_axis_data = 'Perimeter'  # @param {type: "string"}
 z_axis_data = 'Convex_Area'  # @param {type: "string"}
 
-px.scatter_3d(
+fig = px.scatter_3d(
     rice_dataset,
     x=x_axis_data,
     y=y_axis_data,
     z=z_axis_data,
     color='Class',
-).show()
+)
+save_plotly_figure(fig, f"scatter3d_{x_axis_data}_{y_axis_data}_{z_axis_data}")
 
 # @title One possible solution
 
 # Plot major and minor axis length and eccentricity, with observations
 # color-coded by class.
-px.scatter_3d(
+fig = px.scatter_3d(
     rice_dataset,
     x='Eccentricity',
     y='Area',
     z='Major_Axis_Length',
     color='Class',
-).show()
+)
+save_plotly_figure(fig, "scatter3d_eccentricity_area_major_axis_length")
 
 '''
 When creating a model with multiple features, the values of each feature should span roughly the same range. If one feature's values range from 500 to 100,000 and another feature's values range from 2 to 12, the model will need to have weights of extremely low or extremely high values to be able to combine these features effectively. This could result in a low quality model. To avoid this, normalize features in a multi-feature model.
@@ -269,7 +337,9 @@ experiment = train_model(
 
 # Plot metrics vs. epochs
 ml_edu.results.plot_experiment_metrics(experiment, ['accuracy', 'precision', 'recall'])
+save_open_matplotlib_figures("baseline_train_metrics_accuracy_precision_recall")
 ml_edu.results.plot_experiment_metrics(experiment, ['auc'])
+save_open_matplotlib_figures("baseline_train_metrics_auc")
 
 def compare_train_validation(experiment: ml_edu.experiment.Experiment, validation_metrics: dict[str, float]):
   print('Comparing metrics between train and validation:')
@@ -336,7 +406,9 @@ experiment_all_features = train_model(
 ml_edu.results.plot_experiment_metrics(
     experiment_all_features, ['accuracy', 'precision', 'recall']
 )
+save_open_matplotlib_figures("all_features_train_metrics_accuracy_precision_recall")
 ml_edu.results.plot_experiment_metrics(experiment_all_features, ['auc'])
+save_open_matplotlib_figures("all_features_train_metrics_auc")
 
 validation_metrics_all_features = experiment_all_features.evaluate(
     validation_features,
@@ -347,6 +419,7 @@ compare_train_validation(experiment_all_features, validation_metrics_all_feature
 ml_edu.results.compare_experiment([experiment, experiment_all_features],
                                   ['accuracy', 'auc'],
                                   validation_features, validation_labels)
+save_open_matplotlib_figures("baseline_vs_all_features_compare_accuracy_auc")
 
 test_metrics_all_features = experiment_all_features.evaluate(
     test_features,

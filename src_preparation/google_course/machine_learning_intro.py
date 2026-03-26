@@ -9,6 +9,70 @@ import ml_edu.results
 
 # data visualization
 import plotly.express as px
+import plotly.io as pio
+import matplotlib.pyplot as plt
+from pathlib import Path
+import webbrowser
+from plotly.basedatatypes import BaseFigure
+
+# Save all generated plots locally in the same folder as this script.
+OUTPUT_DIR = Path(__file__).resolve().parent / "metrics_ml/intro"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+AUTO_OPEN_LOCAL = False
+
+
+def _can_show_matplotlib() -> bool:
+  backend = plt.get_backend().lower()
+  return "agg" not in backend
+
+
+_plotly_show_counter = 0
+
+
+def _patched_plotly_show(self, *args, **kwargs):
+  """Redirect any Plotly show() calls to local saved files."""
+  global _plotly_show_counter
+  _plotly_show_counter += 1
+  save_plotly_figure(self, f"plotly_show_{_plotly_show_counter:03d}", open_local=False)
+
+
+# Prevent browser-based rendering in headless environments.
+pio.renderers.default = "json"
+BaseFigure.show = _patched_plotly_show
+
+
+def save_plotly_figure(fig, filename_stem: str, open_local: bool = AUTO_OPEN_LOCAL) -> None:
+  """Save Plotly figures locally and optionally open local HTML output."""
+  html_path = OUTPUT_DIR / f"{filename_stem}.html"
+  fig.write_html(str(html_path), include_plotlyjs="cdn")
+
+  try:
+    fig.write_image(str(OUTPUT_DIR / f"{filename_stem}.png"))
+  except Exception:
+    # PNG export needs kaleido; HTML is always saved.
+    pass
+
+  if open_local:
+    webbrowser.open(html_path.resolve().as_uri())
+
+
+def save_open_matplotlib_figures(filename_stem: str) -> None:
+  """Save currently open matplotlib figures locally and show them."""
+  figure_numbers = plt.get_fignums()
+  if not figure_numbers:
+    return
+
+  for idx, fig_num in enumerate(figure_numbers, start=1):
+    fig = plt.figure(fig_num)
+    suffix = f"_{idx}" if len(figure_numbers) > 1 else ""
+    fig.savefig(
+      OUTPUT_DIR / f"{filename_stem}{suffix}.png",
+      dpi=200,
+      bbox_inches="tight",
+    )
+    if _can_show_matplotlib():
+      fig.show()
+    plt.close(fig)
 
 chicago_taxi_dataset = pd.read_csv("https://download.mlcc.google.com/mledu-datasets/chicago_taxi_train.csv")
 
@@ -76,7 +140,8 @@ answer = '''The feature with the weakest correlation to the FARE is TIP_RATE.'''
 print(answer)
 
 # View pairplot
-px.scatter_matrix(training_df, dimensions=["FARE", "TRIP_MILES", "TRIP_SECONDS"])
+fig = px.scatter_matrix(training_df, dimensions=["FARE", "TRIP_MILES", "TRIP_SECONDS"])
+save_plotly_figure(fig, "scatter_matrix_fare_trip_miles_trip_seconds")
 
 
 # Define the model creation and training functions.
@@ -148,7 +213,9 @@ model_1 = create_model(settings_1, metrics)
 experiment_1 = train_model('one_feature', model_1, training_df, 'FARE', settings_1)
 
 ml_edu.results.plot_experiment_metrics(experiment_1, ['rmse'])
+save_open_matplotlib_figures("experiment_1_rmse")
 ml_edu.results.plot_model_predictions(experiment_1, training_df, 'FARE')
+save_open_matplotlib_figures("experiment_1_model_predictions")
 
 #@title Double-click to view answers for training model with one feature
 
@@ -230,7 +297,9 @@ model_3 = create_model(settings_3, metrics)
 experiment_3 = train_model('two_features', model_3, training_df, 'FARE', settings_3)
 
 ml_edu.results.plot_experiment_metrics(experiment_3, ['rmse'])
+save_open_matplotlib_figures("experiment_3_rmse")
 ml_edu.results.plot_model_predictions(experiment_3, training_df, 'FARE')
+save_open_matplotlib_figures("experiment_3_model_predictions")
 
 
 #@title Double-click to view answers for training with two features
@@ -281,6 +350,7 @@ print(answer)
 
 # Compare the results with known formula
 ml_edu.results.compare_experiment([experiment_1, experiment_3], ['rmse'], training_df, training_df['FARE'].values)
+save_open_matplotlib_figures("compare_experiment_1_vs_3_rmse")
 
 
 #@title Code - Define functions to make predictions
