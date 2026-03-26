@@ -1,0 +1,604 @@
+{
+  "epoch": 50,
+  "val_loss": -0.6662415266036987,
+  "total_unique_messages": 11,
+  "by_type": {
+    "0": {
+      "count": 3433,
+      "unique": 6,
+      "total_count": 3433,
+      "top_messages": [
+        {
+          "message": "29 16 0",
+          "count": 1081
+        },
+        {
+          "message": "39 29 0",
+          "count": 964
+        },
+        {
+          "message": "13 16 0",
+          "count": 551
+        },
+        {
+          "message": "29 29 0",
+          "count": 355
+        },
+        {
+          "message": "32 8 0",
+          "count": 254
+        },
+        {
+          "message": "43 8 0",
+          "count": 228
+        }
+      ]
+    },
+    "1": {
+      "count": 4777,
+      "unique": 5,
+      "total_count": 4777,
+      "top_messages": [
+        {
+          "message": "43 8 0",
+          "count": 1666
+        },
+        {
+          "message": "29 29 0",
+          "count": 971
+        },
+        {
+          "message": "39 29 0",
+          "count": 732
+        },
+        {
+          "message": "7 29 0",
+          "count": 714
+        },
+        {
+          "message": "39 16 0",
+          "count": 694
+        }
+      ]
+    },
+    "2": {
+      "count": 2796,
+      "unique": 2,
+      "total_count": 2796,
+      "top_messages": [
+        {
+          "message": "16 16 0",
+          "count": 2056
+        },
+        {
+          "message": "29 29 0",
+          "count": 740
+        }
+      ]
+    },
+    "3": {
+      "count": 1381,
+      "unique": 2,
+      "total_count": 1381,
+      "top_messages": [
+        {
+          "message": "7 29 0",
+          "count": 1093
+        },
+        {
+          "message": "43 8 0",
+          "count": 288
+        }
+      ]
+    },
+    "4": {
+      "count": 1485,
+      "unique": 5,
+      "total_count": 1485,
+      "top_messages": [
+        {
+          "message": "43 8 0",
+          "count": 420
+        },
+        {
+          "message": "6 8 0",
+          "count": 403
+        },
+        {
+          "message": "4 4 0",
+          "count": 391
+        },
+        {
+          "message": "32 8 0",
+          "count": 206
+        },
+        {
+          "message": "29 29 0",
+          "count": 65
+        }
+      ]
+    }
+  },
+  "by_entity": {
+    "1 2 0 3 0 0": {
+      "entity": "Water",
+      "type": 1,
+      "unique": 1,
+      "total_count": 718,
+      "top_messages": [
+        {
+          "message": "43 8 0",
+          "count": 718
+        }
+      ]
+    },
+    "0 0 4 4 1 0": {
+      "entity": "Lion",
+      "type": 0,
+      "unique": 1,
+      "total_count": 501,
+      "top_messages": [
+        {
+          "message": "29 16 0",
+          "count": 501
+        }
+      ]
+    },
+    "3 0 0 2 0 0": {
+      "entity": "Weapon Cache",
+      "type": 3,
+      "unique": 1,
+      "total_count": 629,
+      "top_messages": [
+        {
+          "message": "7 29 0",
+          "count": 629
+        }
+      ]
+    },
+    "1 1 0 2 0 0": {
+      "entity": "Firewood",
+      "type": 1,
+      "unique": 1,
+      "total_count": 714,
+      "top_messages": [
+        {
+          "message": "7 29 0",
+          "count": 714
+        }
+      ]
+    },
+    "0 1 1 3 1 0": {
+      "entity": "Goat",
+      "type": 0,
+      "unique": 1,
+      "total_count": 514,
+      "top_messages": [
+        {
+          "message": "39 29 0",
+          "count": 514
+        }
+      ]
+    },
+    "2 3 3 1 0 0": {
+      "entity": "Cliff",
+      "type": 2,
+      "unique": 1,
+      "total_count": 457,
+      "top_messages": [
+        {
+          "message": "16 16 0",
+          "count": 457
+        }
+      ]
+    },
+    "1 2 2 3 0 2": {
+      "entity": "Muddy Water",
+      "type": 1,
+      "unique": 1,
+      "total_count": 268,
+      "top_messages": [
+        {
+          "message": "29 29 0",
+          "count": 268
+        }
+      ]
+    },
+    "4 2 0 3 1 0": {
+      "entity": "Animal Migration",
+      "type": 4,
+      "unique": 1,
+      "total_count": 391,
+      "top_messages": [
+        {
+          "message": "4 4 0",
+          "count": 391
+        }
+      ]
+    },
+    "2 4 2 1 0 0": {
+      "entity": "Fever",
+      "type": 2,
+      "unique": 1,
+      "total_count": 443,
+      "top_messages": [
+        {
+          "message": "29 29 0",
+          "count": 443
+        }
+      ]
+    },
+    "0 1 1 4 1 1": {
+      "entity": "Deer",
+      "type": 0,
+      "unique": 1,
+      "total_count": 222,
+      "top_messages": [
+        {
+          "message": "39 29 0",
+          "count": 222
+        }
+      ]
+    },
+    "1 1 1 2 0 1": {
+      "entity": "Wood",
+      "type": 1,
+      "unique": 1,
+      "total_count": 320,
+      "top_messages": [
+        {
+          "message": "43 8 0",
+          "count": 320
+        }
+      ]
+    },
+    "0 2 3 2 0 0": {
+      "entity": "Snake",
+      "type": 0,
+      "unique": 1,
+      "total_count": 551,
+      "top_messages": [
+        {
+          "message": "13 16 0",
+          "count": 551
+        }
+      ]
+    },
+    "4 0 0 3 0 0": {
+      "entity": "Supply Cache",
+      "type": 4,
+      "unique": 1,
+      "total_count": 420,
+      "top_messages": [
+        {
+          "message": "43 8 0",
+          "count": 420
+        }
+      ]
+    },
+    "2 0 4 0 4 0": {
+      "entity": "Blizzard",
+      "type": 2,
+      "unique": 1,
+      "total_count": 474,
+      "top_messages": [
+        {
+          "message": "16 16 0",
+          "count": 474
+        }
+      ]
+    },
+    "0 3 0 4 2 2": {
+      "entity": "Salmon",
+      "type": 0,
+      "unique": 1,
+      "total_count": 184,
+      "top_messages": [
+        {
+          "message": "29 29 0",
+          "count": 184
+        }
+      ]
+    },
+    "2 2 3 0 0 0": {
+      "entity": "Poison Plant",
+      "type": 2,
+      "unique": 1,
+      "total_count": 397,
+      "top_messages": [
+        {
+          "message": "16 16 0",
+          "count": 397
+        }
+      ]
+    },
+    "0 0 4 4 1 3": {
+      "entity": "Bear",
+      "type": 0,
+      "unique": 1,
+      "total_count": 54,
+      "top_messages": [
+        {
+          "message": "29 16 0",
+          "count": 54
+        }
+      ]
+    },
+    "1 4 0 2 0 0": {
+      "entity": "Stone",
+      "type": 1,
+      "unique": 1,
+      "total_count": 732,
+      "top_messages": [
+        {
+          "message": "39 29 0",
+          "count": 732
+        }
+      ]
+    },
+    "0 4 1 3 1 1": {
+      "entity": "Rabbit",
+      "type": 0,
+      "unique": 1,
+      "total_count": 228,
+      "top_messages": [
+        {
+          "message": "39 29 0",
+          "count": 228
+        }
+      ]
+    },
+    "1 3 1 3 0 1": {
+      "entity": "Berries",
+      "type": 1,
+      "unique": 1,
+      "total_count": 341,
+      "top_messages": [
+        {
+          "message": "43 8 0",
+          "count": 341
+        }
+      ]
+    },
+    "0 2 1 3 0 1": {
+      "entity": "Lizard",
+      "type": 0,
+      "unique": 1,
+      "total_count": 254,
+      "top_messages": [
+        {
+          "message": "32 8 0",
+          "count": 254
+        }
+      ]
+    },
+    "1 3 2 3 0 0": {
+      "entity": "Mushrooms",
+      "type": 1,
+      "unique": 1,
+      "total_count": 703,
+      "top_messages": [
+        {
+          "message": "29 29 0",
+          "count": 703
+        }
+      ]
+    },
+    "4 1 1 2 0 0": {
+      "entity": "River Crossing",
+      "type": 4,
+      "unique": 1,
+      "total_count": 403,
+      "top_messages": [
+        {
+          "message": "6 8 0",
+          "count": 403
+        }
+      ]
+    },
+    "1 3 0 2 0 1": {
+      "entity": "Herbs",
+      "type": 1,
+      "unique": 1,
+      "total_count": 287,
+      "top_messages": [
+        {
+          "message": "43 8 0",
+          "count": 287
+        }
+      ]
+    },
+    "0 4 0 2 0 1": {
+      "entity": "Squirrel",
+      "type": 0,
+      "unique": 1,
+      "total_count": 228,
+      "top_messages": [
+        {
+          "message": "43 8 0",
+          "count": 228
+        }
+      ]
+    },
+    "1 4 1 2 0 0": {
+      "entity": "Flint",
+      "type": 1,
+      "unique": 1,
+      "total_count": 694,
+      "top_messages": [
+        {
+          "message": "39 16 0",
+          "count": 694
+        }
+      ]
+    },
+    "2 2 2 1 0 1": {
+      "entity": "Thorns",
+      "type": 2,
+      "unique": 1,
+      "total_count": 230,
+      "top_messages": [
+        {
+          "message": "29 29 0",
+          "count": 230
+        }
+      ]
+    },
+    "3 1 0 2 0 1": {
+      "entity": "Dry Campsite",
+      "type": 3,
+      "unique": 1,
+      "total_count": 248,
+      "top_messages": [
+        {
+          "message": "7 29 0",
+          "count": 248
+        }
+      ]
+    },
+    "3 4 0 2 0 1": {
+      "entity": "Herb Garden",
+      "type": 3,
+      "unique": 1,
+      "total_count": 236,
+      "top_messages": [
+        {
+          "message": "43 8 0",
+          "count": 236
+        }
+      ]
+    },
+    "0 0 3 3 1 0": {
+      "entity": "Wolf",
+      "type": 0,
+      "unique": 1,
+      "total_count": 526,
+      "top_messages": [
+        {
+          "message": "29 16 0",
+          "count": 526
+        }
+      ]
+    },
+    "0 3 0 3 2 2": {
+      "entity": "Fish",
+      "type": 0,
+      "unique": 1,
+      "total_count": 171,
+      "top_messages": [
+        {
+          "message": "29 29 0",
+          "count": 171
+        }
+      ]
+    },
+    "2 3 4 0 0 2": {
+      "entity": "Quicksand",
+      "type": 2,
+      "unique": 1,
+      "total_count": 137,
+      "top_messages": [
+        {
+          "message": "16 16 0",
+          "count": 137
+        }
+      ]
+    },
+    "4 3 0 4 0 1": {
+      "entity": "Berry Patch",
+      "type": 4,
+      "unique": 1,
+      "total_count": 206,
+      "top_messages": [
+        {
+          "message": "32 8 0",
+          "count": 206
+        }
+      ]
+    },
+    "3 3 0 2 0 2": {
+      "entity": "Riverbank",
+      "type": 3,
+      "unique": 1,
+      "total_count": 216,
+      "top_messages": [
+        {
+          "message": "7 29 0",
+          "count": 216
+        }
+      ]
+    },
+    "2 1 2 1 3 4": {
+      "entity": "Cold Night",
+      "type": 2,
+      "unique": 1,
+      "total_count": 67,
+      "top_messages": [
+        {
+          "message": "29 29 0",
+          "count": 67
+        }
+      ]
+    },
+    "4 4 0 2 0 4": {
+      "entity": "Cave",
+      "type": 4,
+      "unique": 1,
+      "total_count": 65,
+      "top_messages": [
+        {
+          "message": "29 29 0",
+          "count": 65
+        }
+      ]
+    },
+    "2 4 3 0 0 0": {
+      "entity": "Infection",
+      "type": 2,
+      "unique": 1,
+      "total_count": 409,
+      "top_messages": [
+        {
+          "message": "16 16 0",
+          "count": 409
+        }
+      ]
+    },
+    "2 0 3 0 4 2": {
+      "entity": "Storm",
+      "type": 2,
+      "unique": 1,
+      "total_count": 130,
+      "top_messages": [
+        {
+          "message": "16 16 0",
+          "count": 130
+        }
+      ]
+    },
+    "3 2 0 2 0 3": {
+      "entity": "Rocky Outcrop",
+      "type": 3,
+      "unique": 1,
+      "total_count": 52,
+      "top_messages": [
+        {
+          "message": "43 8 0",
+          "count": 52
+        }
+      ]
+    },
+    "2 1 3 0 3 4": {
+      "entity": "Frost",
+      "type": 2,
+      "unique": 1,
+      "total_count": 52,
+      "top_messages": [
+        {
+          "message": "16 16 0",
+          "count": 52
+        }
+      ]
+    }
+  }
+}
