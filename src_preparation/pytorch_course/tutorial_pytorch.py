@@ -1,8 +1,11 @@
+import os
 import torch
+import numpy as np
 from torch.utils.data import Dataset
 from torchvision import datasets
 from torchvision.transforms import ToTensor
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 
 def first_part():
@@ -15,22 +18,26 @@ def first_part():
         3. Tensor Operations
         4. Bridge with NumPy
     '''
+    print("\n" + "=" * 70)
+    print("PART 1: Tensors and NumPy bridge")
+    print("=" * 70)
+
     # Create a tensor from data
     data = [[1, 2], [3, 4]]
     x_data = torch.tensor(data)
-    print(f"Tensor from data: \n{x_data}\n")
+    print(f"\n[1] Tensor from Python list:\n{x_data}\n")
 
     # Create a tensor from a NumPy array
     np_array = np.array(data)
     x_np = torch.from_numpy(np_array)
-    print(f"Tensor from NumPy array: \n{x_np}\n")
+    print(f"[2] Tensor from NumPy array:\n{x_np}\n")
 
     # Create a tensor from another tensor
     x_ones = torch.ones_like(x_data)  # retains the properties of x_data
-    print(f"Ones Tensor: \n{x_ones}\n")
+    print(f"[3] Ones tensor (same shape as x_data):\n{x_ones}\n")
 
     x_rand = torch.rand_like(x_data, dtype=torch.float)  # overrides the datatype of x_data
-    print(f"Random Tensor: \n{x_rand}\n")
+    print(f"[4] Random tensor (float):\n{x_rand}\n")
 
     # Create random, ones, and zeros tensors
     shape = (2,3,)
@@ -38,33 +45,35 @@ def first_part():
     ones_tensor = torch.ones(shape)
     zeros_tensor = torch.zeros(shape)
 
-    print(f"Random Tensor: \n {rand_tensor} \n")
-    print(f"Ones Tensor: \n {ones_tensor} \n")
-    print(f"Zeros Tensor: \n {zeros_tensor}")
+    print(f"[5] Random tensor:\n{rand_tensor}\n")
+    print(f"[6] Ones tensor:\n{ones_tensor}\n")
+    print(f"[7] Zeros tensor:\n{zeros_tensor}")
 
     # Get tensor properties
     tensor = torch.rand(3,4)
 
-    print(f"Shape of tensor: {tensor.shape}")
-    print(f"Datatype of tensor: {tensor.dtype}")
-    print(f"Device tensor is stored on: {tensor.device}")
+    print("\n[8] Tensor properties")
+    print(f"Shape: {tuple(tensor.shape)}")
+    print(f"Dtype: {tensor.dtype}")
+    print(f"Device: {tensor.device}")
 
     # We can move our tensor to GPU if available
     if torch.cuda.is_available():
         tensor = tensor.to(torch.accelerator.current_accelerator())
-        print(f"Tensor moved to: {tensor.device}")
+        print(f"Moved tensor to accelerator: {tensor.device}")
 
     # Tensor operations
     # Standard numpy-like indexing and slicing
     tensor = torch.ones(4,4)
+    print("\n[9] Indexing and slicing")
     print(f"First row: {tensor[0]}")
     print(f"First column: {tensor[:,0]}")
     print(f"Last column: {tensor[:,-1]}")
     tensor[:,1] = 0
-    print(f"Modified tensor: \n{tensor}")
+    print(f"Modified tensor:\n{tensor}")
 
     t1 = torch.cat([tensor, tensor, tensor], dim=1)
-    print(f"Concatenated tensor: \n{t1}")
+    print(f"Concatenated tensor:\n{t1}")
 
     # Arithmetic operations
     # This computes the matrix multiplication between two tensors. y1, y2, y3 will have the same value
@@ -73,7 +82,7 @@ def first_part():
     y2 = tensor.matmul(tensor.T)
     y3 = torch.rand_like(tensor)
     torch.matmul(tensor, tensor.T, out=y3)
-    print(f"Matrix multiplication result: \n{y1}\n")
+    print(f"\n[10] Matrix multiplication result:\n{y1}\n")
 
     # This computes the element-wise product. z1, z2, z3 will have the same value
     z1 = tensor * tensor
@@ -81,18 +90,19 @@ def first_part():
     z3 = torch.rand_like(tensor)
 
     torch.mul(tensor, tensor, out=z3)
-    print(f"Element-wise multiplication result: \n{z1}\n")
+    print(f"[11] Element-wise multiplication result:\n{z1}\n")
 
     agg = tensor.sum()
     agg_item = agg.item()
-    print(agg_item, type(agg_item))
+    print(f"[12] Sum converted to Python scalar: {agg_item} ({type(agg_item).__name__})")
 
-    print(f"{tensor} \n")
+    print(f"\nTensor before in-place add:\n{tensor}\n")
     tensor.add_(5)
-    print(tensor)
+    print(f"Tensor after add_(5):\n{tensor}")
     
-     # Bridge with NumPy
+    # Bridge with NumPy
     t = torch.ones(5)
+    print("\n[13] PyTorch <-> NumPy memory sharing")
     print(f"t: {t}")
     n = t.numpy()
     print(f"n: {n}")
@@ -108,12 +118,30 @@ def first_part():
     print(f"n after np.add: {n}")
     print(f"t after n is modified: {t}")
 
+
+def _show_or_save_figure(figure, output_name):
+    """Show plot on desktop sessions; save to disk on headless sessions."""
+    if os.environ.get("DISPLAY"):
+        plt.tight_layout()
+        plt.show()
+        return None
+
+    output_path = Path(__file__).resolve().parent / output_name
+    plt.tight_layout()
+    figure.savefig(output_path, dpi=150)
+    print(f"No DISPLAY detected. Saved figure to: {output_path}")
+    return output_path
+
 def second_part():
     '''
     This function is part of the PyTorch tutorial.
     
     
     '''
+    print("\n" + "=" * 70)
+    print("PART 2: FashionMNIST sample visualization")
+    print("=" * 70)
+
     training_data = datasets.FashionMNIST(
         root="data",
         train=True,
@@ -128,7 +156,7 @@ def second_part():
         transform=ToTensor()
     )
     
-    lables_map = {
+    labels_map = {
         0: "T-shirt/top",
         1: "Trouser",
         2: "Pullover",
@@ -149,20 +177,23 @@ def second_part():
         img, label = training_data[sample_index]
         
         figure.add_subplot(rows, cols, i)
-        plt.title(lables_map[label])
+        plt.title(labels_map[label])
         plt.axis("off")
         plt.imshow(img.squeeze(), cmap="gray")
     
-    # Print the accuracy
-    print(figure)    
+    print(f"Loaded training samples: {len(training_data)}")
+    print(f"Loaded test samples: {len(test_data)}")
+    _show_or_save_figure(figure, "fashion_mnist_samples.png")
 
 if __name__ == "__main__":
     
-    # Prompot the user to select which part to run
-    part = input("Enter '1' to run the first part (tensor creation and operations): ")
+    # Prompt the user to select which part to run
+    part = input("Enter '1' for tensor basics or '2' for FashionMNIST visualization: ").strip()
     
     if part == '1':
         first_part()
     elif part == '2':
         second_part()
+    else:
+        print("Invalid selection. Please run again and choose '1' or '2'.")
     

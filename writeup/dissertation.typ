@@ -233,120 +233,67 @@ After the interim report, the implementation scope was revised by dropping the i
 
 Note: Tertiary objectives were retained for completeness and alignment with the original project scope, but were not fully pursued due to time and scope constraints, with exception of the Thesis Documentation.
 
-
+#pagebreak()
 
 = Preparation and Technical Ramp-Up <group1>
 \
 This chapter documents the preparatory work completed before the core survival-game experiments and explains why that preparation was necessary for the later research claims. Although these activities were enabling work rather than the central contribution, they directly addressed the first primary objectives in the DOER and established the methodological reliability required for the implementation and evaluation chapters. The preparation process followed weekly supervisor checkpoints, where progress was reviewed, technical misunderstandings were corrected, and short-term milestones were refined in response to observed results.
 
-A central aim of this chapter is to show that later design decisions were not made ad hoc. Instead, they were grounded in a staged progression from machine learning theory, to framework-level engineering, to controlled communication experiments. This progression reduced trial-and-error development, improved reproducibility, and made it possible to interpret model behaviour in terms of known optimisation and generalisation mechanisms.
+A central aim of this chapter is to show that later design decisions were not made ad hoc. Instead, they were grounded in a staged progression from machine learning theory to framework-level engineering, leading to controlled communication experiments. This progression reduced trial-and-error development, improved reproducibility, and made it possible to interpret model behaviour in terms of known optimisation and generalisation mechanisms.
 
 == Machine Learning foundation <group1>
 \
-The first preparation stage focused on building a robust conceptual base in machine learning so that subsequent model design and experimental reasoning could be justified rigorously. The primary resource was the #underline[#link("https://developers.google.com/machine-learning/crash-course")[Google Machine Learning Crash Course]] @google:mlcrashcourse, supported by targeted readings, practical notebooks, and weekly discussion with my supervisor. The objective was not exhaustive breadth, but strong operational understanding of the concepts that directly affect experimental reliability in emergent communication work.
+The first preparation stage focused on building a robust conceptual base in machine learning so that subsequent model design and experimental reasoning could be justified rigorously. The primary resource was the #underline[#link("https://developers.google.com/machine-learning/crash-course")[Google Machine Learning Crash Course]] @google:mlcrashcourse, supported by targeted readings, practical notebooks, and weekly discussion with my supervisor. The objective was not exhaustive breadth, but a working understanding of the specific concepts that would directly bear on experimental reliability in the emergent communication work to follow.
 
-Coverage included linear and logistic regression, loss formulation, gradient descent, convergence diagnostics, and hyperparameter sensitivity. The study then expanded to evaluation and error analysis, including confusion matrices, precision, recall, threshold effects, regularisation, and failure modes associated with overfitting. Additional modules on numerical and categorical data preparation were particularly relevant, because they addressed feature representation, normalisation, data quality checks, and split discipline, all of which later informed how game-state vectors and train/validation/test partitions were handled in this dissertation.
+Throughout the course taken, I learnt about many topics covering supervised learning fundamentals such as linear and logistic regression, loss formulation, gradient descent, and convergence diagnostics as explained in the Context Survey. The course then expanded to evaluation methodology, including confusion matrices, accuracy, precision, recall, threshold effects, regularisation, and the failure modes associated with overfitting which proved useful in future work. Moreover, the course also offered modules on data preparation, covering feature representation, normalisation via Z-score standardisation, and train, validation, and test split discipline. These topics later helped me design the game and architecture of the model, allowing me to leverage the skills learnt throughout the course.
 
-This phase was completed over roughly four weeks and combined conceptual study with implementation-oriented exercises, including supervised classification tasks and small pipeline replications. These exercises surfaced recurrent practical issues, such as unstable training under unsuitable learning rates, metric misinterpretation when class distributions were imbalanced, and debugging difficulty when preprocessing assumptions were implicit rather than explicit. Resolving these issues at this stage prevented them from contaminating later communication experiments.
+As part of the first primary objective, I accompanied the development with exercises using real datasets provided by the course in order to enhance my skills within the practical environment. These included a regression task predicting Chicago taxi fares from trip distance and duration, a binary classification task distinguishing two rice grain varieties from morphological measurements, and a data quality investigation using a calories and test score dataset with a hidden day-level confound. These exercises were methodologically valuable because they made abstract failure modes concrete. For example, fitting a single feature fare model at an excessive learning rate produced a loss curve that oscillated without converging, demonstrating directly how learning rate sensitivity can obscure genuine progress. As for the other two exercises, working with the rice classification task on an imbalanced feature space showed how accuracy alone is an insufficient metric and why precision and recall must be examined jointly, a lesson that later motivated the evaluation methodology in the survival game experiments. Similarly, the data quality task illustrated how unexamined structure in a dataset, in that case systematic variation by day of week, can produce misleading aggregate statistics, reinforcing the importance of explicit split discipline, a challenge I faced later on the implementation.
 
-The outcome of this phase was both conceptual and procedural. Conceptually, it provided a coherent explanation framework for interpreting optimisation behaviour. Procedurally, it established a repeatable workflow for model setup, metric reporting, and result validation. Together, these foundations enabled later chapters to argue from evidence rather than from isolated run outcomes.
+Despite having followed the course, two topics required substantially more effort than the others due to my lack of background on the subject: the cross-entropy loss and backpropagation. Cross-entropy loss proved difficult to internalise initially because its behaviour is less intuitive than mean squared error, particularly regarding how the log term penalises confident wrong predictions disproportionately. This was resolved through targeted reading and by tracing the loss through small worked examples. The effort was directly worthwhile because cross-entropy loss is one of the primary training signal in both the MNIST adaptation and the projects' communication experiments shown later on. A superficial understanding here would have made it difficult to interpret training instability later, thus it became a crucial point within the project. Similarly, back-propagation, the chain rule and how gradients accumulate through sequential layers where explained by my supervisor, which became directly relevant when working with the recurrent sender and receiver architectures in the EGG framework.
 
-== PyTorch familiarisation and initial experiments <group1>
-\
-Following the theoretical phase, the project moved to PyTorch familiarisation to ensure that model behaviour could be controlled and diagnosed at code level. Early work focused on tensor operations, shape transformations, autograd mechanics, module design, optimiser configuration, batching logic, and device-aware execution. Particular emphasis was placed on avoiding silent shape errors and ensuring deterministic experimental setup where feasible, because these were frequent causes of misleading outcomes in initial tests.
-
-Practical exercises progressed from tutorial-scale scripts to complete training and evaluation loops, including custom classifiers on MNIST-style data. This transition was important because it exposed the full engineering path required for later communication games: data loading, model construction, loss computation, parameter updates, metric aggregation, and checkpoint management. At this stage, I also developed confidence in interpreting loss and accuracy trends across epochs, distinguishing genuine learning progress from unstable oscillation or reporting artefacts.
-
-This PyTorch phase directly improved implementation quality in later chapters. By the time communication experiments began, I had a stable development workflow for instrumenting runs, isolating code-level defects, and applying targeted hyperparameter changes. In practice, this reduced avoidable rework and made the eventual EGG adaptation substantially more efficient.
-
-== EGG framework familiarisation <group1>
-
-EGG familiarisation focused on understanding the framework as a research instrument rather than treating it as a black-box training utility. The `zoo/basic_games` modules were used as the entry point because they clearly expose sender-receiver composition, game objectives, wrapper-level message handling, and optimisation differences between training modes. This stage clarified how communication games are parameterised, where task-specific logic should be implemented, and how metrics should be interpreted in relation to each game objective.
-
-A major outcome of this phase was understanding the practical trade-off between Gumbel-Softmax relaxation and REINFORCE for discrete communication. Comparative reconstruction runs across multiple configurations showed substantial performance variance, with final accuracies spanning 3% to 17%, depending on learning rate, architecture size, message constraints, and optimisation mode. Although these scores were modest in absolute terms, the experiments were methodologically valuable because they revealed how sensitive emergent communication training can be to configuration details that might otherwise appear secondary.
-
-This familiarisation also provided a transferable mental model of data flow, from sender input encoding through message generation to receiver prediction and loss backpropagation or policy-gradient updates. That understanding later informed the custom survival-game design, especially in defining communication channels, selecting diagnostics, and recognising when observed collapse reflected optimisation dynamics rather than implementation failure.
-
-== MNIST adaptation in EGG as preparatory work <group1>
-
-The MNIST adaptation served as the culmination of the preparation phase, combining machine learning foundations, PyTorch implementation competence, and EGG-specific communication mechanics in one controlled experiment. The implemented task was a discrimination game in which a sender observed a target digit and sent a discrete message to a receiver that selected the target among distractors. This setup was intentionally chosen because it preserved the core communication loop while remaining sufficiently interpretable for detailed debugging and message-level analysis.
-
-Experiment configuration was explicit and reproducible, including sender and receiver recurrent architectures, constrained vocabulary, fixed maximum message length, entropy regularisation, and tracked epoch-wise metrics. In tracked runs, the system demonstrated strong classification capability, including test accuracies above 90% and a best recorded run at 96.5% by epoch 10 under the reported configuration. Data scale and runtime characteristics were also documented, with 60,000 training samples, 10,000 test samples, and practical CPU-only execution time suitable for iterative experimentation.
-
-Beyond raw accuracy, the MNIST stage was valuable because it established an analysis methodology later reused in the survival-game experiments. Confusion-matrix inspection showed strong diagonal concentration, while message-level analysis indicated non-random token usage, recurring symbol motifs, and entropy variation across classes. These behaviours suggested that communication was not merely noise, but was adapting to task structure in measurable ways.
-
-For this reason, the MNIST adaptation is treated in this dissertation as preparatory validation rather than a principal research contribution. Its main role was to validate tooling, calibrate instrumentation, and reduce risk before moving to the more complex survival setting, where interpretation is harder and experimental control is more limited.
-
-#pagebreak()
-
-= Preparation and Technical Ramp-Up <group1>
-\
-This section is an additional one I want to add ti talk about the first two objectives in the DOER which were about learning and did not necessarily relate to the research question directly.
-
-== Machine Learning foundation <group1>
-\
-The first phase in the project established the theoretical and practical foundations required to support subsequent model design and experimental reasoning. The primary objective was not exhaustive theoretical coverage, but the development of a working understanding of core machine learning principles that could be directly applied during implementation and evaluation. The main resource used was the #underline[#link("https://developers.google.com/machine-learning/crash-course")[Google's Machine Learning Crash Course]] provided by Google @google:mlcrashcourse, which offers a structured introduction to supervised learning through a combination of short lectures, interactive exercises, and applied examples. This was supplemented with targeted readings and implementation focused materials derived from the weekly checkpoints where my supervisor would quiz me and explain areas that I did not comprehend.
-
-This preparation phase was completed over approximately three weeks and combined conceptual study with small implementation tasks, including the construction of a simple handwritten digit classifier using the MNIST @lecun2010mnist data. These exercises served as verification of understanding and exposed common failure modes such as incorrect tensor dimensions, unstable gradients, and poor hyper-parameter selection. The outcomes of this phase were therefore both conceptual and procedural, and overlapped with the subsequent weeks where I learnt how  to use PyTorch in depth.
-
-Overall, this stage provided a stable foundation for the remainder of the project. It enabled informed decisions about model architecture, loss functions, and optimisation strategies, and it reduced reliance on trial-and-error during later development. Moreover, it supported more rigorous evaluation by allowing observed behaviours, such as training instability or performance plateaus, to be interpreted in terms of underlying learning dynamics rather than treated as opaque outcomes.
+This phase was completed over approximately three weeks and concluded with the MNIST implementation, described in the Appendix in *#underline[@mnist-performance-summary]*, which served as an integration checkpoint. Conceptually, it provided a principled framework for interpreting optimisation behaviour, so that observations such as training instability or a plateau in validation performance could be explained in terms of known learning dynamics rather than treated as opaque implementation failures. Procedurally, it established a repeatable workflow for model setup, metric reporting, and result validation that was carried forward into every subsequent experimental chapter. Thus, this foundation did not merely satisfy the first primary objective, it directly shaped the reliability of the analysis presented in the remainder of this dissertation.
 
 \
 == PyTorch familiarisation and initial experiments <group1>
 \
-Following the conceptual foundation, work shifted to PyTorch familiarisation so that model behaviour could be understood and controlled at implementation level. Initial exercises focused on tensors, autograd, module design, forward and backward passes, optimiser setup, batching, and validation loops. Particular effort was placed on data preprocessing, dimensional consistency, and reproducibility controls, because these repeatedly affected training reliability in early experiments.
+Following the initial theoretical phase, the project transitioned to practical familiarisation with PyTorch to ensure that model behaviour could be inspected, controlled, and debugged at the implementation level. Using #underline[#link("https://docs.pytorch.org/tutorials/beginner/basics/intro.html")[PyTorch's Introduction to Basics]] @pytorch:basics:intro as a foundation, I explored core fundamental building blocks such as tensor operations, shape transformations or autograd mechanics, with a particular emphasis on identifying and preventing silent shape mismatches, which can propagate through models without immediate runtime errors but lead to invalid training dynamics. 
 
-The experimental progression moved from simple networks to convolutional architectures on image data, with systematic variation of learning rate, batch size, and optimiser settings. This phase clarified which training failures were due to modelling assumptions and which were due to implementation errors. Consequently, by the time communication experiments started, the project had an established workflow for logging, debugging, and interpreting model behaviour, which reduced avoidable rework in later chapters.
+All of the work done can be found under the Appendix *#underline[@pytorch_app]* where I have the results for the core operations I explored. Additionally, I also expanded from the MNIST classification problem solved in the previous phase to complete training and evaluation pipelines on the Fashion MNIST dataset. This progression was critical, as it exposed the full experimental workflow that I applied in the design of the survival game: dataset loading, model definition, forward and backward passes, loss computation, parameter updates, and performance monitoring. Through these experiments, I developed the ability to interpret loss and accuracy trends, distinguishing meaningful convergence from unstable or noisy training behaviour. Thus, this phase had a direct impact on subsequent work by establishing a reliable development and debugging workflow. As a result, integration with the EGG framework and the development of communication games proceeded more efficiently and with reduced need for iterative rework.
 
-== EGG framework familiarisation <group1>
+== Emergent Communication and EGG Framework Familiarisation <group1>
+\
+Following the completion of the first primary objective, the next step on the roadmap was to acquire the theoretical and practical grounding in emergent communication necessary to design and evaluate meaningful experiments. This addressed the second primary objective directly, requiring both a study of the research literature and hands-on engagement with the EGG framework before any custom development could begin.
 
-EGG familiarisation focused on understanding how emergent communication experiments are structured end to end, including sender and receiver roles, wrapper behaviour, task objectives, and training orchestration. The basic games modules were used as the main reference point, especially reconstruction and discrimination setups, because they expose the core mechanics needed for custom communication-game development. This stage also clarified practical differences between Gumbel-Softmax relaxation and REINFORCE training for discrete signalling.
+Emergent communication, in the context of multi-agent systems, refers to the phenomenon by which agents develop a shared signalling protocol without that protocol being explicitly programmed or supervised. As surveyed by Lazaridou and Baroni @lazaridou2020emergent, agents are placed in a game where communication is a means to achieve a shared reward, and the symbols they exchange carry no pre-assigned meaning at the start of training. Meaning and structure emerge through repeated interaction, guided only by task success. The agents are typically divided into a sender, who observes an input and produces a message, and a receiver, who processes that message and acts on it. Communication is considered emergent when the receiver's behaviour is causally influenced by the sender's messages, rather than the channel being ignored or used trivially. Although a key technical challenge is that communication in this setting is discrete, meaning that gradients cannot flow through the message channel directly, which requires either a continuous relaxation such as Gumbel-Softmax @jang2017categorical, or a policy gradient method such as REINFORCE @williams1992simple to train the agents. As explained later on, several findings from the literature proved directly relevant to the results observed in this project. For example, Kottur et al. @kottur2017natural demonstrated that agents often fail to converge to compositional or human-like protocols, instead developing minimal codes that are just sufficient for the task at hand, a pattern consistent with the message collapse behaviour encountered in several training runs described later in this dissertation.
 
-Hands-on runs in the basic games provided useful calibration of expected behaviour and limitations. Early reconstruction performance varied substantially across settings, with final accuracies ranging from 3% to 17%, highlighting sensitivity to learning rate, architecture configuration, and message constraints. Although these scores were modest, the experiments were valuable because they built a correct mental model of data flow and optimisation dynamics, which later informed the design and justification of the custom survival-game pipeline.
+With this theoretical grounding established, I decided to start exploring the EGG framework itself. The EGG repository is structured around a clear separation between game-specific logic and general communication infrastructure. The researcher's responsibility is to define the input data, the core agent modules, and the task loss, while EGG's core layer handles message generation, message processing, training mode selection, and optimisation orchestration. Agent modules are wrapped by framework components that implement either Gumbel-Softmax or REINFORCE training, depending on the chosen mode, and these wrappers connect to a game object that ties the sender, receiver, and loss together into a single trainable system. Moreover, the framework also provides callback utilities for logging, temperature annealing, and validation event printing, which allowed experiment outputs to be inspected without requiring custom implementations at this stage. Thus, to develop a working understanding of this pipeline, i used the `zoo/basic_games` module as a primary point of entry. This module implements both a reconstruction game, in which the receiver must reproduce the full input vector from the sender's message, and a discrimination game, in which the receiver must identify a target item among a set of distractors. In order to learn how different architecture is affected by hyperparameters, I decided to run the game while changing one hyperparameter and keeping the rest constant, which clarified how changing the game objective alters the demands placed on the communication channel.
+
+I executed five reconstruction runs to examine the sensitivity of emergent communication training to configuration choices, varying learning rate, architecture size, vocabulary, message length, and optimisation mode. The results are summarised in *#underline[@egg-basic-runs]*, where we can see that training with a learning rate of 0.01 under Gumbel-Softmax produced a final accuracy of 3%, with a loss curve that showed no convergence, confirming that learning rate sensitivity in emergent communication training is more severe than in standard supervised settings. On the other hand, reducing the learning rate to 0.001 improved stability substantially, reaching 14% accuracy over 200 epochs, and switching to REINFORCE under the same configuration produced the best result across all runs at 17%, a factor that I took into account when designing the implementation. Also, reducing architecture capacity below the task's complexity suppressed communication quality independently of optimisation mode, and replacing GRU cells with LSTM cells produced slower convergence under otherwise identical settings. Although these accuracy figures are modest, their value was methodological, they established a calibrated understanding of how sensitive the training dynamics are, and which configuration choices have the largest practical impact.
+
+Full run logs and validation outputs are provided in *NEED PROOF HERE*
+
+#figure(
+  table(
+    columns: (auto, auto, auto, auto, auto, auto, auto),
+    align: center,
+    table.header(
+      [*Run*], [*Mode*], [*Architecture*], [*LR*], [*Epochs*],
+      [*Final Acc*], [*Outcome*],
+    ),
+    [1], [GS],  [S:256 / R:512 GRU],  [0.01],   [50],  [3%],    [Loss diverged],
+    [2], [GS],  [S:256 / R:512 GRU],  [0.001],  [200], [14%],   [Stable],
+    [3], [RF],  [S:256 / R:512 GRU],  [0.001],  [200], [17%],   [Best result],
+    [4], [GS],  [S:128 / R:128 GRU],  [0.0005], [200], [5%],    [Under-capacity],
+    [5], [GS],  [S:256 / R:512 LSTM], [0.001],  [200], [7%],    [Slower convergence],
+  ),
+  caption: [EGG basic reconstruction game runs across training modes and configurations.]
+) <egg-basic-runs>
 
 == MNIST adaptation in EGG as preparatory work <group1>
 
 The MNIST adaptation served as the integration milestone that combined machine learning theory, PyTorch engineering, and EGG communication mechanics. A discrimination game was implemented in which the sender observed a target digit and transmitted a message to a receiver that selected the target among distractors. This intermediate task was deliberately chosen because it preserved the full communication loop while remaining sufficiently interpretable for controlled debugging and message analysis.
 
 The resulting performance provided strong evidence that the pipeline was functional before moving to the survival domain. In a tracked run, test accuracy reached 91.47% by epoch 10, and confusion-matrix analysis over the test set showed 97.68% diagonal mass overall, with per-class recall generally between 96% and 99%. Message analysis also indicated stable, non-random signalling tendencies, including consistent symbol reuse patterns. In this dissertation, the MNIST stage is therefore treated as preparatory validation rather than a core contribution, with its primary value being risk reduction, tooling validation, and methodological calibration for the main survival-game experiments.
-
-\
-== Machine Learning foundation <group1>
-
-Brief summary of what was studied and what resource was used. Talk about the progress, challenges and ways of learning implemented (videos, lectures, practical use and quizzes). 
-
-List the sections learnt, and how they were relevant to the project and how successful it turned out to be.
-
-The project began with a structured machine learning foundation phase using Google's Machine Learning Crash Course, complemented by lecture notes and practical exercises. This phase covered core topics including regression, classification, loss optimisation, model evaluation, and neural network fundamentals, which were necessary before implementing communication games in EGG. The learning process combined reading, quizzes, and short coding experiments, and it provided a reliable conceptual base for later decisions on training setup, metric interpretation, and error analysis.
-
-\ \ \ \
-
-The semester began with building foundational knowledge in machine learning, an area where significant gaps existed. #underline[#link("https://developers.google.com/machine-learning/crash-course")[Google's Machine Learning Crash Course]] became the primary learning resource, covering everything from linear and logistic regression through to neural network architectures, classification systems, and model evaluation. The course proved highly effective, completing it within four weeks with perfect scores on all quizzes.
-
-Alongside this structured learning, I developed PyTorch skills through self-directed experimentation and the guidance of my supervisor. The MNIST dataset served as the main training ground, supplemented by other benchmark datasets. This hands-on approach, where I was building custom neural networks with `torch.nn.Module`, implementing training loops, and experimenting with different architectures, proved invaluable for understanding how theory translates to practice.
-
-\
-== PyTorch familiarisation and initial experiments <group1>
-
-Brief summary of what was studied and how it was learnt (documentation and coding exercises/exploration).
-
-\
-== EGG framework familiarisation <group1>
-
-Summary of what was studied, how and why. Here it is now more relevant to the project so make sure to be concise but explanatory enough to be self contained.
-
-Mention the structure of the repository but not in full detail
-
-EGG familiarisation was carried out through detailed study of the `zoo/basic_games` modules and hands-on experiments with reconstruction and discrimination setups. This phase clarified the sender-receiver architecture, message generation process, and the differences between Gumbel-Softmax and REINFORCE training modes. Although early reconstruction scores were modest, these experiments were useful because they established a working understanding of data flow, optimisation behaviour, and practical constraints when training communicating agents.
-
-\
-== MNIST adaptation in EGG as preparatory work <group1>
-
-Example of how the egg framework was learnt and combining the learning outcomes of the three learning objectives. 
-
-Talk about the implementation and success of it but very briefly. Purpose is tooling and framework on boarding, not core project evaluation.
-
-To consolidate this preparation, a baseline MNIST discrimination game was implemented in EGG, where agents communicated about one target digit among distractors. The model reached 96.5% test accuracy, and message analysis showed clear symbol reuse patterns and vocabulary compression. In this dissertation, this baseline is treated as preparatory work rather than a core contribution, because its main value was to validate tooling, establish analysis workflows, and reduce implementation risk before developing the custom survival environment.
 
 \
 == Lessons from preparation phase that informed final design choices <group1>
@@ -459,6 +406,17 @@ First I need to explain the results by objectives, what objectives were not achi
 
 == Communication emergence analysis <group1>
 
+Papers that might be useful:
+Furthermore, this point was reinforced by Bouchacourt and Baroni @bouchacourt2018agents by showing that agents trained on a referential game could communicate effectively about Gaussian noise at test time, suggesting that
+the emergent protocol was capturing shallow discriminative properties rather than
+meaningful semantic content. Furthermore, Lowe et al. @lowe2019pitfalls provided
+an important methodological caution: simply ablating the communication channel and
+observing a drop in performance is insufficient evidence of genuine communication,
+as the extra architectural capacity alone could account for some of the
+improvement. This distinction shaped how the evaluation methodology for the
+survival-game experiments was designed.
+
+
 Big dive into the messages produced in our last run. Analysis based of academic literature and results of the metrics analysed throughout the run. For this we will use run 13, as it is the last one and the best.
 
 Talk about the effect of hyper parameters too (like temperature decay)
@@ -525,6 +483,319 @@ Learnt ML -> learn Pytorch -> Learnt EGG -> Implemented MNIST in EGG -> Designed
 == Testing Summary <group1>
 
 This should describe the steps taken to debug, test, verify or otherwise confirm the correctness of the various modules and their combination.
+
+=== Machine Learning Outputs and Metrics
+\ 
+The MNIST implementation, using a simple feedforward neural network, provided insightful results regarding both training stability and model performance.
+
+The model trained over five epochs and exhibited steady improvements in both loss and accuracy. After training, the model was evaluated on the test set. A sample test image was selected for prediction. The model correctly predicted the label of the digit (7), with a high confidence of 99.03%.
+
+Performance Summary
+
+#figure(
+  table(
+    columns: (auto, auto, auto),
+    [*Epoch*], [*Accuracy*], [*Avg Loss*],
+    [1], [90.72%], [0.3428],
+    [2], [95.47%], [0.1571],
+    [3], [96.85%], [0.1077],
+    [4], [97.57%], [0.0828],
+    [5], [98.09%], [0.0645],
+    [Test], [97.30%], [0.0866]
+  ),
+  caption: [MNIST Model Performance: Epoch Results and Final Test Evaluation]
+) #label("mnist-performance-summary")
+
+MNIST_classifier.py output:
+
+#raw("
+Using device: cuda
+======================================================================
+Loading MNIST training dataset...
+100%|██████████████████████████████████████| 9.91M/9.91M [00:01<00:00, 8.26MB/s]
+100%|██████████████████████████████████████| 28.9k/28.9k [00:00<00:00, 456kB/s]
+100%|██████████████████████████████████████| 1.65M/1.65M [00:00<00:00, 1.68MB/s]
+100%|██████████████████████████████████████| 4.54k/4.54k [00:00<00:00, 7.31MB/s]
+Loading MNIST test dataset...
+Training samples: 60000
+Test samples: 10000
+======================================================================
+Model Architecture:
+MNISTClassifier(
+  (flatten): Flatten(start_dim=1, end_dim=-1)
+  (network): Sequential(
+    (0): Linear(in_features=784, out_features=128, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=128, out_features=10, bias=True)
+  )
+)
+======================================================================
+Total parameters: 101,770
+Trainable parameters: 101,770
+======================================================================
+Training Configuration:
+  Loss Function: Cross Entropy Loss
+  Optimizer: Adam
+  Learning Rate: 0.001
+  Batch Size: 64
+  Epochs: 5
+======================================================================
+
+Starting training...
+======================================================================
+Epoch [1/5], Batch [100/938], Loss: 0.3755
+Epoch [1/5], Batch [200/938], Loss: 0.3468
+Epoch [1/5], Batch [300/938], Loss: 0.2063
+Epoch [1/5], Batch [400/938], Loss: 0.2304
+Epoch [1/5], Batch [500/938], Loss: 0.2883
+Epoch [1/5], Batch [600/938], Loss: 0.2439
+Epoch [1/5], Batch [700/938], Loss: 0.1047
+Epoch [1/5], Batch [800/938], Loss: 0.2208
+Epoch [1/5], Batch [900/938], Loss: 0.3837
+Epoch [1/5] Complete - Avg Loss: 0.3428, Accuracy: 90.72%
+----------------------------------------------------------------------
+Epoch [2/5], Batch [100/938], Loss: 0.2584
+Epoch [2/5], Batch [200/938], Loss: 0.1049
+Epoch [2/5], Batch [300/938], Loss: 0.1111
+Epoch [2/5], Batch [400/938], Loss: 0.1816
+Epoch [2/5], Batch [500/938], Loss: 0.1789
+Epoch [2/5], Batch [600/938], Loss: 0.1086
+Epoch [2/5], Batch [700/938], Loss: 0.2424
+Epoch [2/5], Batch [800/938], Loss: 0.0665
+Epoch [2/5], Batch [900/938], Loss: 0.0707
+Epoch [2/5] Complete - Avg Loss: 0.1571, Accuracy: 95.47%
+----------------------------------------------------------------------
+Epoch [3/5], Batch [100/938], Loss: 0.1348
+Epoch [3/5], Batch [200/938], Loss: 0.1507
+Epoch [3/5], Batch [300/938], Loss: 0.2202
+Epoch [3/5], Batch [400/938], Loss: 0.2126
+Epoch [3/5], Batch [500/938], Loss: 0.2146
+Epoch [3/5], Batch [600/938], Loss: 0.1349
+Epoch [3/5], Batch [700/938], Loss: 0.1692
+Epoch [3/5], Batch [800/938], Loss: 0.0377
+Epoch [3/5], Batch [900/938], Loss: 0.1700
+Epoch [3/5] Complete - Avg Loss: 0.1077, Accuracy: 96.85%
+----------------------------------------------------------------------
+Epoch [4/5], Batch [100/938], Loss: 0.0803
+Epoch [4/5], Batch [200/938], Loss: 0.2084
+Epoch [4/5], Batch [300/938], Loss: 0.0618
+Epoch [4/5], Batch [400/938], Loss: 0.0707
+Epoch [4/5], Batch [500/938], Loss: 0.0448
+Epoch [4/5], Batch [600/938], Loss: 0.0404
+Epoch [4/5], Batch [700/938], Loss: 0.0589
+Epoch [4/5], Batch [800/938], Loss: 0.1391
+Epoch [4/5], Batch [900/938], Loss: 0.0285
+Epoch [4/5] Complete - Avg Loss: 0.0828, Accuracy: 97.57%
+----------------------------------------------------------------------
+Epoch [5/5], Batch [100/938], Loss: 0.0593
+Epoch [5/5], Batch [200/938], Loss: 0.0244
+Epoch [5/5], Batch [300/938], Loss: 0.0499
+Epoch [5/5], Batch [400/938], Loss: 0.0754
+Epoch [5/5], Batch [500/938], Loss: 0.1032
+Epoch [5/5], Batch [600/938], Loss: 0.0964
+Epoch [5/5], Batch [700/938], Loss: 0.1120
+Epoch [5/5], Batch [800/938], Loss: 0.0447
+Epoch [5/5], Batch [900/938], Loss: 0.1143
+Epoch [5/5] Complete - Avg Loss: 0.0645, Accuracy: 98.09%
+----------------------------------------------------------------------
+
+Training completed!
+======================================================================
+
+Evaluating model on test set...
+Test Results:
+  Accuracy: 97.30%
+  Average Loss: 0.0866
+======================================================================
+
+Model saved to: mnist_classifier.pth
+======================================================================
+
+Testing inference on a sample image...
+True Label: 7
+Predicted Label: 7
+
+Class Probabilities:
+  Digit 0: 0.0000
+  Digit 1: 0.0000
+  Digit 2: 0.0002
+  Digit 3: 0.0094
+  Digit 4: 0.0000
+  Digit 5: 0.0000
+  Digit 6: 0.0000
+  Digit 7: 0.9903
+  Digit 8: 0.0001
+  Digit 9: 0.0001
+======================================================================
+")
+
+=== PyTorch Learning <pytorch_app>
+
+Output of tutorial_pytorch.py:
+
+#raw("
+  Enter '1' for tensor basics or '2' for FashionMNIST visualization: 1
+
+======================================================================
+PART 1: Tensors and NumPy bridge
+======================================================================
+
+[1] Tensor from Python list:
+tensor([[1, 2],
+        [3, 4]])
+
+[2] Tensor from NumPy array:
+tensor([[1, 2],
+        [3, 4]])
+
+[3] Ones tensor (same shape as x_data):
+tensor([[1, 1],
+        [1, 1]])
+
+[4] Random tensor (float):
+tensor([[0.2444, 0.6654],
+        [0.5640, 0.1841]])
+
+[5] Random tensor:
+tensor([[0.8831, 0.3790, 0.7701],
+        [0.5920, 0.0392, 0.8420]])
+
+[6] Ones tensor:
+tensor([[1., 1., 1.],
+        [1., 1., 1.]])
+
+[7] Zeros tensor:
+tensor([[0., 0., 0.],
+        [0., 0., 0.]])
+
+[8] Tensor properties
+Shape: (3, 4)
+Dtype: torch.float32
+Device: cpu
+Moved tensor to accelerator: cuda:0
+
+[9] Indexing and slicing
+First row: tensor([1., 1., 1., 1.])
+First column: tensor([1., 1., 1., 1.])
+Last column: tensor([1., 1., 1., 1.])
+Modified tensor:
+tensor([[1., 0., 1., 1.],
+        [1., 0., 1., 1.],
+        [1., 0., 1., 1.],
+        [1., 0., 1., 1.]])
+Concatenated tensor:
+tensor([[1., 0., 1., 1., 1., 0., 1., 1., 1., 0., 1., 1.],
+        [1., 0., 1., 1., 1., 0., 1., 1., 1., 0., 1., 1.],
+        [1., 0., 1., 1., 1., 0., 1., 1., 1., 0., 1., 1.],
+        [1., 0., 1., 1., 1., 0., 1., 1., 1., 0., 1., 1.]])
+
+[10] Matrix multiplication result:
+tensor([[3., 3., 3., 3.],
+        [3., 3., 3., 3.],
+        [3., 3., 3., 3.],
+        [3., 3., 3., 3.]])
+
+[11] Element-wise multiplication result:
+tensor([[1., 0., 1., 1.],
+        [1., 0., 1., 1.],
+        [1., 0., 1., 1.],
+        [1., 0., 1., 1.]])
+
+[12] Sum converted to Python scalar: 12.0 (float)
+
+Tensor before in-place add:
+tensor([[1., 0., 1., 1.],
+        [1., 0., 1., 1.],
+        [1., 0., 1., 1.],
+        [1., 0., 1., 1.]])
+
+Tensor after add_(5):
+tensor([[6., 5., 6., 6.],
+        [6., 5., 6., 6.],
+        [6., 5., 6., 6.],
+        [6., 5., 6., 6.]])
+
+[13] PyTorch <-> NumPy memory sharing
+t: tensor([1., 1., 1., 1., 1.])
+n: [1. 1. 1. 1. 1.]
+t after add_: tensor([2., 2., 2., 2., 2.])
+n after t is modified: [2. 2. 2. 2. 2.]
+n after np.add: [2. 2. 2. 2. 2.]
+t after n is modified: tensor([2., 2., 2., 2., 2.], dtype=torch.float64)
+")
+
+#raw("
+Enter '1' for tensor basics or '2' for FashionMNIST visualization: 2
+
+======================================================================
+PART 2: FashionMNIST sample visualization
+======================================================================
+Loaded training samples: 60000
+Loaded test samples: 10000
+")
+
+#image("Images/MNIST_Fashion.png")
+
+
+\ \
+
+Output for MNIST_Fashion.py:
+
+#raw("
+======================================================================
+PyTorch FashionMNIST Model Walkthrough
+======================================================================
+Using device: cuda
+
+======================================================================
+Model Architecture
+======================================================================
+NeuralNetwork(
+  (flatten): Flatten(start_dim=1, end_dim=-1)
+  (linear_relu_stack): Sequential(
+    (0): Linear(in_features=784, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=512, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=512, out_features=10, bias=True)
+  )
+)
+Predicted class index (random input): 3
+
+======================================================================
+Layer-By-Layer Shapes
+======================================================================
+Input batch shape: (3, 28, 28)
+Flattened batch shape: (3, 784)
+After first linear layer: (3, 20)
+
+======================================================================
+Activation Example (summarized)
+======================================================================
+Hidden activations before ReLU: shape=(3, 20), dtype=torch.float32, device=cpu
+Hidden activations before ReLU preview: tensor([ 0.2577,  0.0513,  0.6861, -0.1938,  0.0945, -0.2237,  0.1269,  0.4146])
+Hidden activations after ReLU: shape=(3, 20), dtype=torch.float32, device=cpu
+Hidden activations after ReLU preview: tensor([0.2577, 0.0513, 0.6861, 0.0000, 0.0945, 0.0000, 0.1269, 0.4146])
+Model structure: NeuralNetwork(
+  (flatten): Flatten(start_dim=1, end_dim=-1)
+  (linear_relu_stack): Sequential(
+    (0): Linear(in_features=784, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=512, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=512, out_features=10, bias=True)
+  )
+)
+
+
+Layer: linear_relu_stack.0.weight | Shape: (512, 784) | mean=0.0000 std=0.0206
+Layer: linear_relu_stack.0.bias | Shape: (512,) | mean=0.0015 std=0.0207
+Layer: linear_relu_stack.2.weight | Shape: (512, 512) | mean=-0.0000 std=0.0256
+Layer: linear_relu_stack.2.bias | Shape: (512,) | mean=-0.0015 std=0.0242
+Layer: linear_relu_stack.4.weight | Shape: (10, 512) | mean=-0.0005 std=0.0253
+Layer: linear_relu_stack.4.bias | Shape: (10,) | mean=-0.0090 std=0.0232
+")
+
 
 == User Manual <group1>
 

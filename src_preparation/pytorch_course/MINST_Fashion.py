@@ -29,14 +29,29 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
 
+
 #############################################
 # Get Device for Training
 # -----------------------
 # We want to be able to train our model on an `accelerator <https://pytorch.org/docs/stable/torch.html#accelerators>`__
 # such as CUDA, MPS, MTIA, or XPU. If the current accelerator is available, we will use it. Otherwise, we use the CPU.
 
+def _section(title):
+    print("\n" + "=" * 70)
+    print(title)
+    print("=" * 70)
+
+
+def _preview_tensor(name, tensor, max_items=8):
+    flat = tensor.detach().flatten()
+    preview = flat[:max_items]
+    print(f"{name}: shape={tuple(tensor.shape)}, dtype={tensor.dtype}, device={tensor.device}")
+    print(f"{name} preview: {preview}")
+
+
 device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
-print(f"Using {device} device")
+_section("PyTorch FashionMNIST Model Walkthrough")
+print(f"Using device: {device}")
 
 ##############################################
 # Define the Class
@@ -67,6 +82,7 @@ class NeuralNetwork(nn.Module):
 # its structure.
 
 model = NeuralNetwork().to(device)
+_section("Model Architecture")
 print(model)
 
 
@@ -82,7 +98,7 @@ X = torch.rand(1, 28, 28, device=device)
 logits = model(X)
 pred_probab = nn.Softmax(dim=1)(logits)
 y_pred = pred_probab.argmax(1)
-print(f"Predicted class: {y_pred}")
+print(f"Predicted class index (random input): {y_pred.item()}")
 
 
 ######################################################################
@@ -99,7 +115,8 @@ print(f"Predicted class: {y_pred}")
 # we pass it through the network.
 
 input_image = torch.rand(3,28,28)
-print(input_image.size())
+_section("Layer-By-Layer Shapes")
+print(f"Input batch shape: {tuple(input_image.size())}")
 
 ##################################################
 # nn.Flatten
@@ -110,7 +127,7 @@ print(input_image.size())
 
 flatten = nn.Flatten()
 flat_image = flatten(input_image)
-print(flat_image.size())
+print(f"Flattened batch shape: {tuple(flat_image.size())}")
 
 ##############################################
 # nn.Linear
@@ -120,7 +137,7 @@ print(flat_image.size())
 #
 layer1 = nn.Linear(in_features=28*28, out_features=20)
 hidden1 = layer1(flat_image)
-print(hidden1.size())
+print(f"After first linear layer: {tuple(hidden1.size())}")
 
 
 #################################################
@@ -133,9 +150,10 @@ print(hidden1.size())
 # In this model, we use `nn.ReLU <https://pytorch.org/docs/stable/generated/torch.nn.ReLU.html>`_ between our
 # linear layers, but there's other activations to introduce non-linearity in your model.
 
-print(f"Before ReLU: {hidden1}\n\n")
+_section("Activation Example (summarized)")
+_preview_tensor("Hidden activations before ReLU", hidden1)
 hidden1 = nn.ReLU()(hidden1)
-print(f"After ReLU: {hidden1}")
+_preview_tensor("Hidden activations after ReLU", hidden1)
 
 
 
@@ -182,7 +200,10 @@ pred_probab = softmax(logits)
 print(f"Model structure: {model}\n\n")
 
 for name, param in model.named_parameters():
-    print(f"Layer: {name} | Size: {param.size()} | Values : {param[:2]} \n")
+    data = param.detach()
+    mean = data.mean().item()
+    std = data.std().item()
+    print(f"Layer: {name} | Shape: {tuple(param.size())} | mean={mean:.4f} std={std:.4f}")
 
 ######################################################################
 # --------------
