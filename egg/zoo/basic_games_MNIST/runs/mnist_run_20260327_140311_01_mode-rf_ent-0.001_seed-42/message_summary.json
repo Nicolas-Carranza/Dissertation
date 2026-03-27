@@ -1,0 +1,242 @@
+{
+  "0": {
+    "accuracy": 0.36122448979591837,
+    "avg_length": 10.0,
+    "avg_entropy": 4.262036185627301e-14,
+    "n_samples": 980,
+    "top_5_messages": [
+      {
+        "message": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "count": 980,
+        "frequency": 1.0
+      }
+    ]
+  },
+  "1": {
+    "accuracy": 0.3312775330396476,
+    "avg_length": 10.0,
+    "avg_entropy": 3.6559850680403203e-09,
+    "n_samples": 1135,
+    "top_5_messages": [
+      {
+        "message": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "count": 1135,
+        "frequency": 1.0
+      }
+    ]
+  },
+  "2": {
+    "accuracy": 0.32170542635658916,
+    "avg_length": 10.0,
+    "avg_entropy": 6.785259802391404e-13,
+    "n_samples": 1032,
+    "top_5_messages": [
+      {
+        "message": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "count": 1032,
+        "frequency": 1.0
+      }
+    ]
+  },
+  "3": {
+    "accuracy": 0.3435643564356436,
+    "avg_length": 10.0,
+    "avg_entropy": 2.7072627288890335e-12,
+    "n_samples": 1010,
+    "top_5_messages": [
+      {
+        "message": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "count": 1010,
+        "frequency": 1.0
+      }
+    ]
+  },
+  "4": {
+    "accuracy": 0.2973523421588595,
+    "avg_length": 10.0,
+    "avg_entropy": 5.086153919940391e-12,
+    "n_samples": 982,
+    "top_5_messages": [
+      {
+        "message": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "count": 982,
+        "frequency": 1.0
+      }
+    ]
+  },
+  "5": {
+    "accuracy": 0.31390134529147984,
+    "avg_length": 10.0,
+    "avg_entropy": 1.2251597779169094e-11,
+    "n_samples": 892,
+    "top_5_messages": [
+      {
+        "message": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "count": 892,
+        "frequency": 1.0
+      }
+    ]
+  },
+  "6": {
+    "accuracy": 0.3235908141962422,
+    "avg_length": 10.0,
+    "avg_entropy": 1.6056052681787234e-11,
+    "n_samples": 958,
+    "top_5_messages": [
+      {
+        "message": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "count": 958,
+        "frequency": 1.0
+      }
+    ]
+  },
+  "7": {
+    "accuracy": 0.3531128404669261,
+    "avg_length": 10.0,
+    "avg_entropy": 3.37494966131683e-11,
+    "n_samples": 1028,
+    "top_5_messages": [
+      {
+        "message": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "count": 1028,
+        "frequency": 1.0
+      }
+    ]
+  },
+  "8": {
+    "accuracy": 0.3521560574948665,
+    "avg_length": 10.0,
+    "avg_entropy": 2.032987096811846e-13,
+    "n_samples": 974,
+    "top_5_messages": [
+      {
+        "message": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "count": 974,
+        "frequency": 1.0
+      }
+    ]
+  },
+  "9": {
+    "accuracy": 0.333994053518335,
+    "avg_length": 10.0,
+    "avg_entropy": 4.412956958983319e-12,
+    "n_samples": 1009,
+    "top_5_messages": [
+      {
+        "message": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "count": 1009,
+        "frequency": 1.0
+      }
+    ]
+  }
+}

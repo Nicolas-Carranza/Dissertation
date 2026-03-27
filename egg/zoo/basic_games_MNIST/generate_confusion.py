@@ -17,6 +17,9 @@ Notes:
 import argparse
 import random
 import math
+import sys
+from pathlib import Path
+
 import torch
 import numpy as np
 from collections import Counter
@@ -30,8 +33,25 @@ try:
 except Exception:
     _HAS_SEABORN = False
 
+# Ensure imports work when running this script directly by path.
+REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from architectures import MNISTSender, MNISTDiscriReceiver
 import egg.core as core
+
+
+def _unpack_sender_output(sender_output):
+    if isinstance(sender_output, (tuple, list)):
+        return sender_output[0]
+    return sender_output
+
+
+def _unpack_receiver_output(receiver_output):
+    if isinstance(receiver_output, (tuple, list)):
+        return receiver_output[0]
+    return receiver_output
 
 
 def get_args():
@@ -42,6 +62,8 @@ def get_args():
     p.add_argument("--vocab_size", type=int, default=50)
     p.add_argument("--max_len", type=int, default=10)
     p.add_argument("--n_distractors", type=int, default=2)
+    p.add_argument("--mode", type=str, default="rf", choices=["rf", "gs"])
+    p.add_argument("--temperature", type=float, default=1.0, help="GS sender temperature (used when --mode gs)")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--output_prefix", type=str, default="confusion")
     p.add_argument("--device", type=str, default="cpu")
@@ -69,21 +91,39 @@ def build_model(opts):
     sender = MNISTSender(n_hidden=256)
     receiver = MNISTDiscriReceiver(n_hidden=256)
 
-    sender = core.RnnSenderReinforce(
-        sender,
-        vocab_size=opts.vocab_size,
-        embed_dim=50,
-        hidden_size=256,
-        cell='gru',
-        max_len=opts.max_len,
-    )
-    receiver = core.RnnReceiverDeterministic(
-        receiver,
-        vocab_size=opts.vocab_size,
-        embed_dim=50,
-        hidden_size=256,
-        cell='gru',
-    )
+    if opts.mode.lower() == "gs":
+        sender = core.RnnSenderGS(
+            sender,
+            vocab_size=opts.vocab_size,
+            embed_dim=50,
+            hidden_size=256,
+            cell='gru',
+            max_len=opts.max_len,
+            temperature=opts.temperature,
+        )
+        receiver = core.RnnReceiverGS(
+            receiver,
+            vocab_size=opts.vocab_size,
+            embed_dim=50,
+            hidden_size=256,
+            cell='gru',
+        )
+    else:
+        sender = core.RnnSenderReinforce(
+            sender,
+            vocab_size=opts.vocab_size,
+            embed_dim=50,
+            hidden_size=256,
+            cell='gru',
+            max_len=opts.max_len,
+        )
+        receiver = core.RnnReceiverDeterministic(
+            receiver,
+            vocab_size=opts.vocab_size,
+            embed_dim=50,
+            hidden_size=256,
+            cell='gru',
+        )
 
     checkpoint = torch.load(opts.checkpoint, map_location=opts.device, weights_only=False)
     sender.load_state_dict(checkpoint['sender'])
@@ -134,8 +174,10 @@ def main():
 
         # run through models
         with torch.no_grad():
-            message, logits, entropy = sender(sender_input, None)
-            out, _, _ = receiver(message, receiver_input, None)
+            sender_output = sender(sender_input, None)
+            message = _unpack_sender_output(sender_output)
+            receiver_output = receiver(message, receiver_input, None)
+            out = _unpack_receiver_output(receiver_output)
             pred_pos = int(out.argmax(dim=1).item())
 
         # map pred_pos to predicted digit label using shuffled_indices

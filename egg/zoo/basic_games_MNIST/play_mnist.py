@@ -4,10 +4,20 @@
 # LICENSE file in the root directory of this source tree.
 
 import argparse
+import random
+import sys
+from pathlib import Path
+
+import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
+
+# Ensure imports work when running this script directly by path.
+REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 import egg.core as core
 from architectures import MNISTSender, MNISTDiscriReceiver
@@ -30,6 +40,12 @@ def get_params(params):
         default=2,
         help="Number of distractor images per sample (default: 2, meaning 3 total images)",
     )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Random seed for reproducible training/data sampling (default: 42)",
+    )
     
     # Training method arguments
     parser.add_argument(
@@ -47,8 +63,8 @@ def get_params(params):
     parser.add_argument(
         "--sender_entropy_coeff",
         type=float,
-        default=1e-2,
-        help="Reinforce entropy regularization coefficient for Sender, only relevant in Reinforce (rf) mode (default: 1e-2)",
+        default=1e-3,
+        help="Reinforce entropy regularization coefficient for Sender, only relevant in Reinforce (rf) mode (default: 1e-3)",
     )
     
     # Agent architecture arguments
@@ -110,6 +126,20 @@ def get_params(params):
 def main(params):
     opts = get_params(params)
     print(opts, flush=True)
+
+    # Seed all RNGs used by training and data sampling for reproducibility.
+    random.seed(opts.seed)
+    np.random.seed(opts.seed)
+    torch.manual_seed(opts.seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(opts.seed)
+    try:
+        torch.use_deterministic_algorithms(True)
+    except Exception:
+        pass
+    if hasattr(torch.backends, "cudnn"):
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
     
     # Load MNIST datasets
     transform = transforms.Compose([
@@ -132,25 +162,28 @@ def main(params):
     )
     
     # Create discrimination game datasets
-    train_ds = MNISTDiscriDataset(train_mnist, n_distractors=opts.n_distractors, seed=opts.random_seed)
-    test_ds = MNISTDiscriDataset(test_mnist, n_distractors=opts.n_distractors, seed=opts.random_seed)
+    train_ds = MNISTDiscriDataset(train_mnist, n_distractors=opts.n_distractors, seed=opts.seed)
+    test_ds = MNISTDiscriDataset(test_mnist, n_distractors=opts.n_distractors, seed=opts.seed)
     
     train_loader = DataLoader(
         train_ds,
         batch_size=opts.batch_size,
         shuffle=True,
-        num_workers=0  # Set to 0 for debugging, increase for speed
+        num_workers=0,  # Set to 0 for debugging, increase for speed
+        generator=torch.Generator().manual_seed(opts.seed),
     )
     test_loader = DataLoader(
         test_ds,
         batch_size=opts.batch_size,
         shuffle=False,
-        num_workers=0
+        num_workers=0,
+        generator=torch.Generator().manual_seed(opts.seed),
     )
     
     print(f"Train dataset size: {len(train_ds)}", flush=True)
     print(f"Test dataset size: {len(test_ds)}", flush=True)
     print(f"Images per sample: {opts.n_distractors + 1} (1 target + {opts.n_distractors} distractors)", flush=True)
+    print(f"Random seed: {opts.seed}", flush=True)
     
     # Define loss function (same as discrimination game)
     def loss(

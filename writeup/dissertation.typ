@@ -233,6 +233,7 @@ After the interim report, the implementation scope was revised by dropping the i
 
 Note: Tertiary objectives were retained for completeness and alignment with the original project scope, but were not fully pursued due to time and scope constraints, with exception of the Thesis Documentation.
 
+
 #pagebreak()
 
 = Preparation and Technical Ramp-Up <group1>
@@ -289,37 +290,83 @@ Full run logs and validation outputs are provided in *NEED PROOF HERE*
   caption: [EGG basic reconstruction game runs across training modes and configurations.]
 ) <egg-basic-runs>
 
-== MNIST adaptation in EGG as preparatory work <group1>
-
-The MNIST adaptation served as the integration milestone that combined machine learning theory, PyTorch engineering, and EGG communication mechanics. A discrimination game was implemented in which the sender observed a target digit and transmitted a message to a receiver that selected the target among distractors. This intermediate task was deliberately chosen because it preserved the full communication loop while remaining sufficiently interpretable for controlled debugging and message analysis.
-
-The resulting performance provided strong evidence that the pipeline was functional before moving to the survival domain. In a tracked run, test accuracy reached 91.47% by epoch 10, and confusion-matrix analysis over the test set showed 97.68% diagonal mass overall, with per-class recall generally between 96% and 99%. Message analysis also indicated stable, non-random signalling tendencies, including consistent symbol reuse patterns. In this dissertation, the MNIST stage is therefore treated as preparatory validation rather than a core contribution, with its primary value being risk reduction, tooling validation, and methodological calibration for the main survival-game experiments.
-
+== MNIST Adaptation in EGG as Preparatory Work <group1>
 \
-== Lessons from preparation phase that informed final design choices <group1>
+Finally, in week seven, I was ready to start combining the previous phases and produce a practical working game as an evaluation checkpoint. Together with my supervisor, we decided that the best approach would be to implement the MNIST digit classifier into the basic games framework, combining machine learning foundations, PyTorch engineering competence, and EGG communication mechanics in a single controlled experiment. This addressed the third primary objective directly, establishing baseline implementation and evaluation methodology before any custom environment work began.
 
-Maybe a small paragraph on how all of these learnt topics/skills helped in the development of the game, implementation and analysis.
+For the design and implementation, I deiced to design a discrimination game in which a sender observed a target digit image and transmitted a discrete message to a receiver, which had to identify the target among a set of candidate images. Each sample presented three images to the receiver, comprising one target and two distractors drawn randomly from the dataset at construction time. This data processing stage was implemented and handled by the `MNISTDiscriDataset` class, sampling distractor images at index time, stacking all images into a flattened receiver input tensor, and shuffling their positions so that the target was not always at a fixed location. Furthermore, I use the ground truth label to record the position of the target after shuffling, an important step because without it the receiver could exploit positional regularity rather than genuinely attending to the sender's message.
+
+As for the architecture, the sender extends the standard EGG pattern with a convolutional front-end, replacing the simple linear encoder used in the basic games. I use two convolutional layers with max pooling which extract spatial features from the 28x28 pixel input before a two-layer feed forward network compresses them into the hidden representation used to initialise the message generating RNN. On the other hand, the receiver applies the same convolutional stack independently to each candidate image, projecting the results to the hidden dimensionality and computing dot products against the message encoding to produce a distribution over candidate positions, following the same mechanism as the `DiscriReceiver` from the basic games. When deciding the parameters to use for the agents, the GRU cells were chosen for both sender and receiver based on the finding from the earlier reconstruction runs that they converge faster than LSTM cells under the same configuration. Moreover, my hidden sizes were set to 256 for both agents, with an embedding dimension of 50, a vocabulary size of 50, and a maximum message length of 10 derived from past conversations with my supervisor. Finally, I used the REINFORCE optimisation mode with a reduced entropy coefficient of 0.001, following the basic games calibration which showed that the entropy coefficient has a direct effect on message diversity and collapse risk.
+
+Once my implementation was finished, two training runs were conducted and compared. The first run, under a higher entropy coefficient of 0.01, reached a test accuracy of 91.47% by epoch 10, with sender entropy declining steadily from 1.65 to 0.083 across epochs, indicating that the sender was committing increasingly to consistent message strategies. The second run, with the entropy coefficient reduced to 0.001, produced stronger performance, reaching a test accuracy of 96.50% by epoch 8 and stabilising above 96% for the final three epochs. Note that entropy in this run settled around 0.35 to 0.44 throughout training rather than collapsing near zero, which suggested that the lower coefficient preserved enough exploration to prevent the sender from converging prematurely to a degenerate fixed message. Both runs completed within 30 minutes on CPU, confirming that the setup was practical for iterative experimentation. Full epoch-wise logs for both runs are provided in *#underline[mnist-training-logs]*.
+
+Following the second run, I moved on to analysing the messages, conducted over 10,000 test
+samples drawn at 1,200 samples per digit class, supplemented by a confusion matrix of the accuracy and count. The message analysis revealed several structurally interesting patterns, for example out of the 50 available vocabulary tokens, only seven symbols appeared with meaningful frequency across all classes, specifically tokens _31, 13, 48, 36, 37, 34,_ and _20_, indicating strong vocabulary compression despite the absence of any explicit pressure to restrict symbol usage. Messages exhibited consistent internal structure, with digits mapped to either repeating sequences, such as digit 1 using the pattern `[37, 37, 37, ...]` in 14.2% of cases, or alternating sequences, such as digit 0 using `[31, 13, 31, 13, ...]` in 19.1% of cases. Per-class entropy varied substantially, from 0.1747 for digit 6, indicating a highly stable and consistent protocol, to 0.5842 for digit 9, indicating that the sender relied on a more diverse set of messages for that class. Digits 4, 7, and 9 all showed high entropy, which correlated with their visual complexity and intra-class variability as handwritten forms. The most diagnostic finding from the message analysis concerned digits 2 and 3, which shared the same most common message pattern `[31, 48, 48, ...]` at 16.1% and 19.1% of samples respectively. This message overlap offered a direct explanation for why digit 2 recorded the lowest per-class accuracy at 95.0%, as the receiver encountered ambiguous signals for these two visually similar classes. The confusion matrix confirmed this, showing the highest off-diagonal mass between the 2 and 3 rows, while all other digit pairs remained well separated. The diagonal concentration overall was strong, with per-class recall generally above 96%, and overall test accuracy consistent with the epoch-level logs. The confusion matrix figures are included in *#underline[mnist-confusion-figures]*.
+
+During this analysis phase, a question arose from parallel work in another module where a confusion matrix had shown high training accuracy alongside poor generalisation, raising concern about whether a similar pattern might be present here. Examining the train and test accuracy curves across both runs addressed this directly. In the first run, test accuracy at epochs 5 and 8 dipped below the corresponding training values, and entropy collapsed close to zero, suggesting that the model was over committing to fixed message strategies rather than maintaining a generalisable protocol. The second run showed considerably more stable behaviour, with test accuracy tracking or exceeding training accuracy consistently across epochs and entropy remaining elevated. This comparison was methodologically useful because it established that the entropy coefficient is not merely a regularisation detail but a direct control on whether the emergent protocol generalises or overfits to training-time message patterns.
+
+Overall, the MNIST adaptation is therefore treated as preparatory validation rather than a core dissertation contribution. Its role was to validate the EGG integration path, establish a disciplined experimental workflow, expose early communication-analysis pitfalls, and provide an evidence-based bridge from framework familiarisation to custom environment design.
 
 #pagebreak()
+
 = Software Engineering Process <group1>
-
-The development approach taken and justification for its adoption.
-
-== Iterative development approach <group1>
-
-Could potentially talk about an adoption of an Agile strategy for individual projects? Weekly supervisor driven milestones, keeping progress moving.
-
-The project followed an iterative supervisor-driven workflow, similar in spirit to Agile for an individual project, where weekly meetings defined short milestones, reviewed results, and adjusted technical priorities based on evidence from the latest runs. This approach allowed controlled progression from preparation work to implementation and analysis, and it supported rapid refinement when early training behaviour exposed weaknesses in game balance or evaluation setup.
-
-== Development phases and pivots <group1>
-
-Mention the split between first and second semester, and how I planned at the start to divide the work across the semesters with my supervisor. Specifically also talk about the moment I changed from learning to coding, focusing on the project.
-
-== Resources and Technologies <group1>
-
-Talk about the tech stack used, the dependancies required for the project and what additional resources were used. *Maybe mention here that potentially we should have used a dedicated server?*
+\
+This chapter describes the development approach taken throughout the project, the
+structure of work across both semesters, and the technical resources used during
+implementation and experimentation.
 
 \
+== Development Process <group1>
+
+\
+The project followed an iterative, supervisor driven workflow similar to Agile development, adapted for a single person research project. Rather than committing to a rigid implementation plan at the outset, progress was governed by weekly meetings with the supervisor in which the results of the most recent work were reviewed, short-term milestones were set, and technical priorities were adjusted in response to observed outcomes. This structure was well-suited to the nature of the work, where training behaviour, game design decisions, and evaluation methodology all evolved in response to experimental evidence rather than being fixed in advance.
+
+The iterative approach had a direct impact on several design decisions documented in later chapters. Game mechanics were revised across multiple training runs when early behaviour exposed reward imbalances. Hyperparameter choices were updated following observed instabilities, and the scope of the evaluation methodology expanded incrementally as the experiments produced interpretable outputs worth analysing in greater depth. Without the weekly checkpoint structure, these adjustments would have been harder to make in a principled and documented way.
+
+\
+== Development Structure <group1>
+
+\
+At the start of the project, in academic week two, the overall timeline was divided into two broad phases in discussion with the supervisor, with the boundary falling at the end of the first semester.
+
+The first semester, covering weeks two through nine, was dedicated entirely to preparation and foundational work. The first four weeks focused on building machine learning foundations and PyTorch competence, the following two weeks on EGG framework familiarisation and basic games experimentation, and the remaining weeks on the MNIST adaptation and initial custom game design. Work was paused during weeks ten through twelve due to examinations, and the preparation phase was formally concluded by the end of semester.
+
+The second semester, running from late January to the April, provided approximately ten weeks of focused project time. The first two weeks were used to finalise the survival game design following semester-break reflection, the next four weeks covered full implementation and iterative training, the following three weeks were dedicated to analysis and evaluation, and the final two weeks were reserved for dissertation write-up. In practice, the implementation and analysis phases overlapped somewhat, as results from each training run informed both the next experimental iteration and the structure of the evaluation chapter. The total time committed to the project substantially exceeded the expectation for a 15 credit module, reflecting the depth of the preparation phase and the iterative nature of emergent communication experimentation.
+
+\
+== Resources and Technologies <group1>
+
+\
+The project was implemented in Python and built on top of the EGG toolkit, which was installed directly from source as an editable package. All experiments were run on a personal CPU-only machine, which was sufficient for the MNIST preparation work and early survival-game training but introduced practical constraints on the speed and scale of multi-run sweeps. A dedicated GPU machine would have meaningfully reduced iteration time, particularly during the Gumbel-Softmax hyperparameter exploration where temperature decay schedules required many sequential runs to evaluate. @tech-stack summarises the full technology stack used across the project.
+
+#figure(
+  table(
+    columns: (auto, auto, auto),
+    align: (left, left, left),
+    table.header(
+      [*Category*], [*Tool or Library*], [*Role in the Project*],
+    ),
+    [Language],        [Python 3.9+],          [Primary implementation language],
+    [Deep learning],   [PyTorch],              [Model definition, training, and gradient computation],
+    [Data],            [Torchvision],          [MNIST dataset loading and image transforms],
+    [EC framework],    [EGG toolkit],          [Sender-receiver wrappers, game orchestration, training modes],
+    [Numerics],        [NumPy, SciPy],         [Array operations and statistical utilities],
+    [Data handling],   [Pandas],               [Metric logging and tabular result summaries],
+    [Visualisation],   [Matplotlib, Seaborn],  [Loss curves, confusion matrices, and message plots],
+    [ML utilities],    [scikit-learn],         [Evaluation metrics and data split utilities],
+    [Experiment log],  [wandb (optional)],     [Run tracking and metric comparison across sweeps],
+    [Testing],         [pytest],               [Unit tests inherited from EGG core],
+    [Edit distance],   [editdistance],         [Message-level Levenshtein analysis],
+  ),
+  caption: [Technology stack used across the project.]
+) <tech-stack>
+
+Training was performed on two different machines across the project. Throughout the preparation phase and the early second-semester implementation work, all experiments ran on a personal laptop equipped with an Intel Core i5-1135G7 processor, 4 cores at 2.40 GHz, and 16 GB of RAM, with no discrete GPU available. Under this setup, a full survival-game training run required approximately nine hours to complete, which made iterative hyperparameter exploration slow and constrained the number of configurations that could be evaluated in a given week. In March, work moved to the lab machines in the Jack Cole building, specifically PC9, equipped with an Intel Core i5-12400 processor, 6 cores at up to 4.40 GHz, 30 GB of RAM, and an NVIDIA GeForce RTX 3060 with 12 GB of VRAM. The EGG framework supports CUDA-accelerated training, and enabling this reduced the per-run training time from approximately nine hours to roughly one hour, a reduction of nearly ninefold. This transition meaningfully increased the number of experimental iterations possible in the final weeks of the project and was directly responsible for the depth of the hyperparameter analysis presented in the evaluation chapter. For future work extending these experiments to larger agent populations or longer training schedules, the RTX 3060 remains a practical minimum, though 16 to 24 GB of VRAM would be preferable for larger survival-game configurations with expanded vocabulary or message length.
+
+
+
+#pagebreak()
+
 = Ethics <group1>
 
 Mention i have no ethic concerns. *EGG lib has a Facebook copyright tho, so would this be a concern?*
@@ -803,6 +850,113 @@ Instructions on installing, executing and using the system where appropriate.
 
 == Extended figures/tables/message snapshots <group1>
 
+
+Results from the runs:
+
+#set table(
+  stroke: none,
+)
+
+#table(
+  columns: (auto,auto),
+  align: (center, center),
+  image("Images/Loss_across_runs_with_recon.png"),
+  image("Images/Loss_across_runs_no_recon.png"),
+) #label("Loss-comparison")
+
+#table(
+  columns: (auto,auto),
+  align: (center, center),
+  image("Images/Aggregate_mean_reward_test_with_recon.png"),
+  image("Images/Aggregate_mean_reward_test_no_recon.png"),
+) #label("Mean-Comparison-Test")
+
+
+
+// Recon accuracy
+#table(
+  columns: (auto, auto),
+  align: (center, center),
+  [#image("Images/Aggregate_recon_accuracy_test_with_recon.png")],
+  [#image("Images/Aggregate_recon_accuracy_test_no_recon.png")],
+)
+// TopSim
+#table(
+  columns: (auto, auto),
+  align: (center, center),
+  [#image("Images/Aggregate_topsim_test_with_recon.png")],
+  [#image("Images/Aggregate_topsim_test_no_recon.png")],
+)
+
+// Heatmaps WITH recon (2x2 + 1)
+#table(
+  columns: (auto, auto),
+  align: (center, center),
+
+  [#image("Images/message_entity_heatmap_run14.png")],
+  [#image("Images/message_entity_heatmap_run15.png")],
+
+  [#image("Images/message_entity_heatmap_run16.png")],
+  [#image("Images/message_entity_heatmap_run17.png")],
+
+  [#image("Images/message_entity_heatmap_run18.png")],
+  []
+)
+
+// Heatmaps WITHOUT recon (2x2 + 1)
+#table(
+  columns: (auto, auto),
+  align: (center, center),
+
+  [#image("Images/message_entity_heatmap_run19.png")],
+  [#image("Images/message_entity_heatmap_run20.png")],
+
+  [#image("Images/message_entity_heatmap_run21.png")],
+  [#image("Images/message_entity_heatmap_run22.png")],
+
+  [#image("Images/message_entity_heatmap_run23.png")],
+  []
+)
+
+// Message reuse
+#table(
+  columns: (auto, auto),
+  align: (center, center),
+  [#image("Images/message_reuse_across_runs.png")],
+  [#image("Images/message_reuse_across_runs_no_recon.png")]
+)
+
+With recon:
+#figure(
+  table(
+    columns: (auto, auto, auto, auto, auto, auto, auto, auto, auto),
+
+    [*Run*], [*Ent*], [*Msg*], [*Reuse*], [*Ratio*], [*Max Ent*], [*Top Msg*], [*Top Ent*], [*Top Count*],
+
+    [train_run14.txt], [40], [40], [0], [0.0], [1], [0 40 0], [1], [711.0],
+    [train_run15.txt], [40], [40], [0], [0.0], [1], [0 0 0], [1], [756.0],
+    [train_run16.txt], [40], [40], [0], [0.0], [1], [0 0 0], [1], [726.0],
+    [train_run17.txt], [40], [37], [2], [0.0541], [3], [0 0 0], [3], [767.0],
+    [train_run18.txt], [40], [40], [0], [0.0], [1], [1 33 0], [1], [749.0]
+  ),
+  caption: [With Recon]
+) #label("runs-with-recon")
+
+Without recon:
+#figure(
+  table(
+    columns: (auto, auto, auto, auto, auto, auto, auto, auto, auto),
+
+    [*Run*], [*Ent*], [*Msg*], [*Reuse*], [*Ratio*], [*Max Ent*], [*Top Msg*], [*Top Ent*], [*Top Count*],
+
+    [train_run19.txt], [40], [16], [8], [0.5], [7], [13 14 0], [7], [2681.0],
+    [train_run20.txt], [40], [13], [10], [0.769], [14], [15 32 0], [14], [4814.0],
+    [train_run21.txt], [40], [13], [9], [0.692], [9], [15 7 0], [9], [3415.0],
+    [train_run22.txt], [40], [18], [8], [0.444], [8], [12 20 0], [8], [3269.0],
+    [train_run23.txt], [40], [11], [7], [0.636], [8], [29 29 0], [8], [2602.0]
+  ),
+  caption: [No Recon]
+) #label("runs-without-recon")
 
 #pagebreak()
 

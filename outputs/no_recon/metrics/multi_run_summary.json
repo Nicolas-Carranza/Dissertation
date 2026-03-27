@@ -1,0 +1,121 @@
+{
+  "run_dir": "/cs/home/nc212/Documents/Fourth_Year/Dissertation/outputs/no_recon",
+  "runs": [
+    "train_run19.txt",
+    "train_run20.txt",
+    "train_run21.txt",
+    "train_run22.txt",
+    "train_run23.txt"
+  ],
+  "n_runs": 5,
+  "metrics": {
+    "loss": {
+      "mean": -0.6657871842384339,
+      "std": 0.0013075370131086434,
+      "n": 5,
+      "per_run": {
+        "train_run19.txt": -0.6660170555114746,
+        "train_run20.txt": -0.6640666723251343,
+        "train_run21.txt": -0.6675467491149902,
+        "train_run22.txt": -0.6650639176368713,
+        "train_run23.txt": -0.6662415266036987
+      }
+    },
+    "mean_reward": {
+      "mean": 1.3076777696609496,
+      "std": 0.002518007702634073,
+      "n": 5,
+      "per_run": {
+        "train_run19.txt": 1.3086841106414795,
+        "train_run20.txt": 1.305152416229248,
+        "train_run21.txt": 1.3110178709030151,
+        "train_run22.txt": 1.305161476135254,
+        "train_run23.txt": 1.308372974395752
+      }
+    },
+    "expected_reward": {
+      "mean": 1.2969815015792847,
+      "std": 0.0027259096878738173,
+      "n": 5,
+      "per_run": {
+        "train_run19.txt": 1.2976231575012207,
+        "train_run20.txt": 1.2937690019607544,
+        "train_run21.txt": 1.3005748987197876,
+        "train_run22.txt": 1.2948036193847656,
+        "train_run23.txt": 1.298136830329895
+      }
+    },
+    "recon_loss": {
+      "mean": 3.691517448425293,
+      "std": 0.011136108097444478,
+      "n": 5,
+      "per_run": {
+        "train_run19.txt": 3.681365489959717,
+        "train_run20.txt": 3.6990838050842285,
+        "train_run21.txt": 3.6921942234039307,
+        "train_run22.txt": 3.6795594692230225,
+        "train_run23.txt": 3.7053842544555664
+      }
+    },
+    "recon_acc": {
+      "mean": 0.04513515830039978,
+      "std": 0.030472247771846032,
+      "n": 5,
+      "per_run": {
+        "train_run19.txt": 0.09366532415151596,
+        "train_run20.txt": 0.013572361320257187,
+        "train_run21.txt": 0.02883134037256241,
+        "train_run22.txt": 0.05176074430346489,
+        "train_run23.txt": 0.037846021354198456
+      }
+    },
+    "topsim": {
+      "mean": 0.41385431323731253,
+      "std": 0.14348972753476452,
+      "n": 5,
+      "per_run": {
+        "train_run19.txt": 0.35968074825629226,
+        "train_run20.txt": 0.5414231800171188,
+        "train_run21.txt": 0.5445370820193006,
+        "train_run22.txt": 0.42416896327868203,
+        "train_run23.txt": 0.19946159261516883
+      }
+    },
+    "length": {
+      "mean": 3.0,
+      "std": 0.0,
+      "n": 5,
+      "per_run": {
+        "train_run19.txt": 3.0,
+        "train_run20.txt": 3.0,
+        "train_run21.txt": 3.0,
+        "train_run22.txt": 3.0,
+        "train_run23.txt": 3.0
+      }
+    },
+    "valid_action_rate": {
+      "mean": 1.0,
+      "std": 0.0,
+      "n": 5,
+      "per_run": {
+        "train_run19.txt": 1.0,
+        "train_run20.txt": 1.0,
+        "train_run21.txt": 1.0,
+        "train_run22.txt": 1.0,
+        "train_run23.txt": 1.0
+      }
+    },
+    "invalid_entity_idx_rate": {
+      "mean": 0.0,
+      "std": 0.0,
+      "n": 5,
+      "per_run": {
+        "train_run19.txt": 0.0,
+        "train_run20.txt": 0.0,
+        "train_run21.txt": 0.0,
+        "train_run22.txt": 0.0,
+        "train_run23.txt": 0.0
+      }
+    }
+  }
+}
