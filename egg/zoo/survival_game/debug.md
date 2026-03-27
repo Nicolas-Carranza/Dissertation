@@ -1,3 +1,17 @@
+# Command for long run
+cd /cs/home/nc212/Documents/Fourth_Year/Dissertation
+
+tmux new-session -d -s no_recon_run \
+'cd /cs/home/nc212/Documents/Fourth_Year/Dissertation && \
+systemd-inhibit --what=shutdown:sleep --why="long survival training" \
+bash -lc "./run_experiments.sh 2>&1 | tee run_experiments_$(date +%Y%m%d_%H%M%S).out"'
+
+cd /cs/home/nc212/Documents/Fourth_Year/Dissertation
+tail -f "$(ls -t run_experiments_*.out | head -n 1)"
+nvidia-smi
+
+tmux kill-session -t no_recon_run
+
 # Survival Game Debug Q&A Log
 
 

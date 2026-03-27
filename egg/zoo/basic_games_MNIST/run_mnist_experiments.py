@@ -172,7 +172,7 @@ def main():
             "--output",
             str(loss_png),
             "--title",
-            f"Loss curve ({run_name})",
+            f"Loss curve (Entropy {sweep_value})",
         ]
 
         print("=" * 80)
