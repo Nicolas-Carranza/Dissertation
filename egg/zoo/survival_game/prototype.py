@@ -1137,6 +1137,38 @@ def optimal_policy(entity, state, valid_actions):
     return REST
 
 
+def blind_policy(entity, state, valid_actions):
+    """
+    Policy that IGNORES the encounter (simulates Receiver without Sender).
+    Can only use inventory actions + generic flee/rest.
+    """
+    inv = state.inventory
+
+    # Can't see the entity, so can't address it specifically.
+    # Just do inventory management.
+    if state.energy < 20 and EAT in valid_actions:
+        return EAT
+
+    # Craft if possible
+    if CRAFT_FIRE in valid_actions:
+        return CRAFT_FIRE
+    if CRAFT_SPEAR in valid_actions:
+        return CRAFT_SPEAR
+
+    if state.energy < 50 and EAT in valid_actions:
+        return EAT
+
+    if CRAFT_SHELTER in valid_actions:
+        return CRAFT_SHELTER
+    if CRAFT_ROD in valid_actions:
+        return CRAFT_ROD
+
+    # Can't see what's out there - conserve energy (REST > FLEE)
+    # REST gives +5 energy; FLEE costs -5. Blind agent can't address
+    # encounters anyway, so resting is the energy-optimal default.
+    return REST
+
+
 # ============================================================================
 # SECTION 9: STATISTICS & ANALYSIS
 # ============================================================================
@@ -1248,49 +1280,7 @@ def print_results(r: Dict):
 
 
 # ============================================================================
-# SECTION 10: COMMUNICATION NECESSITY ANALYSIS
-# ============================================================================
-#
-# Quantify how much the Sender's extra information helps:
-#   • Run episodes where the "agent" sees BOTH entity + state  (full info)
-#   • Run episodes where the "agent" sees ONLY state           (no sender)
-#   • The gap in survival rate = communication necessity
-# ============================================================================
-
-def blind_policy(entity, state, valid_actions):
-    """
-    Policy that IGNORES the encounter (simulates Receiver without Sender).
-    Can only use inventory actions + generic flee/rest.
-    """
-    inv = state.inventory
-
-    # Can't see the entity, so can't address it specifically.
-    # Just do inventory management.
-    if state.energy < 20 and EAT in valid_actions:
-        return EAT
-
-    # Craft if possible
-    if CRAFT_FIRE in valid_actions:
-        return CRAFT_FIRE
-    if CRAFT_SPEAR in valid_actions:
-        return CRAFT_SPEAR
-
-    if state.energy < 50 and EAT in valid_actions:
-        return EAT
-
-    if CRAFT_SHELTER in valid_actions:
-        return CRAFT_SHELTER
-    if CRAFT_ROD in valid_actions:
-        return CRAFT_ROD
-
-    # Can't see what's out there - conserve energy (REST > FLEE)
-    # REST gives +5 energy; FLEE costs -5. Blind agent can't address
-    # encounters anyway, so resting is the energy-optimal default.
-    return REST
-
-
-# ============================================================================
-# SECTION 11: MAIN
+# SECTION 10: MAIN
 # ============================================================================
 
 def main():
@@ -1372,23 +1362,23 @@ def main():
     print(f"\n  Balance check:")
     print(f"    Random survival: {rand_surv:.1f}%  ", end="")
     if rand_surv < 5:
-        print("⚠ Very hard (might be too punishing)")
+        print("Very hard (might be too punishing)")
     elif rand_surv < 20:
-        print("✓ Good difficulty (random rarely survives)")
+        print("Good difficulty (random rarely survives)")
     elif rand_surv < 50:
-        print("⚠ Moderate (random survives too often?)")
+        print("Moderate (random survives too often?)")
     else:
-        print("✗ Too easy (random shouldn't survive this much)")
+        print("Too easy (random shouldn't survive this much)")
 
     print(f"    Optimal survival: {opt_surv:.1f}%  ", end="")
     if opt_surv > 90:
-        print("✓ Achievable with good strategy")
+        print("Achievable with good strategy")
     elif opt_surv > 70:
-        print("✓ Challenging but winnable")
+        print("Challenging but winnable")
     elif opt_surv > 50:
-        print("⚠ Quite hard (might need reward tuning)")
+        print("Quite hard (might need reward tuning)")
     else:
-        print("✗ Too hard (smart agent can't survive - tune mechanics)")
+        print("Too hard (smart agent can't survive - tune mechanics)")
 
     print()
 

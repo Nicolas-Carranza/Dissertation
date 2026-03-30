@@ -57,9 +57,11 @@ def build_game(opts):
 
     # ---- Core architectures ----
     sender = Sender(n_hidden=sender_hidden)
+    
     # In GS mode, valid_mask is excluded from MLP features (archs.py)
     # but logit masking is still applied to prevent invalid actions.
-    # Also enable the reconstruction head to force sender communication.
+
+    #  Also enable the reconstruction head to force sender communication.
     receiver = Receiver(n_hidden=receiver_hidden, recon_head=(mode == "gs"))
 
     # ---- Loss ----
