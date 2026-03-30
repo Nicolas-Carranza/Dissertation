@@ -155,10 +155,6 @@ def get_params(params: Optional[List[str]] = None) -> argparse.Namespace:
         help="Turns per simulated episode (default: 20)",
     )
     parser.add_argument(
-        "--n_distractors", type=int, default=2,
-        help="Distractor entities per encounter (default: 2)",
-    )
-    parser.add_argument(
         "--data_seed", type=int, default=42,
         help="Seed for data generation reproducibility (default: 42)",
     )

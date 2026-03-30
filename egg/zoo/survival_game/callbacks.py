@@ -160,7 +160,7 @@ class SurvivalGameEvaluator(Callback):
                 update_weather(state)
 
                 # Generate encounter
-                target, distractors = generate_encounter(state, n_distractors=2)
+                target = generate_encounter(state)
 
                 # Get valid actions
                 valid = get_valid_actions(target, state)
@@ -202,8 +202,7 @@ class SurvivalGameEvaluator(Callback):
                     msg_lengths.append(message_length.item())
 
                 # ---- Pick action ----
-                # In GS mode with reconstruction head, receiver_output has
-                # 51 dims (11 action + 40 recon); take action logits only.
+                # In GS mode, receiver_output has 16 dims (11 action + 5 recon);
                 # take argmax over the first 11 action logits only.
                 action_logits = receiver_output[:, :11] if is_gs else receiver_output
                 action_id = int(action_logits.argmax(dim=-1).item())
@@ -281,7 +280,7 @@ class MessageAnalyzer(Callback):
         progression_path: Optional[str] = None,
         final_snapshot_path: Optional[str] = None,
         total_epochs: Optional[int] = None,
-        top_k_messages: int = 10,
+        top_k_messages: int = 3,
         include_all_messages: bool = False,
         max_snapshot_bytes: int = 0,
     ):
@@ -290,9 +289,13 @@ class MessageAnalyzer(Callback):
         self.total_epochs = total_epochs
         self.progression_path = Path(progression_path) if progression_path else None
         self.final_snapshot_path = Path(final_snapshot_path) if final_snapshot_path else None
-        self.top_k_messages = max(1, int(top_k_messages))
-        self.include_all_messages = include_all_messages
-        self.max_snapshot_bytes = max(0, int(max_snapshot_bytes))
+
+        # Compatibility shim: train.py may pass newer options, but legacy
+        # snapshot/print behavior intentionally remains fixed (top-3 only,
+        # no "all_messages" payload, no size-cap truncation).
+        _ = top_k_messages
+        _ = include_all_messages
+        _ = max_snapshot_bytes
 
         # Fast lookup for vector -> entity name when writing fine-grained snapshots.
         self._entity_name_by_vec = {tuple(e.vector): e.name for e in ALL_ENTITIES}
@@ -314,7 +317,7 @@ class MessageAnalyzer(Callback):
             messages = messages.argmax(dim=-1)  # (N, max_len+1)
         sender_inputs = logs.sender_input  # (N, 30)
 
-        snapshot = self._build_snapshot(messages, sender_inputs, epoch, loss)
+        snapshot = self._build_snapshot(messages, sender_inputs, epoch)
         self._append_progression_snapshot(snapshot)
         if should_force_final:
             self._write_final_snapshot(snapshot)
@@ -348,7 +351,6 @@ class MessageAnalyzer(Callback):
         messages: torch.Tensor,
         sender_inputs: torch.Tensor,
         epoch: int,
-        val_loss: float,
     ) -> Dict:
         entity_types = sender_inputs[:, :VALUES_PER_DIM].argmax(dim=-1)
 
@@ -364,12 +366,7 @@ class MessageAnalyzer(Callback):
             mask = (entity_types == etype)
             count = int(mask.sum().item())
             if count == 0:
-                by_type[str(etype)] = {
-                    "count": 0,
-                    "unique": 0,
-                    "top_messages": [],
-                    "total_count": 0,
-                }
+                by_type[str(etype)] = {"count": 0, "unique": 0, "top_messages": []}
                 continue
 
             etype_msgs = messages[mask]
@@ -379,22 +376,15 @@ class MessageAnalyzer(Callback):
                 msg_counts[msg_str] += 1
                 unique_global.add(msg_str)
 
-            sorted_msgs = sorted(msg_counts.items(), key=lambda x: -x[1])
-            top = sorted_msgs[:self.top_k_messages]
+            top = sorted(msg_counts.items(), key=lambda x: -x[1])[:3]
             by_type[str(etype)] = {
                 "count": count,
                 "unique": len(msg_counts),
-                "total_count": int(sum(msg_counts.values())),
                 "top_messages": [
                     {"message": message, "count": n}
                     for message, n in top
                 ],
             }
-            if self.include_all_messages:
-                by_type[str(etype)]["all_messages"] = [
-                    {"message": message, "count": n}
-                    for message, n in sorted_msgs
-                ]
 
         for vec_tensor, msg_tensor in zip(entity_vectors, messages):
             vec_key = tuple(int(v.item()) for v in vec_tensor)
@@ -411,27 +401,19 @@ class MessageAnalyzer(Callback):
         # Convert complex keys/values to JSON-safe dicts.
         by_entity_json = {}
         for vec_key, payload in by_entity.items():
-            sorted_msgs = sorted(payload["messages"].items(), key=lambda x: -x[1])
-            top = sorted_msgs[:self.top_k_messages]
+            top = sorted(payload["messages"].items(), key=lambda x: -x[1])[:3]
             by_entity_json[" ".join(str(v) for v in vec_key)] = {
                 "entity": payload["entity"],
                 "type": payload["type"],
                 "unique": len(payload["messages"]),
-                "total_count": int(sum(payload["messages"].values())),
                 "top_messages": [
                     {"message": message, "count": n}
                     for message, n in top
                 ],
             }
-            if self.include_all_messages:
-                by_entity_json[" ".join(str(v) for v in vec_key)]["all_messages"] = [
-                    {"message": message, "count": n}
-                    for message, n in sorted_msgs
-                ]
 
         return {
             "epoch": epoch,
-            "val_loss": float(val_loss),
             "total_unique_messages": len(unique_global),
             "by_type": by_type,
             "by_entity": by_entity_json,
@@ -441,14 +423,6 @@ class MessageAnalyzer(Callback):
         if self.progression_path is None:
             return
         self.progression_path.parent.mkdir(parents=True, exist_ok=True)
-        if self.max_snapshot_bytes > 0 and self.progression_path.exists():
-            if self.progression_path.stat().st_size >= self.max_snapshot_bytes:
-                print(
-                    f"  Message snapshot cap reached ({self.max_snapshot_bytes} bytes); "
-                    "skipping append.",
-                    flush=True,
-                )
-                return
         with self.progression_path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(snapshot))
             f.write("\n")

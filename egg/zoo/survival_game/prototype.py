@@ -772,6 +772,50 @@ ACTION_RESOLVERS = {
 }
 
 
+def compute_step_reward(
+    action_id: int,
+    target: Entity,
+    state: GameState,
+    valid_actions: Optional[List[int]] = None,
+) -> Tuple[float, str, bool]:
+    """
+    Compute one-step reward using the same mechanics used by agent evaluation.
+
+    Returns:
+        reward: scalar turn reward after bonuses/penalties
+        desc: action outcome description
+        was_valid: whether action was valid for the encounter/state
+    """
+    valid = valid_actions if valid_actions is not None else get_valid_actions(target, state)
+    was_valid = action_id in valid
+
+    resolver = ACTION_RESOLVERS.get(action_id)
+    if resolver is None or not was_valid:
+        reward = -15.0
+        desc = "INVALID"
+    else:
+        reward, desc = resolver(target, state)
+
+    addressed = (
+        (action_id == HUNT and target.entity_type == ANIMAL) or
+        (action_id == GATHER and target.entity_type in (RESOURCE, CRAFT_OPP, EVENT)) or
+        (action_id == MITIGATE and target.entity_type == DANGER) or
+        (action_id == ENDURE and target.entity_type == DANGER) or
+        (action_id == FLEE)
+    )
+    if not addressed:
+        reward += _apply_unaddressed_danger(target, state)
+
+    # Per-turn survival shaping (kept consistent with callbacks evaluator path)
+    reward += 10.0
+    if state.energy > 70:
+        reward += 5.0
+    if state.health > 70:
+        reward += 3.0
+
+    return reward, desc, was_valid
+
+
 # ============================================================================
 # SECTION 6: ENCOUNTER GENERATION
 # ============================================================================
@@ -792,15 +836,13 @@ def weather_compatible(entity: Entity, current_weather: int) -> bool:
     return False
 
 
-def generate_encounter(state: GameState, n_distractors: int = 2
-                       ) -> Tuple[Entity, List[Entity]]:
+def generate_encounter(state: GameState) -> Entity:
     """
-    Generate one target entity + distractor entities for this turn.
+    Generate one target entity for this turn.
 
     1. Pick entity TYPE by spawn weights.
     2. Filter entities of that type by weather compatibility.
     3. Pick one target at random.
-    4. Pick n_distractors from OTHER types (weather-filtered).
     """
     # Build weather-filtered pools per entity type
     pools = defaultdict(list)
@@ -826,18 +868,7 @@ def generate_encounter(state: GameState, n_distractors: int = 2
             chosen_type = t
             break
 
-    target = random.choice(pools[chosen_type])
-
-    # Distractors: pick from other entity types
-    other_entities = [e for e in ALL_ENTITIES
-                      if e.entity_type != chosen_type
-                      and weather_compatible(e, state.weather)]
-    if len(other_entities) < n_distractors:
-        other_entities = [e for e in ALL_ENTITIES if e != target]
-    distractors = random.sample(other_entities,
-                                min(n_distractors, len(other_entities)))
-
-    return target, distractors
+    return random.choice(pools[chosen_type])
 
 
 def update_weather(state: GameState):
@@ -850,15 +881,14 @@ def update_weather(state: GameState):
 # SECTION 7: EPISODE RUNNER
 # ============================================================================
 
-def run_episode(policy_fn, max_turns: int = 20, n_distractors: int = 2,
-                verbose: bool = False) -> GameState:
+def run_episode(policy_fn, max_turns: int = 20,
+                verbose: bool = False, add_completion_bonus: bool = False) -> GameState:
     """
     Simulate one full episode using the given policy function.
 
     Args:
-        policy_fn:  callable(entity, distractors, state, valid_actions) → action_id
+        policy_fn:  callable(entity, state, valid_actions) → action_id
         max_turns:  episode length
-        n_distractors: how many distractor entities per turn
         verbose:    print turn-by-turn log
 
     Returns:
@@ -882,40 +912,19 @@ def run_episode(policy_fn, max_turns: int = 20, n_distractors: int = 2,
         update_weather(state)
 
         # ---- 3. Generate encounter ----
-        target, distractors = generate_encounter(state, n_distractors)
+        target = generate_encounter(state)
 
         # ---- 4. Get valid actions ----
         valid = get_valid_actions(target, state)
 
         # ---- 5. Agent picks action ----
-        action = policy_fn(target, distractors, state, valid)
+        action = policy_fn(target, state, valid)
         state.actions_taken[action] += 1
 
-        # ---- 6. Resolve action ----
-        resolver = ACTION_RESOLVERS.get(action)
-        if resolver is None:
-            reward, desc = -10.0, "INVALID ACTION ID"
-        else:
-            reward, desc = resolver(target, state)
-
-        # ---- 7. Unaddressed-encounter effects ----
-        #   If the chosen action did NOT address the encounter, apply defaults.
-        addressed_encounter = (
-            (action == HUNT    and target.entity_type == ANIMAL) or
-            (action == GATHER  and target.entity_type in (RESOURCE, CRAFT_OPP, EVENT)) or
-            (action == MITIGATE and target.entity_type == DANGER) or
-            (action == ENDURE  and target.entity_type == DANGER) or
-            (action == FLEE)
+        # ---- 6. Resolve action + per-turn reward ----
+        turn_reward, desc, _was_valid = compute_step_reward(
+            action, target, state, valid_actions=valid
         )
-        unaddressed_penalty = 0.0
-        if not addressed_encounter:
-            unaddressed_penalty = _apply_unaddressed_danger(target, state)
-
-        # ---- 8. Per-turn survival rewards ----
-        alive_bonus = 10.0
-        energy_bonus = 5.0 if state.energy > 70 else 0.0
-        health_bonus = 3.0 if state.health > 70 else 0.0
-        turn_reward = reward + unaddressed_penalty + alive_bonus + energy_bonus + health_bonus
         state.total_reward += turn_reward
 
         if verbose:
@@ -923,15 +932,11 @@ def run_episode(policy_fn, max_turns: int = 20, n_distractors: int = 2,
             print(f"    Encounter: {target.short()}")
             print(f"    Valid: {[ACTION_NAMES[a] for a in valid]}")
             print(f"    Action:  {ACTION_NAMES.get(action, '???')} → {desc}")
-            if unaddressed_penalty < 0:
-                print(f"    ⚠ Unaddressed encounter penalty: {unaddressed_penalty:.0f}")
-            print(f"    Turn reward: {turn_reward:+.1f}  "
-                  f"(action={reward:+.1f} unaddr={unaddressed_penalty:+.1f} "
-                  f"alive=+10 en_bon={energy_bonus:+.0f} hp_bon={health_bonus:+.0f})")
+            print(f"    Turn reward: {turn_reward:+.1f}")
 
         # ---- 9. Death check ----
-        state.energy = min(state.energy, 100.0)   # cap at 100
-        state.health = min(state.health, 100.0)
+        state.energy = min(max(state.energy, 0.0), 100.0)
+        state.health = min(max(state.health, 0.0), 100.0)
 
         if state.energy <= 0:
             state.alive = False
@@ -948,8 +953,8 @@ def run_episode(policy_fn, max_turns: int = 20, n_distractors: int = 2,
                 print(f"    ☠ DIED: injury (health={state.health:.1f})")
             break
 
-    # ---- Episode completion bonus ----
-    if state.alive:
+    # ---- Optional legacy completion bonus (disabled by default for comparability) ----
+    if state.alive and add_completion_bonus:
         completion_bonus = 150.0
         efficiency = (state.energy + state.health) / 2.0
         state.total_reward += completion_bonus + efficiency
@@ -977,12 +982,12 @@ def run_episode(policy_fn, max_turns: int = 20, n_distractors: int = 2,
 #   3. OPTIMAL - stronger heuristic: considers future state
 # ============================================================================
 
-def random_policy(entity, distractors, state, valid_actions):
+def random_policy(entity, state, valid_actions):
     """Pick a random valid action."""
     return random.choice(valid_actions)
 
 
-def greedy_policy(entity, distractors, state, valid_actions):
+def greedy_policy(entity, state, valid_actions):
     """
     Simple priority-based heuristic:
       1. If danger → mitigate (if possible) else endure
@@ -1048,7 +1053,7 @@ def greedy_policy(entity, distractors, state, valid_actions):
     return REST
 
 
-def optimal_policy(entity, distractors, state, valid_actions):
+def optimal_policy(entity, state, valid_actions):
     """
     Best heuristic policy - models informed agent with strategic planning.
 
@@ -1137,8 +1142,9 @@ def optimal_policy(entity, distractors, state, valid_actions):
 # ============================================================================
 
 def run_batch(policy_fn, policy_name: str, n_episodes: int,
-              max_turns: int = 20, n_distractors: int = 2,
-              verbose: bool = False, seed: int = None) -> Dict:
+              max_turns: int = 20,
+              verbose: bool = False, seed: int = None,
+              add_completion_bonus: bool = False) -> Dict:
     """Run n_episodes, collect aggregate statistics."""
     if seed is not None:
         random.seed(seed)
@@ -1161,7 +1167,12 @@ def run_batch(policy_fn, policy_name: str, n_episodes: int,
     }
 
     for ep in range(n_episodes):
-        gs = run_episode(policy_fn, max_turns, n_distractors, verbose=(verbose and ep < 3))
+        gs = run_episode(
+            policy_fn,
+            max_turns,
+            verbose=(verbose and ep < 3),
+            add_completion_bonus=add_completion_bonus,
+        )
         results["total_rewards"].append(gs.total_reward)
         results["episode_lengths"].append(gs.turn)
         if gs.alive:
@@ -1246,7 +1257,7 @@ def print_results(r: Dict):
 #   • The gap in survival rate = communication necessity
 # ============================================================================
 
-def blind_policy(entity, distractors, state, valid_actions):
+def blind_policy(entity, state, valid_actions):
     """
     Policy that IGNORES the encounter (simulates Receiver without Sender).
     Can only use inventory actions + generic flee/rest.
@@ -1297,20 +1308,22 @@ def main():
                         help="Episodes per policy (default: 500)")
     parser.add_argument("--max_turns", type=int, default=20,
                         help="Turns per episode (default: 20)")
-    parser.add_argument("--distractors", type=int, default=2,
-                        help="Distractor entities per turn (default: 2)")
     parser.add_argument("--seed", type=int, default=None,
                         help="Random seed for reproducibility")
     parser.add_argument("--verbose", action="store_true",
                         help="Print turn-by-turn log (first 3 episodes)")
+    parser.add_argument(
+        "--legacy_completion_bonus",
+        action="store_true",
+        help="Enable old +150+efficiency survival bonus (default: off for parity with training/eval)",
+    )
     args = parser.parse_args()
 
     print("=" * 60)
     print("  SURVIVAL GAME - PHASE 2 PROTOTYPE")
     print("  Validating game mechanics before EGG integration")
     print("=" * 60)
-    print(f"\n  Config: {args.episodes} episodes, {args.max_turns} turns, "
-          f"{args.distractors} distractors, seed={args.seed}")
+    print(f"\n  Config: {args.episodes} episodes, {args.max_turns} turns, seed={args.seed}")
     print(f"  Entity catalog: {len(ALL_ENTITIES)} entities "
           f"({len(ANIMALS)} animals, {len(RESOURCES)} resources, "
           f"{len(DANGERS)} dangers, {len(CRAFT_OPPS)} craft opps, "
@@ -1329,7 +1342,8 @@ def main():
     for fn, name in policies:
         seed = args.seed
         r = run_batch(fn, name, args.episodes, args.max_turns,
-                      args.distractors, args.verbose, seed)
+                      args.verbose, seed,
+                      add_completion_bonus=args.legacy_completion_bonus)
         print_results(r)
         all_results.append(r)
 

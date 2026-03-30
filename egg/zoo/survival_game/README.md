@@ -266,7 +266,7 @@ Final rate = base × (health / 100) × (min(energy, 50) / 50)
 
 ## 6. Encounter Generation
 
-Each turn, one **target** entity and **N distractors** (default: 2) are generated.
+Each turn, one **target** entity is generated.
 
 ### Steps:
 
@@ -274,7 +274,6 @@ Each turn, one **target** entity and **N distractors** (default: 2) are generate
 2. **Group by type** - pool remaining entities by entity type (Animal, Resource, etc.)
 3. **Weighted type roll** - randomly select which *type* spawns using spawn weights
 4. **Pick target** - random choice from that type's filtered pool
-5. **Pick distractors** - random sample from *other* types (also weather-filtered)
 
 ### Spawn Weights (balance lever)
 
@@ -468,7 +467,7 @@ python3 prototype.py --episodes 5 --verbose
 python3 prototype.py --seed 42
 
 # All options
-python3 prototype.py --episodes 1000 --max_turns 25 --distractors 3 --seed 42 --verbose
+python3 prototype.py --episodes 1000 --max_turns 25 --seed 42 --verbose
 ```
 
 ---
@@ -570,7 +569,6 @@ Reward includes: action outcome + unaddressed encounter penalty + alive bonus (+
 | `--n_train_episodes` | 2000 | Training episodes to generate |
 | `--n_val_episodes` | 200 | Validation episodes to generate |
 | `--max_turns` | 20 | Turns per episode |
-| `--n_distractors` | 2 | Distractor entities per encounter |
 | `--data_seed` | 42 | Seed for reproducible data |
 | `--eval_freq` | 5 | Full-episode evaluation every N epochs (0=off) |
 | `--eval_episodes` | 100 | Episodes per evaluation |

@@ -1,0 +1,329 @@
+(.venv) nc212@PortatilNico:~/StAndrews/Documents/Dissertation/egg_repo$ python egg/zoo/survival_game/prototype.py --episodes 5000
+============================================================
+  SURVIVAL GAME - PHASE 2 PROTOTYPE
+  Validating game mechanics before EGG integration
+============================================================
+
+  Config: 5000 episodes, 20 turns, 2 distractors, seed=None
+  Entity catalog: 40 entities (11 animals, 9 resources, 10 dangers, 5 craft opps, 5 events)
+  Action space: 11 actions
+  Vector dims: 6 × 5 values each
+
+============================================================
+  Policy: RANDOM  (5000 episodes)
+============================================================
+  Survival rate:     21.1%  (1054/5000)
+  Avg ep. length:    16.5 / 20 turns
+  Avg total reward:   +108.1
+  Reward range:     [-322, +600]
+
+  Death causes:
+      starvation: 2407 ( 61.0% of deaths)
+          injury: 1539 ( 39.0% of deaths)
+
+  Action distribution:
+              hunt:  5961 ( 7.2%) ███
+            gather: 13113 (15.9%) ███████
+              flee: 23900 (29.0%) ██████████████
+              rest: 23838 (28.9%) ██████████████
+          mitigate:    62 ( 0.1%) 
+            endure:  4747 ( 5.8%) ██
+               eat:  7395 ( 9.0%) ████
+       craft_spear:   367 ( 0.4%) 
+        craft_fire:  1346 ( 1.6%) 
+     craft_shelter:   453 ( 0.5%) 
+         craft_rod:  1272 ( 1.5%) 
+
+  Tools crafted (total across episodes):
+            fire: 1346 ( 26.9% of episodes)
+     fishing_rod: 1272 ( 25.4% of episodes)
+         shelter:  453 (  9.1% of episodes)
+           spear:  367 (  7.3% of episodes)
+
+  Hunting: 1333/5961 successful (22.4%)
+  Transformation chains completed: 256
+  Total food eaten: 7395
+  Dangers: 62/11704 mitigated (0.5%)
+
+
+============================================================
+  Policy: GREEDY  (5000 episodes)
+============================================================
+  Survival rate:     55.3%  (2764/5000)
+  Avg ep. length:    18.7 / 20 turns
+  Avg total reward:   +351.7
+  Reward range:     [-221, +676]
+
+  Death causes:
+      starvation: 1914 ( 85.6% of deaths)
+          injury:  322 ( 14.4% of deaths)
+
+  Action distribution:
+              hunt: 12785 (13.7%) ██████
+            gather: 31058 (33.3%) ████████████████
+              flee: 18003 (19.3%) █████████
+              rest:     0 ( 0.0%) 
+          mitigate:   485 ( 0.5%) 
+            endure:  4857 ( 5.2%) ██
+               eat: 20033 (21.5%) ██████████
+       craft_spear:  2162 ( 2.3%) █
+        craft_fire:  4000 ( 4.3%) ██
+     craft_shelter:     0 ( 0.0%) 
+         craft_rod:     0 ( 0.0%) 
+
+  Tools crafted (total across episodes):
+            fire: 4000 ( 80.0% of episodes)
+           spear: 2162 ( 43.2% of episodes)
+
+  Hunting: 4297/12785 successful (33.6%)
+  Transformation chains completed: 4702
+  Total food eaten: 20033
+  Dangers: 485/5342 mitigated (9.1%)
+
+
+============================================================
+  Policy: OPTIMAL  (5000 episodes)
+============================================================
+  Survival rate:     61.7%  (3087/5000)
+  Avg ep. length:    18.9 / 20 turns
+  Avg total reward:   +336.8
+  Reward range:     [-268, +697]
+
+  Death causes:
+      starvation: 1482 ( 77.5% of deaths)
+          injury:  431 ( 22.5% of deaths)
+
+  Action distribution:
+              hunt:  7021 ( 7.4%) ███
+            gather: 32762 (34.6%) █████████████████
+              flee: 10188 (10.8%) █████
+              rest:     0 ( 0.0%) 
+          mitigate:   544 ( 0.6%) 
+            endure: 13786 (14.6%) ███████
+               eat: 23268 (24.6%) ████████████
+       craft_spear:  2521 ( 2.7%) █
+        craft_fire:  4177 ( 4.4%) ██
+     craft_shelter:   260 ( 0.3%) 
+         craft_rod:   204 ( 0.2%) 
+
+  Tools crafted (total across episodes):
+            fire: 4177 ( 83.5% of episodes)
+           spear: 2521 ( 50.4% of episodes)
+         shelter:  260 (  5.2% of episodes)
+     fishing_rod:  204 (  4.1% of episodes)
+
+  Hunting: 2493/7021 successful (35.5%)
+  Transformation chains completed: 3610
+  Total food eaten: 23268
+  Dangers: 544/14723 mitigated (3.7%)
+
+
+============================================================
+  Policy: BLIND (no sender info)  (5000 episodes)
+============================================================
+  Survival rate:     19.4%  (972/5000)
+  Avg ep. length:    14.6 / 20 turns
+  Avg total reward:    -98.3
+  Reward range:     [-326, +331]
+
+  Death causes:
+          injury: 4028 (100.0% of deaths)
+
+  Action distribution:
+              hunt:     0 ( 0.0%) 
+            gather:     0 ( 0.0%) 
+              flee:     0 ( 0.0%) 
+              rest: 73176 (100.0%) ██████████████████████████████████████████████████
+          mitigate:     0 ( 0.0%) 
+            endure:     0 ( 0.0%) 
+               eat:     0 ( 0.0%) 
+       craft_spear:     0 ( 0.0%) 
+        craft_fire:     0 ( 0.0%) 
+     craft_shelter:     0 ( 0.0%) 
+         craft_rod:     0 ( 0.0%) 
+  Transformation chains completed: 0
+  Total food eaten: 0
+  Dangers: 0/14530 mitigated (0.0%)
+
+
+============================================================
+  SUMMARY COMPARISON
+============================================================
+  Policy                     Survival%  AvgReward  AvgLength
+  -------------------------------------------------------
+  RANDOM                         21.1%     +108.1       16.5
+  GREEDY                         55.3%     +351.7       18.7
+  OPTIMAL                        61.7%     +336.8       18.9
+  BLIND (no sender info)         19.4%      -98.3       14.6
+
+  Communication necessity gap: +42.3% (OPTIMAL 61.7% vs BLIND 19.4%)
+  → Sender information adds ~42% survival advantage
+
+  Balance check:
+    Random survival: 21.1%  ⚠ Moderate (random survives too often?)
+    Optimal survival: 61.7%  ⚠ Quite hard (might need reward tuning)
+
+(.venv) nc212@PortatilNico:~/StAndrews/Documents/Dissertation/egg_repo$ python egg/zoo/survival_game/prototype.py --episodes 5000
+============================================================
+  SURVIVAL GAME - PHASE 2 PROTOTYPE
+  Validating game mechanics before EGG integration
+============================================================
+
+  Config: 5000 episodes, 20 turns, 2 distractors, seed=None
+  Entity catalog: 40 entities (11 animals, 9 resources, 10 dangers, 5 craft opps, 5 events)
+  Action space: 11 actions
+  Vector dims: 6 × 5 values each
+
+============================================================
+  Policy: RANDOM  (5000 episodes)
+============================================================
+  Survival rate:     20.4%  (1022/5000)
+  Avg ep. length:    16.5 / 20 turns
+  Avg total reward:   +108.4
+  Reward range:     [-326, +542]
+
+  Death causes:
+      starvation: 2440 ( 61.3% of deaths)
+          injury: 1538 ( 38.7% of deaths)
+
+  Action distribution:
+              hunt:  5985 ( 7.2%) ███
+            gather: 13214 (16.0%) ███████
+              flee: 23831 (28.8%) ██████████████
+              rest: 23973 (29.0%) ██████████████
+          mitigate:    51 ( 0.1%) 
+            endure:  4800 ( 5.8%) ██
+               eat:  7377 ( 8.9%) ████
+       craft_spear:   353 ( 0.4%) 
+        craft_fire:  1335 ( 1.6%) 
+     craft_shelter:   462 ( 0.6%) 
+         craft_rod:  1341 ( 1.6%) 
+
+  Tools crafted (total across episodes):
+     fishing_rod: 1341 ( 26.8% of episodes)
+            fire: 1335 ( 26.7% of episodes)
+         shelter:  462 (  9.2% of episodes)
+           spear:  353 (  7.1% of episodes)
+
+  Hunting: 1309/5985 successful (21.9%)
+  Transformation chains completed: 251
+  Total food eaten: 7377
+  Dangers: 51/11687 mitigated (0.4%)
+
+
+============================================================
+  Policy: GREEDY  (5000 episodes)
+============================================================
+  Survival rate:     55.9%  (2793/5000)
+  Avg ep. length:    18.7 / 20 turns
+  Avg total reward:   +352.8
+  Reward range:     [-236, +675]
+
+  Death causes:
+      starvation: 1887 ( 85.5% of deaths)
+          injury:  320 ( 14.5% of deaths)
+
+  Action distribution:
+              hunt: 12414 (13.3%) ██████
+            gather: 31355 (33.6%) ████████████████
+              flee: 18077 (19.4%) █████████
+              rest:     0 ( 0.0%) 
+          mitigate:   481 ( 0.5%) 
+            endure:  4871 ( 5.2%) ██
+               eat: 19885 (21.3%) ██████████
+       craft_spear:  2218 ( 2.4%) █
+        craft_fire:  4039 ( 4.3%) ██
+     craft_shelter:     0 ( 0.0%) 
+         craft_rod:     0 ( 0.0%) 
+
+  Tools crafted (total across episodes):
+            fire: 4039 ( 80.8% of episodes)
+           spear: 2218 ( 44.4% of episodes)
+
+  Hunting: 4092/12414 successful (33.0%)
+  Transformation chains completed: 4603
+  Total food eaten: 19885
+  Dangers: 481/5352 mitigated (9.0%)
+
+
+============================================================
+  Policy: OPTIMAL  (5000 episodes)
+============================================================
+  Survival rate:     62.5%  (3126/5000)
+  Avg ep. length:    19.0 / 20 turns
+  Avg total reward:   +335.3
+  Reward range:     [-193, +738]
+
+  Death causes:
+      starvation: 1441 ( 76.9% of deaths)
+          injury:  433 ( 23.1% of deaths)
+
+  Action distribution:
+              hunt:  7014 ( 7.4%) ███
+            gather: 32539 (34.3%) █████████████████
+              flee: 10124 (10.7%) █████
+              rest:     0 ( 0.0%) 
+          mitigate:   566 ( 0.6%) 
+            endure: 14005 (14.8%) ███████
+               eat: 23456 (24.7%) ████████████
+       craft_spear:  2489 ( 2.6%) █
+        craft_fire:  4164 ( 4.4%) ██
+     craft_shelter:   256 ( 0.3%) 
+         craft_rod:   186 ( 0.2%) 
+
+  Tools crafted (total across episodes):
+            fire: 4164 ( 83.3% of episodes)
+           spear: 2489 ( 49.8% of episodes)
+         shelter:  256 (  5.1% of episodes)
+     fishing_rod:  186 (  3.7% of episodes)
+
+  Hunting: 2478/7014 successful (35.3%)
+  Transformation chains completed: 3650
+  Total food eaten: 23456
+  Dangers: 566/14966 mitigated (3.8%)
+
+
+============================================================
+  Policy: BLIND (no sender info)  (5000 episodes)
+============================================================
+  Survival rate:     19.1%  (957/5000)
+  Avg ep. length:    14.6 / 20 turns
+  Avg total reward:    -99.6
+  Reward range:     [-320, +340]
+
+  Death causes:
+          injury: 4043 (100.0% of deaths)
+
+  Action distribution:
+              hunt:     0 ( 0.0%) 
+            gather:     0 ( 0.0%) 
+              flee:     0 ( 0.0%) 
+              rest: 73163 (100.0%) ██████████████████████████████████████████████████
+          mitigate:     0 ( 0.0%) 
+            endure:     0 ( 0.0%) 
+               eat:     0 ( 0.0%) 
+       craft_spear:     0 ( 0.0%) 
+        craft_fire:     0 ( 0.0%) 
+     craft_shelter:     0 ( 0.0%) 
+         craft_rod:     0 ( 0.0%) 
+  Transformation chains completed: 0
+  Total food eaten: 0
+  Dangers: 0/14571 mitigated (0.0%)
+
+
+============================================================
+  SUMMARY COMPARISON
+============================================================
+  Policy                     Survival%  AvgReward  AvgLength
+  -------------------------------------------------------
+  RANDOM                         20.4%     +108.4       16.5
+  GREEDY                         55.9%     +352.8       18.7
+  OPTIMAL                        62.5%     +335.3       19.0
+  BLIND (no sender info)         19.1%      -99.6       14.6
+
+  Communication necessity gap: +43.4% (OPTIMAL 62.5% vs BLIND 19.1%)
+  → Sender information adds ~43% survival advantage
+
+  Balance check:
+    Random survival: 20.4%  ⚠ Moderate (random survives too often?)
+    Optimal survival: 62.5%  ⚠ Quite hard (might need reward tuning)

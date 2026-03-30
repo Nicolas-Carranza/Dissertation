@@ -145,7 +145,6 @@ def encode_labels(entity: Entity, state: GameState,
 
 def simulate_episode_for_data(
     max_turns: int = 20,
-    n_distractors: int = 2,
 ) -> List[Dict]:
     """
     Simulate one full episode using a random policy, collecting the encounter
@@ -153,7 +152,6 @@ def simulate_episode_for_data(
 
     Returns a list of per-turn dicts, each containing:
         - entity: the Entity object
-        - distractors: list of distractor Entity objects
         - state_before: GameState snapshot (before action)
         - valid_actions: list of valid action IDs
     """
@@ -171,7 +169,7 @@ def simulate_episode_for_data(
         update_weather(state)
 
         # Generate encounter
-        target, distractors = generate_encounter(state, n_distractors)
+        target = generate_encounter(state)
 
         # Get valid actions
         valid = get_valid_actions(target, state)
@@ -202,7 +200,6 @@ def simulate_episode_for_data(
 
         turns_data.append({
             "entity": target,
-            "distractors": distractors,
             "state": state_snapshot,
             "valid_actions": valid,
         })
@@ -259,7 +256,6 @@ class SurvivalGameDataset(Dataset):
         self,
         n_episodes: int = 0,
         max_turns: int = 20,
-        n_distractors: int = 2,
         seed: Optional[int] = None,
         samples: Optional[List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]] = None,
     ):
@@ -278,7 +274,7 @@ class SurvivalGameDataset(Dataset):
             np.random.seed(seed)
 
         for _ in range(n_episodes):
-            turns = simulate_episode_for_data(max_turns, n_distractors)
+            turns = simulate_episode_for_data(max_turns)
             for turn_data in turns:
                 self.samples.append(_turn_to_sample(turn_data))
 
@@ -336,7 +332,6 @@ def get_dataloaders(
     Expected opts attributes:
         n_episodes:        total episodes to generate (default: 10000)
         max_turns:         turns per episode (default: 20)
-        n_distractors:     distractor entities per turn (default: 2)
         batch_size:        batch size (from core.init)
         data_seed:         seed for data generation (default: 42)
         train_frac:        fraction for training (default: 0.8)
@@ -347,7 +342,6 @@ def get_dataloaders(
     """
     n_episodes = getattr(opts, "n_episodes", 10000)
     max_turns = getattr(opts, "max_turns", 20)
-    n_distractors = getattr(opts, "n_distractors", 2)
     data_seed = getattr(opts, "data_seed", 42)
     train_frac = getattr(opts, "train_frac", 0.8)
     val_frac = getattr(opts, "val_frac", 0.1)
@@ -362,7 +356,7 @@ def get_dataloaders(
 
     all_episodes = []  # list of lists-of-turn-dicts
     for _ in range(n_episodes):
-        turns = simulate_episode_for_data(max_turns, n_distractors)
+        turns = simulate_episode_for_data(max_turns)
         all_episodes.append(turns)
 
     # ---- Step 2: Deterministic episode shuffle ----

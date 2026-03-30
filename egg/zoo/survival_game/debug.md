@@ -59,10 +59,9 @@ Answer:
 
 ## callbacks.py
 
-### Q5. Are distractors used by sender in evaluation?
+### Q5. What does the sender receive in evaluation?
 Answer:
 - No. In [callbacks.py](callbacks.py), sender receives only target entity vector.
-- Distractors are generated but not fed to sender or receiver policy in current implementation.
 
 ### Q6. Why EOS handling with max_len + 1 if max_len is 2?
 Answer:
