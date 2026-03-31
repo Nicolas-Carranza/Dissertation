@@ -1,0 +1,488 @@
+============================================================
+  Survival Game — Training Configuration
+============================================================
+  Mode:               GS (Gumbel-Softmax)
+  Sender hidden:      128
+  Receiver hidden:    128
+  Sender embedding:   32
+  Receiver embedding: 32
+  Sender cell:        lstm
+  Receiver cell:      lstm
+  Vocab size:         50
+  Max message len:    2
+  Temperature:        2.0
+  Temp decay:         1.0
+  Temp minimum:       0.1
+  Recon weight:       0.0
+  Action entropy:     0.3
+  Action temperature: 2.0
+  Reward normalise:   True
+  Reward scale:       0.5
+  Learning rate:      0.001
+  Batch size:         64
+  Epochs:             50
+  Total episodes:     10000
+  Split:              80% / 10% / 10% (train/val/test)
+  Max turns/episode:  20
+  Eval freq:          5
+  Output dir:         outputs/no_recon_tuning
+  Log file:           outputs/no_recon_tuning/train_cfgA_len2_t2p0_ae0p3_at2p0_seed25.log
+  Message progression:outputs/no_recon_tuning/message_progression_cfgA_len2_t2p0_ae0p3_at2p0_seed25.jsonl
+  Final snapshot:     outputs/no_recon_tuning/message_snapshot_final_cfgA_len2_t2p0_ae0p3_at2p0_seed25.json
+  Device:             cuda
+============================================================
+
+Generating data...
+  Generating 10000 episodes (seed=25)...
+  Deduplication: removed 2780 val samples, 2896 test samples (fingerprint collisions)
+
+     Split | Episodes |  Samples | Entities | Entity-type distribution
+  ---------+----------+----------+----------+----------------------------------------
+     Train |     8000 |   132043 |    40/40  | Animal=32951  Resource=46241  Danger=26410  CraftOpp=13326  Event=13115
+       Val |     1000 |    13808 |    40/40  | Animal=3422  Resource=4749  Danger=2763  CraftOpp=1414  Event=1460
+      Test |     1000 |    13596 |    40/40  | Animal=3387  Resource=4690  Danger=2806  CraftOpp=1368  Event=1345
+
+Building game...
+Starting training...
+{"loss": -0.6764583587646484, "mean_reward": 1.1779003143310547, "expected_reward": 1.0106427669525146, "recon_loss": 3.714320421218872, "recon_acc": 0.011087502352893353, "valid_action_rate": 1.0, "hunt_rate": 0.025639312341809273, "gather_rate": 0.4342585504055023, "flee_rate": 0.10252401977777481, "rest_rate": 0.12710689008235931, "mitigate_rate": 0.0024993938859552145, "endure_rate": 0.0005782268126495183, "eat_rate": 0.1993812471628189, "craft_rate": 0.10801234841346741, "invalid_entity_idx_rate": 0.0, "length": 2.999350070953369, "mode": "train", "epoch": 1}
+{"loss": -0.7103441953659058, "mean_reward": 1.2594504356384277, "expected_reward": 1.0978754758834839, "recon_loss": 3.714951992034912, "recon_acc": 0.01390498224645853, "valid_action_rate": 1.0, "hunt_rate": 0.039542295038700104, "gather_rate": 0.39317786693573, "flee_rate": 0.11218134313821793, "rest_rate": 0.08227114379405975, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.23421205580234528, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 1}
+{"topsim": 0.42741212258097544, "mode": "test", "epoch": 1}
+{"loss": -0.7091274857521057, "mean_reward": 1.271235466003418, "expected_reward": 1.1065142154693604, "recon_loss": 3.7076399326324463, "recon_acc": 0.001802573911845684, "valid_action_rate": 1.0, "hunt_rate": 0.04439869150519371, "gather_rate": 0.42355647683143616, "flee_rate": 0.12166772782802582, "rest_rate": 0.0978318452835083, "mitigate_rate": 0.0025069680996239185, "endure_rate": 0.0, "eat_rate": 0.2004663497209549, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 2.999995231628418, "mode": "train", "epoch": 2}
+{"loss": -0.7182934880256653, "mean_reward": 1.2788954973220825, "expected_reward": 1.1164261102676392, "recon_loss": 3.7053534984588623, "recon_acc": 0.008763035759329796, "valid_action_rate": 1.0, "hunt_rate": 0.03447277098894119, "gather_rate": 0.40621379017829895, "flee_rate": 0.10834299027919769, "rest_rate": 0.09422074258327484, "mitigate_rate": 0.0022450753021985292, "endure_rate": 0.0, "eat_rate": 0.21820683777332306, "craft_rate": 0.1362977921962738, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 2}
+{"topsim": 0.48446790088202907, "mode": "test", "epoch": 2}
+{"loss": -0.7149432301521301, "mean_reward": 1.2826449871063232, "expected_reward": 1.1218985319137573, "recon_loss": 3.704503059387207, "recon_acc": 0.0006816814420744777, "valid_action_rate": 1.0, "hunt_rate": 0.04501982778310776, "gather_rate": 0.4290550649166107, "flee_rate": 0.1176154762506485, "rest_rate": 0.1029975488781929, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.19326353073120117, "craft_rate": 0.1095491349697113, "invalid_entity_idx_rate": 0.0, "length": 2.999995231628418, "mode": "train", "epoch": 3}
+{"loss": -0.7235092520713806, "mean_reward": 1.2926368713378906, "expected_reward": 1.1182446479797363, "recon_loss": 3.700007438659668, "recon_acc": 0.0, "valid_action_rate": 1.0, "hunt_rate": 0.03802143782377243, "gather_rate": 0.4031720757484436, "flee_rate": 0.10457705706357956, "rest_rate": 0.10073870420455933, "mitigate_rate": 0.0018829663749784231, "endure_rate": 0.0, "eat_rate": 0.2150202840566635, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 3}
+{"topsim": 0.38614460475509277, "mode": "test", "epoch": 3}
+{"loss": -0.7184160351753235, "mean_reward": 1.2899558544158936, "expected_reward": 1.131324052810669, "recon_loss": 3.7001328468322754, "recon_acc": 0.007036135997623205, "valid_action_rate": 1.0, "hunt_rate": 0.0452088788151741, "gather_rate": 0.4285779297351837, "flee_rate": 0.11922860145568848, "rest_rate": 0.10470190644264221, "mitigate_rate": 0.002491819905117154, "endure_rate": 0.0, "eat_rate": 0.19023413956165314, "craft_rate": 0.10955676436424255, "invalid_entity_idx_rate": 0.0, "length": 2.999997615814209, "mode": "train", "epoch": 4}
+{"loss": -0.725834310054779, "mean_reward": 1.293450117111206, "expected_reward": 1.1385606527328491, "recon_loss": 3.6981923580169678, "recon_acc": 0.008763035759329796, "valid_action_rate": 1.0, "hunt_rate": 0.03794901445508003, "gather_rate": 0.40737253427505493, "flee_rate": 0.10646001994609833, "rest_rate": 0.0968279242515564, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.21277520060539246, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 4}
+{"topsim": 0.367437247387884, "mode": "test", "epoch": 4}
+{"loss": -0.719904899597168, "mean_reward": 1.2924033403396606, "expected_reward": 1.1356149911880493, "recon_loss": 3.697721481323242, "recon_acc": 0.007672356907278299, "valid_action_rate": 1.0, "hunt_rate": 0.0454435721039772, "gather_rate": 0.4273585081100464, "flee_rate": 0.12091749161481857, "rest_rate": 0.10602744668722153, "mitigate_rate": 0.002491819905117154, "endure_rate": 0.0, "eat_rate": 0.18818165361881256, "craft_rate": 0.10957949608564377, "invalid_entity_idx_rate": 0.0, "length": 2.9999992847442627, "mode": "train", "epoch": 5}
+
+============================================================
+  Survival Game Evaluation — Epoch 5
+============================================================
+  Episodes:      100
+  Survival rate: 45.0%
+  Mean reward:   296.6
+  Mean msg len:  3.00
+  Valid action%: 100.0%
+  Action distribution:
+              hunt:  4.1% █
+            gather: 40.5% ████████████████
+              flee:  8.7% ███
+              rest:  6.3% ██
+          mitigate:  1.5% 
+            endure:  0.0% 
+               eat: 26.2% ██████████
+       craft_spear:  1.7% 
+        craft_fire:  3.9% █
+     craft_shelter:  2.3% 
+         craft_rod:  4.8% █
+============================================================
+
+{"loss": -0.7271323800086975, "mean_reward": 1.2957087755203247, "expected_reward": 1.150786280632019, "recon_loss": 3.6977407932281494, "recon_acc": 0.008763035759329796, "valid_action_rate": 1.0, "hunt_rate": 0.03910776227712631, "gather_rate": 0.41186270117759705, "flee_rate": 0.11000869423151016, "rest_rate": 0.09443800896406174, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20596756041049957, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 5}
+{"topsim": 0.44093335534088557, "mode": "test", "epoch": 5}
+{"loss": -0.7209344506263733, "mean_reward": 1.2951021194458008, "expected_reward": 1.1388386487960815, "recon_loss": 3.6969947814941406, "recon_acc": 0.0076875267550349236, "valid_action_rate": 1.0, "hunt_rate": 0.04549655318260193, "gather_rate": 0.42566952109336853, "flee_rate": 0.12225066125392914, "rest_rate": 0.10614093393087387, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18838614225387573, "craft_rate": 0.10955677181482315, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 6}
+{"loss": -0.7282372713088989, "mean_reward": 1.2996808290481567, "expected_reward": 1.144134521484375, "recon_loss": 3.696165084838867, "recon_acc": 0.008763035759329796, "valid_action_rate": 1.0, "hunt_rate": 0.03881807625293732, "gather_rate": 0.40128910541534424, "flee_rate": 0.10884994268417358, "rest_rate": 0.09719003736972809, "mitigate_rate": 0.0018829663749784231, "endure_rate": 0.0, "eat_rate": 0.215382382273674, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 6}
+{"topsim": 0.4325267961759421, "mode": "test", "epoch": 6}
+{"loss": -0.721725583076477, "mean_reward": 1.2968271970748901, "expected_reward": 1.1400471925735474, "recon_loss": 3.6967227458953857, "recon_acc": 0.007687530480325222, "valid_action_rate": 1.0, "hunt_rate": 0.04567832127213478, "gather_rate": 0.42510905861854553, "flee_rate": 0.1230156347155571, "rest_rate": 0.1064666137099266, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18765148520469666, "craft_rate": 0.10957949608564377, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 7}
+{"loss": -0.7291339635848999, "mean_reward": 1.3019986152648926, "expected_reward": 1.1418381929397583, "recon_loss": 3.69606614112854, "recon_acc": 0.008763035759329796, "valid_action_rate": 1.0, "hunt_rate": 0.037152376025915146, "gather_rate": 0.4036065936088562, "flee_rate": 0.11565759032964706, "rest_rate": 0.09711761027574539, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20785051584243774, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 7}
+{"topsim": 0.4577693405050137, "mode": "test", "epoch": 7}
+{"loss": -0.7225559949874878, "mean_reward": 1.298537254333496, "expected_reward": 1.1404333114624023, "recon_loss": 3.697465419769287, "recon_acc": 0.007770843338221312, "valid_action_rate": 1.0, "hunt_rate": 0.04569346830248833, "gather_rate": 0.4246167540550232, "flee_rate": 0.12419716268777847, "rest_rate": 0.10611821711063385, "mitigate_rate": 0.0024918201379477978, "endure_rate": 0.0, "eat_rate": 0.18731065094470978, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 8}
+{"loss": -0.7296444773674011, "mean_reward": 1.301672101020813, "expected_reward": 1.1432595252990723, "recon_loss": 3.697641372680664, "recon_acc": 0.008763035759329796, "valid_action_rate": 1.0, "hunt_rate": 0.03650058060884476, "gather_rate": 0.40628620982170105, "flee_rate": 0.11131228506565094, "rest_rate": 0.09856604784727097, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20871958136558533, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 8}
+{"topsim": 0.40537328298282976, "mode": "test", "epoch": 8}
+{"loss": -0.7236560583114624, "mean_reward": 1.3009363412857056, "expected_reward": 1.1414508819580078, "recon_loss": 3.697392225265503, "recon_acc": 0.008066226728260517, "valid_action_rate": 1.0, "hunt_rate": 0.04622364416718483, "gather_rate": 0.4247227907180786, "flee_rate": 0.12468191236257553, "rest_rate": 0.10573949664831161, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.1865532547235489, "craft_rate": 0.10957949608564377, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 9}
+{"loss": -0.7312950491905212, "mean_reward": 1.3056927919387817, "expected_reward": 1.1404401063919067, "recon_loss": 3.69564151763916, "recon_acc": 0.008763035759329796, "valid_action_rate": 1.0, "hunt_rate": 0.03816628083586693, "gather_rate": 0.40643104910850525, "flee_rate": 0.11732329428195953, "rest_rate": 0.09472769498825073, "mitigate_rate": 0.0019553881138563156, "endure_rate": 0.0, "eat_rate": 0.2048088014125824, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 9}
+{"topsim": 0.4471671422587867, "mode": "test", "epoch": 9}
+{"loss": -0.7246760725975037, "mean_reward": 1.3029621839523315, "expected_reward": 1.1427007913589478, "recon_loss": 3.696599245071411, "recon_acc": 0.007960191927850246, "valid_action_rate": 1.0, "hunt_rate": 0.0467916876077652, "gather_rate": 0.42457887530326843, "flee_rate": 0.12495455890893936, "rest_rate": 0.10522449016571045, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.1863790601491928, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 10}
+
+============================================================
+  Survival Game Evaluation — Epoch 10
+============================================================
+  Episodes:      100
+  Survival rate: 44.0%
+  Mean reward:   316.2
+  Mean msg len:  3.00
+  Valid action%: 100.0%
+  Action distribution:
+              hunt:  4.7% █
+            gather: 40.9% ████████████████
+              flee:  9.0% ███
+              rest:  7.3% ██
+          mitigate:  0.7% 
+            endure:  0.0% 
+               eat: 24.6% █████████
+       craft_spear:  2.0% 
+        craft_fire:  5.0% █
+     craft_shelter:  1.8% 
+         craft_rod:  4.0% █
+============================================================
+
+{"loss": -0.732403576374054, "mean_reward": 1.3076021671295166, "expected_reward": 1.1485556364059448, "recon_loss": 3.69519305229187, "recon_acc": 0.008763035759329796, "valid_action_rate": 1.0, "hunt_rate": 0.0396871380507946, "gather_rate": 0.40498262643814087, "flee_rate": 0.11594727635383606, "rest_rate": 0.09501738101243973, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20575028657913208, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 10}
+
+  Message Analysis — Epoch 10
+   Entity Type |  Count | Unique |                             Top messages
+  -------------+--------+--------+-----------------------------------------
+        Animal |   3422 |      5 | [45 14 0]×1147 | [14 43 0]×929 | [45 16 0]×543 | [5 45 0]×423 | [31 31 0]×380
+      Resource |   4749 |      3 | [16 14 0]×2340 | [28 14 0]×1423 | [33 14 0]×986
+        Danger |   2763 |      3 | [45 15 0]×1433 | [31 31 0]×763 | [45 7 0]×567
+      CraftOpp |   1414 |      2 | [28 14 0]×1132 | [16 14 0]×282
+         Event |   1460 |      3 | [16 14 0]×844 | [28 14 0]×429 | [16 16 0]×187
+
+{"topsim": 0.4437345128446498, "mode": "test", "epoch": 10}
+{"loss": -0.7254751324653625, "mean_reward": 1.304336667060852, "expected_reward": 1.1445266008377075, "recon_loss": 3.696281909942627, "recon_acc": 0.00890693161636591, "valid_action_rate": 1.0, "hunt_rate": 0.04739760234951973, "gather_rate": 0.4242532253265381, "flee_rate": 0.12497727572917938, "rest_rate": 0.10534567385911942, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18594734370708466, "craft_rate": 0.10957949608564377, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 11}
+{"loss": -0.7329014539718628, "mean_reward": 1.3088417053222656, "expected_reward": 1.1485158205032349, "recon_loss": 3.6957201957702637, "recon_acc": 0.008763035759329796, "valid_action_rate": 1.0, "hunt_rate": 0.04026651382446289, "gather_rate": 0.40556198358535767, "flee_rate": 0.12036500871181488, "rest_rate": 0.09168598055839539, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20350521802902222, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 11}
+{"topsim": 0.42875470589103754, "mode": "test", "epoch": 11}
+{"loss": -0.7259436845779419, "mean_reward": 1.3051584959030151, "expected_reward": 1.1455315351486206, "recon_loss": 3.696499824523926, "recon_acc": 0.009073558263480663, "valid_action_rate": 1.0, "hunt_rate": 0.04739760234951973, "gather_rate": 0.4240790009498596, "flee_rate": 0.12515905499458313, "rest_rate": 0.1054062619805336, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18588675558567047, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 12}
+{"loss": -0.7334893345832825, "mean_reward": 1.3098047971725464, "expected_reward": 1.1438037157058716, "recon_loss": 3.695996046066284, "recon_acc": 0.008763035759329796, "valid_action_rate": 1.0, "hunt_rate": 0.04099072888493538, "gather_rate": 0.39991310238838196, "flee_rate": 0.11739571392536163, "rest_rate": 0.09784182906150818, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.2052433341741562, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 12}
+{"topsim": 0.48331719110002136, "mode": "test", "epoch": 12}
+{"loss": -0.7262410521507263, "mean_reward": 1.3052791357040405, "expected_reward": 1.1460373401641846, "recon_loss": 3.696247100830078, "recon_acc": 0.01582949608564377, "valid_action_rate": 1.0, "hunt_rate": 0.04747334122657776, "gather_rate": 0.42401084303855896, "flee_rate": 0.12542414665222168, "rest_rate": 0.10545171052217484, "mitigate_rate": 0.002499394118785858, "endure_rate": 2.1705310263258827e-18, "eat_rate": 0.18557623028755188, "craft_rate": 0.10956434905529022, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 13}
+{"loss": -0.7338383197784424, "mean_reward": 1.3097772598266602, "expected_reward": 1.1507211923599243, "recon_loss": 3.6954855918884277, "recon_acc": 0.03135863319039345, "valid_action_rate": 1.0, "hunt_rate": 0.0399768240749836, "gather_rate": 0.404620498418808, "flee_rate": 0.11819235235452652, "rest_rate": 0.09436558187007904, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.2042294293642044, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 13}
+{"topsim": 0.5201207013176319, "mode": "test", "epoch": 13}
+{"loss": -0.7264747619628906, "mean_reward": 1.3055620193481445, "expected_reward": 1.1465985774993896, "recon_loss": 3.695897102355957, "recon_acc": 0.03224218264222145, "valid_action_rate": 1.0, "hunt_rate": 0.047511208802461624, "gather_rate": 0.4235261082649231, "flee_rate": 0.1256740838289261, "rest_rate": 0.10542141646146774, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18578828871250153, "craft_rate": 0.10957949608564377, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 14}
+{"loss": -0.7340365052223206, "mean_reward": 1.3102679252624512, "expected_reward": 1.1454517841339111, "recon_loss": 3.695101499557495, "recon_acc": 0.03135863319039345, "valid_action_rate": 1.0, "hunt_rate": 0.03918018564581871, "gather_rate": 0.40128910541534424, "flee_rate": 0.11594727635383606, "rest_rate": 0.09733487665653229, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20763325691223145, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 14}
+{"topsim": 0.5074401462447038, "mode": "test", "epoch": 14}
+{"loss": -0.7265647053718567, "mean_reward": 1.3057838678359985, "expected_reward": 1.146798849105835, "recon_loss": 3.6958730220794678, "recon_acc": 0.031022781506180763, "valid_action_rate": 1.0, "hunt_rate": 0.04750363528728485, "gather_rate": 0.42367759346961975, "flee_rate": 0.1259467452764511, "rest_rate": 0.10530780255794525, "mitigate_rate": 0.002499394118785858, "endure_rate": 2.1009998783959003e-18, "eat_rate": 0.1854853332042694, "craft_rate": 0.10957949608564377, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 15}
+
+============================================================
+  Survival Game Evaluation — Epoch 15
+============================================================
+  Episodes:      100
+  Survival rate: 32.0%
+  Mean reward:   280.5
+  Mean msg len:  3.00
+  Valid action%: 100.0%
+  Action distribution:
+              hunt:  5.5% ██
+            gather: 38.9% ███████████████
+              flee:  8.5% ███
+              rest:  6.4% ██
+          mitigate:  1.2% 
+            endure:  0.0% 
+               eat: 26.6% ██████████
+       craft_spear:  3.5% █
+        craft_fire:  3.9% █
+     craft_shelter:  1.5% 
+         craft_rod:  4.2% █
+============================================================
+
+{"loss": -0.7342570424079895, "mean_reward": 1.3103859424591064, "expected_reward": 1.1470916271209717, "recon_loss": 3.694530487060547, "recon_acc": 0.03135863319039345, "valid_action_rate": 1.0, "hunt_rate": 0.04048377647995949, "gather_rate": 0.40049245953559875, "flee_rate": 0.11768539994955063, "rest_rate": 0.09588643908500671, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20683661103248596, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 15}
+{"topsim": 0.49731519547658504, "mode": "test", "epoch": 15}
+{"loss": -0.726706862449646, "mean_reward": 1.305887222290039, "expected_reward": 1.1472724676132202, "recon_loss": 3.6953284740448, "recon_acc": 0.03302987292408943, "valid_action_rate": 1.0, "hunt_rate": 0.04745061695575714, "gather_rate": 0.4235791265964508, "flee_rate": 0.1258407086133957, "rest_rate": 0.1055728942155838, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.1854853332042694, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 16}
+{"loss": -0.73430997133255, "mean_reward": 1.3101228475570679, "expected_reward": 1.151007890701294, "recon_loss": 3.693983554840088, "recon_acc": 0.03135863319039345, "valid_action_rate": 1.0, "hunt_rate": 0.040701042860746384, "gather_rate": 0.40527230501174927, "flee_rate": 0.11529547721147537, "rest_rate": 0.0963933914899826, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20372247695922852, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 16}
+{"topsim": 0.5255431797879876, "mode": "test", "epoch": 16}
+{"loss": -0.7268555760383606, "mean_reward": 1.306066870689392, "expected_reward": 1.1474639177322388, "recon_loss": 3.694814920425415, "recon_acc": 0.0338781513273716, "valid_action_rate": 1.0, "hunt_rate": 0.04748091474175453, "gather_rate": 0.42336705327033997, "flee_rate": 0.12618911266326904, "rest_rate": 0.10533809661865234, "mitigate_rate": 0.002499394118785858, "endure_rate": 7.721956424899434e-19, "eat_rate": 0.18555350601673126, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 17}
+{"loss": -0.7344849705696106, "mean_reward": 1.310819149017334, "expected_reward": 1.1538395881652832, "recon_loss": 3.6942641735076904, "recon_acc": 0.03135863319039345, "valid_action_rate": 1.0, "hunt_rate": 0.0399768240749836, "gather_rate": 0.4036065936088562, "flee_rate": 0.11725086718797684, "rest_rate": 0.0967555046081543, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20379489660263062, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 17}
+{"topsim": 0.5236053288950027, "mode": "test", "epoch": 17}
+{"loss": -0.7269471287727356, "mean_reward": 1.3061392307281494, "expected_reward": 1.1474732160568237, "recon_loss": 3.6949081420898438, "recon_acc": 0.033249516040086746, "valid_action_rate": 1.0, "hunt_rate": 0.04739002510905266, "gather_rate": 0.4234958291053772, "flee_rate": 0.12637844681739807, "rest_rate": 0.10536082088947296, "mitigate_rate": 0.002499394118785858, "endure_rate": 9.469936710963322e-18, "eat_rate": 0.18531113862991333, "craft_rate": 0.10956434905529022, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 18}
+{"loss": -0.7345237731933594, "mean_reward": 1.31056809425354, "expected_reward": 1.151100516319275, "recon_loss": 3.693937063217163, "recon_acc": 0.03135863319039345, "valid_action_rate": 1.0, "hunt_rate": 0.03860080987215042, "gather_rate": 0.40042003989219666, "flee_rate": 0.11630938947200775, "rest_rate": 0.09834878146648407, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20770567655563354, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 18}
+{"topsim": 0.508294177403333, "mode": "test", "epoch": 18}
+{"loss": -0.727049708366394, "mean_reward": 1.3061816692352295, "expected_reward": 1.147705078125, "recon_loss": 3.6949918270111084, "recon_acc": 0.03231034800410271, "valid_action_rate": 1.0, "hunt_rate": 0.04742032289505005, "gather_rate": 0.42348065972328186, "flee_rate": 0.12629513442516327, "rest_rate": 0.10550472885370255, "mitigate_rate": 0.002499394118785858, "endure_rate": 1.2690475255868502e-16, "eat_rate": 0.18522782623767853, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 19}
+{"loss": -0.7344959378242493, "mean_reward": 1.3098970651626587, "expected_reward": 1.1587214469909668, "recon_loss": 3.6941635608673096, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.0396871380507946, "gather_rate": 0.40121668577194214, "flee_rate": 0.11290556192398071, "rest_rate": 0.09697277098894119, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.2106025516986847, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 19}
+{"topsim": 0.5017187657985344, "mode": "test", "epoch": 19}
+{"loss": -0.7271097302436829, "mean_reward": 1.306383728981018, "expected_reward": 1.147747278213501, "recon_loss": 3.695025682449341, "recon_acc": 0.029386814683675766, "valid_action_rate": 1.0, "hunt_rate": 0.04739002510905266, "gather_rate": 0.42345795035362244, "flee_rate": 0.12657538056373596, "rest_rate": 0.10528508573770523, "mitigate_rate": 0.0024918201379477978, "endure_rate": 1.2450745873554222e-15, "eat_rate": 0.18522025644779205, "craft_rate": 0.10957949608564377, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 20}
+
+============================================================
+  Survival Game Evaluation — Epoch 20
+============================================================
+  Episodes:      100
+  Survival rate: 44.0%
+  Mean reward:   307.1
+  Mean msg len:  3.00
+  Valid action%: 100.0%
+  Action distribution:
+              hunt:  4.4% █
+            gather: 42.0% ████████████████
+              flee:  8.2% ███
+              rest:  5.3% ██
+          mitigate:  0.3% 
+            endure:  0.0% 
+               eat: 26.8% ██████████
+       craft_spear:  3.2% █
+        craft_fire:  4.0% █
+     craft_shelter:  1.5% 
+         craft_rod:  4.5% █
+============================================================
+
+{"loss": -0.7348259091377258, "mean_reward": 1.3106688261032104, "expected_reward": 1.1497695446014404, "recon_loss": 3.6942601203918457, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.040121667087078094, "gather_rate": 0.404620498418808, "flee_rate": 0.11688876152038574, "rest_rate": 0.09516222774982452, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.2045915424823761, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 20}
+
+  Message Analysis — Epoch 20
+   Entity Type |  Count | Unique |                             Top messages
+  -------------+--------+--------+-----------------------------------------
+        Animal |   3422 |      7 | [14 43 0]×929 | [45 31 0]×595 | [45 14 0]×552 | [45 16 0]×543 | [43 31 0]×380 | [45 45 0]×215 | [44 45 0]×208
+      Resource |   4749 |      3 | [16 14 0]×2340 | [28 14 0]×1423 | [11 14 0]×986
+        Danger |   2763 |      3 | [45 15 0]×1433 | [31 31 0]×763 | [45 7 0]×567
+      CraftOpp |   1414 |      2 | [28 14 0]×1132 | [16 14 0]×282
+         Event |   1460 |      2 | [16 14 0]×1031 | [28 14 0]×429
+
+{"topsim": 0.4880857011500929, "mode": "test", "epoch": 20}
+{"loss": -0.7272195219993591, "mean_reward": 1.3064278364181519, "expected_reward": 1.1479548215866089, "recon_loss": 3.6949641704559326, "recon_acc": 0.029697345569729805, "valid_action_rate": 1.0, "hunt_rate": 0.04739002510905266, "gather_rate": 0.42328375577926636, "flee_rate": 0.12651477754116058, "rest_rate": 0.10530023276805878, "mitigate_rate": 0.002499394118785858, "endure_rate": 2.2260557367017415e-15, "eat_rate": 0.1854323148727417, "craft_rate": 0.10957949608564377, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 21}
+{"loss": -0.7344593405723572, "mean_reward": 1.3096400499343872, "expected_reward": 1.1465624570846558, "recon_loss": 3.692415237426758, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.04091830924153328, "gather_rate": 0.40491020679473877, "flee_rate": 0.11500579118728638, "rest_rate": 0.0963933914899826, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.2041570097208023, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 21}
+{"topsim": 0.5066082218400528, "mode": "test", "epoch": 21}
+{"loss": -0.7272525429725647, "mean_reward": 1.3064557313919067, "expected_reward": 1.1481232643127441, "recon_loss": 3.6945884227752686, "recon_acc": 0.027061620727181435, "valid_action_rate": 1.0, "hunt_rate": 0.04747334122657776, "gather_rate": 0.4231095612049103, "flee_rate": 0.12633301317691803, "rest_rate": 0.10561833530664444, "mitigate_rate": 0.002499394118785858, "endure_rate": 1.644606118706095e-17, "eat_rate": 0.18541717529296875, "craft_rate": 0.10954920202493668, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 22}
+{"loss": -0.7347049713134766, "mean_reward": 1.3107786178588867, "expected_reward": 1.1550817489624023, "recon_loss": 3.6937735080718994, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.03903534263372421, "gather_rate": 0.40092700719833374, "flee_rate": 0.11696118116378784, "rest_rate": 0.09791425615549088, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20654693245887756, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 22}
+{"topsim": 0.5097346836173356, "mode": "test", "epoch": 22}
+{"loss": -0.7273711562156677, "mean_reward": 1.3065083026885986, "expected_reward": 1.1481781005859375, "recon_loss": 3.6946640014648438, "recon_acc": 0.02704647369682789, "valid_action_rate": 1.0, "hunt_rate": 0.047458190470933914, "gather_rate": 0.4232383072376251, "flee_rate": 0.1266738325357437, "rest_rate": 0.10539111495018005, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18517480790615082, "craft_rate": 0.10956434905529022, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 23}
+{"loss": -0.7350512742996216, "mean_reward": 1.310981273651123, "expected_reward": 1.1528711318969727, "recon_loss": 3.693882703781128, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.0399044044315815, "gather_rate": 0.402303010225296, "flee_rate": 0.11667149513959885, "rest_rate": 0.09704519063234329, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20546060800552368, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 23}
+{"topsim": 0.48806959608728323, "mode": "test", "epoch": 23}
+{"loss": -0.7274385094642639, "mean_reward": 1.3065346479415894, "expected_reward": 1.148092269897461, "recon_loss": 3.694640874862671, "recon_acc": 0.026432985439896584, "valid_action_rate": 1.0, "hunt_rate": 0.04750363528728485, "gather_rate": 0.42305654287338257, "flee_rate": 0.1266738325357437, "rest_rate": 0.10544413328170776, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18524296581745148, "craft_rate": 0.10957949608564377, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 24}
+{"loss": -0.7351622581481934, "mean_reward": 1.3110519647598267, "expected_reward": 1.1492403745651245, "recon_loss": 3.6938114166259766, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.04026651382446289, "gather_rate": 0.39969581365585327, "flee_rate": 0.11840961873531342, "rest_rate": 0.0963933914899826, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20661935210227966, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 24}
+{"topsim": 0.5083979182177989, "mode": "test", "epoch": 24}
+{"loss": -0.7275038361549377, "mean_reward": 1.306658148765564, "expected_reward": 1.1480844020843506, "recon_loss": 3.6946284770965576, "recon_acc": 0.02621334232389927, "valid_action_rate": 1.0, "hunt_rate": 0.04753392934799194, "gather_rate": 0.4228596091270447, "flee_rate": 0.1265072077512741, "rest_rate": 0.10566377639770508, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18535658717155457, "craft_rate": 0.10957949608564377, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 25}
+
+============================================================
+  Survival Game Evaluation — Epoch 25
+============================================================
+  Episodes:      100
+  Survival rate: 39.0%
+  Mean reward:   285.9
+  Mean msg len:  3.00
+  Valid action%: 100.0%
+  Action distribution:
+              hunt:  4.3% █
+            gather: 41.0% ████████████████
+              flee:  9.5% ███
+              rest:  6.8% ██
+          mitigate:  0.5% 
+            endure:  0.0% 
+               eat: 26.5% ██████████
+       craft_spear:  2.5% █
+        craft_fire:  3.6% █
+     craft_shelter:  1.3% 
+         craft_rod:  4.0% █
+============================================================
+
+{"loss": -0.7351168394088745, "mean_reward": 1.310712456703186, "expected_reward": 1.1531965732574463, "recon_loss": 3.6934709548950195, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.040556199848651886, "gather_rate": 0.4040411412715912, "flee_rate": 0.11551274359226227, "rest_rate": 0.09552433341741562, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20575028657913208, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 25}
+{"topsim": 0.5071493019902689, "mode": "test", "epoch": 25}
+{"loss": -0.727581799030304, "mean_reward": 1.3068326711654663, "expected_reward": 1.1481574773788452, "recon_loss": 3.6945786476135254, "recon_acc": 0.026220915839076042, "valid_action_rate": 1.0, "hunt_rate": 0.047412749379873276, "gather_rate": 0.4230186641216278, "flee_rate": 0.12664353847503662, "rest_rate": 0.10554259270429611, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18532627820968628, "craft_rate": 0.10955677181482315, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 26}
+{"loss": -0.7352434396743774, "mean_reward": 1.3110880851745605, "expected_reward": 1.147674798965454, "recon_loss": 3.6936287879943848, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.039469871670007706, "gather_rate": 0.4035341739654541, "flee_rate": 0.11819235235452652, "rest_rate": 0.09523464739322662, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.2049536556005478, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 26}
+{"topsim": 0.4915849323226892, "mode": "test", "epoch": 26}
+{"loss": -0.7276462316513062, "mean_reward": 1.3068273067474365, "expected_reward": 1.1481539011001587, "recon_loss": 3.6945033073425293, "recon_acc": 0.026220915839076042, "valid_action_rate": 1.0, "hunt_rate": 0.047465767711400986, "gather_rate": 0.4226778447628021, "flee_rate": 0.12679502367973328, "rest_rate": 0.10542141646146774, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.1855686455965042, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 27}
+{"loss": -0.7352850437164307, "mean_reward": 1.3111233711242676, "expected_reward": 1.1520034074783325, "recon_loss": 3.693460464477539, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.04041135683655739, "gather_rate": 0.3975955843925476, "flee_rate": 0.1193511039018631, "rest_rate": 0.09552433341741562, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20850232243537903, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 27}
+{"topsim": 0.4871113633599468, "mode": "test", "epoch": 27}
+{"loss": -0.7276880145072937, "mean_reward": 1.3069243431091309, "expected_reward": 1.1482326984405518, "recon_loss": 3.6945385932922363, "recon_acc": 0.026220915839076042, "valid_action_rate": 1.0, "hunt_rate": 0.04737487807869911, "gather_rate": 0.4226248264312744, "flee_rate": 0.12680259346961975, "rest_rate": 0.10570164769887924, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18542474508285522, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 28}
+{"loss": -0.7352513074874878, "mean_reward": 1.3107479810714722, "expected_reward": 1.1515519618988037, "recon_loss": 3.693526268005371, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.040556199848651886, "gather_rate": 0.4044756591320038, "flee_rate": 0.11674391478300095, "rest_rate": 0.09610370546579361, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20350521802902222, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 28}
+{"topsim": 0.49606301875695796, "mode": "test", "epoch": 28}
+{"loss": -0.7277413010597229, "mean_reward": 1.3069688081741333, "expected_reward": 1.1483644247055054, "recon_loss": 3.694507360458374, "recon_acc": 0.026220915839076042, "valid_action_rate": 1.0, "hunt_rate": 0.04744304344058037, "gather_rate": 0.42247334122657776, "flee_rate": 0.12680259346961975, "rest_rate": 0.1056562066078186, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18555350601673126, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 29}
+{"loss": -0.7354410886764526, "mean_reward": 1.3112832307815552, "expected_reward": 1.1523547172546387, "recon_loss": 3.693575143814087, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.0399044044315815, "gather_rate": 0.4020857512950897, "flee_rate": 0.1189165711402893, "rest_rate": 0.09516222774982452, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.2053157538175583, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 29}
+{"topsim": 0.5162599629268811, "mode": "test", "epoch": 29}
+{"loss": -0.7277863621711731, "mean_reward": 1.3070727586746216, "expected_reward": 1.1484378576278687, "recon_loss": 3.6945528984069824, "recon_acc": 0.02621334232389927, "valid_action_rate": 1.0, "hunt_rate": 0.047412749379873276, "gather_rate": 0.42258694767951965, "flee_rate": 0.1270146667957306, "rest_rate": 0.1056031882762909, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18531113862991333, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 30}
+
+============================================================
+  Survival Game Evaluation — Epoch 30
+============================================================
+  Episodes:      100
+  Survival rate: 28.0%
+  Mean reward:   252.9
+  Mean msg len:  3.00
+  Valid action%: 100.0%
+  Action distribution:
+              hunt:  5.0% ██
+            gather: 39.0% ███████████████
+              flee:  9.9% ███
+              rest:  6.6% ██
+          mitigate:  0.8% 
+            endure:  0.0% 
+               eat: 26.2% ██████████
+       craft_spear:  1.8% 
+        craft_fire:  4.6% █
+     craft_shelter:  1.8% 
+         craft_rod:  4.4% █
+============================================================
+
+{"loss": -0.735434353351593, "mean_reward": 1.3116945028305054, "expected_reward": 1.1476259231567383, "recon_loss": 3.693507671356201, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.0398319810628891, "gather_rate": 0.39998552203178406, "flee_rate": 0.11739571392536163, "rest_rate": 0.0966830849647522, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20748841762542725, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 30}
+
+  Message Analysis — Epoch 30
+   Entity Type |  Count | Unique |                             Top messages
+  -------------+--------+--------+-----------------------------------------
+        Animal |   3422 |      7 | [14 43 0]×929 | [45 31 0]×595 | [45 14 0]×552 | [45 16 0]×543 | [43 31 0]×380 | [45 45 0]×215 | [44 45 0]×208
+      Resource |   4749 |      3 | [16 14 0]×2340 | [28 14 0]×1423 | [11 14 0]×986
+        Danger |   2763 |      3 | [45 15 0]×1433 | [31 31 0]×763 | [45 7 0]×567
+      CraftOpp |   1414 |      2 | [28 14 0]×1132 | [16 14 0]×282
+         Event |   1460 |      2 | [16 14 0]×1031 | [28 14 0]×429
+
+{"topsim": 0.487139387559864, "mode": "test", "epoch": 30}
+{"loss": -0.727688193321228, "mean_reward": 1.3068108558654785, "expected_reward": 1.1481808423995972, "recon_loss": 3.694549322128296, "recon_acc": 0.026220915839076042, "valid_action_rate": 1.0, "hunt_rate": 0.047511208802461624, "gather_rate": 0.4223976135253906, "flee_rate": 0.12643146514892578, "rest_rate": 0.10586827248334885, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18572770059108734, "craft_rate": 0.10956434905529022, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 31}
+{"loss": -0.7354783415794373, "mean_reward": 1.3116099834442139, "expected_reward": 1.1507991552352905, "recon_loss": 3.693979024887085, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.04033893346786499, "gather_rate": 0.4025926887989044, "flee_rate": 0.1191338375210762, "rest_rate": 0.09516222774982452, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.2041570097208023, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 31}
+{"topsim": 0.5170212048572945, "mode": "test", "epoch": 31}
+{"loss": -0.7278717756271362, "mean_reward": 1.3072811365127563, "expected_reward": 1.1485546827316284, "recon_loss": 3.6945583820343018, "recon_acc": 0.026220915839076042, "valid_action_rate": 1.0, "hunt_rate": 0.04745061695575714, "gather_rate": 0.42235973477363586, "flee_rate": 0.12687833607196808, "rest_rate": 0.10555774718523026, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.1856822520494461, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 32}
+{"loss": -0.7355404496192932, "mean_reward": 1.3116506338119507, "expected_reward": 1.150328278541565, "recon_loss": 3.693723440170288, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.040121667087078094, "gather_rate": 0.4021581709384918, "flee_rate": 0.1189165711402893, "rest_rate": 0.09465527534484863, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20553302764892578, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 32}
+{"topsim": 0.4789602161022741, "mode": "test", "epoch": 32}
+{"loss": -0.72792649269104, "mean_reward": 1.3072772026062012, "expected_reward": 1.148667812347412, "recon_loss": 3.694676637649536, "recon_acc": 0.026220915839076042, "valid_action_rate": 1.0, "hunt_rate": 0.047488488256931305, "gather_rate": 0.4225414991378784, "flee_rate": 0.1268177479505539, "rest_rate": 0.1056031882762909, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18547776341438293, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 33}
+{"loss": -0.7354919910430908, "mean_reward": 1.3120859861373901, "expected_reward": 1.1491166353225708, "recon_loss": 3.693439245223999, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.0399768240749836, "gather_rate": 0.3976680040359497, "flee_rate": 0.11703360080718994, "rest_rate": 0.09755214303731918, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20915411412715912, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 33}
+{"topsim": 0.5047997131185729, "mode": "test", "epoch": 33}
+{"loss": -0.7279347777366638, "mean_reward": 1.307247519493103, "expected_reward": 1.1486375331878662, "recon_loss": 3.6946306228637695, "recon_acc": 0.02621334232389927, "valid_action_rate": 1.0, "hunt_rate": 0.047458190470933914, "gather_rate": 0.4223218560218811, "flee_rate": 0.12691619992256165, "rest_rate": 0.10567892342805862, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18555350601673126, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 34}
+{"loss": -0.7355830669403076, "mean_reward": 1.311818242073059, "expected_reward": 1.1501569747924805, "recon_loss": 3.6936070919036865, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.040049247443675995, "gather_rate": 0.4017236530780792, "flee_rate": 0.11811993271112442, "rest_rate": 0.09755214303731918, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.203939750790596, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 34}
+{"topsim": 0.5104506884574596, "mode": "test", "epoch": 34}
+{"loss": -0.7279781103134155, "mean_reward": 1.3073277473449707, "expected_reward": 1.1488232612609863, "recon_loss": 3.694674253463745, "recon_acc": 0.026220915839076042, "valid_action_rate": 1.0, "hunt_rate": 0.047435469925403595, "gather_rate": 0.4224657714366913, "flee_rate": 0.12675714492797852, "rest_rate": 0.10584555566310883, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.1854323148727417, "craft_rate": 0.10956434905529022, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 35}
+
+============================================================
+  Survival Game Evaluation — Epoch 35
+============================================================
+  Episodes:      100
+  Survival rate: 36.0%
+  Mean reward:   252.9
+  Mean msg len:  3.00
+  Valid action%: 100.0%
+  Action distribution:
+              hunt:  5.5% ██
+            gather: 39.8% ███████████████
+              flee:  7.2% ██
+              rest:  5.5% ██
+          mitigate:  0.8% 
+            endure:  0.0% 
+               eat: 29.1% ███████████
+       craft_spear:  2.3% 
+        craft_fire:  3.4% █
+     craft_shelter:  2.3% 
+         craft_rod:  4.1% █
+============================================================
+
+{"loss": -0.7357077598571777, "mean_reward": 1.311842679977417, "expected_reward": 1.1492565870285034, "recon_loss": 3.693920612335205, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.040121667087078094, "gather_rate": 0.40056487917900085, "flee_rate": 0.11652664840221405, "rest_rate": 0.09711761027574539, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20705388486385345, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 35}
+{"topsim": 0.49720549480323745, "mode": "test", "epoch": 35}
+{"loss": -0.7279968857765198, "mean_reward": 1.3073326349258423, "expected_reward": 1.1488010883331299, "recon_loss": 3.6947154998779297, "recon_acc": 0.026220915839076042, "valid_action_rate": 1.0, "hunt_rate": 0.04742032289505005, "gather_rate": 0.4223748743534088, "flee_rate": 0.12697678804397583, "rest_rate": 0.10558804124593735, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18557623028755188, "craft_rate": 0.10956434905529022, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 36}
+{"loss": -0.7357167601585388, "mean_reward": 1.3120168447494507, "expected_reward": 1.1531907320022583, "recon_loss": 3.693855047225952, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.04019409045577049, "gather_rate": 0.39976826310157776, "flee_rate": 0.11630938947200775, "rest_rate": 0.09762456268072128, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20748841762542725, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 36}
+{"topsim": 0.514064738033324, "mode": "test", "epoch": 36}
+{"loss": -0.7280228137969971, "mean_reward": 1.3073807954788208, "expected_reward": 1.1488147974014282, "recon_loss": 3.6948108673095703, "recon_acc": 0.026220915839076042, "valid_action_rate": 1.0, "hunt_rate": 0.04733701050281525, "gather_rate": 0.422435462474823, "flee_rate": 0.12691619992256165, "rest_rate": 0.10573194175958633, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18550805747509003, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 37}
+{"loss": -0.7357726693153381, "mean_reward": 1.3119299411773682, "expected_reward": 1.151276707649231, "recon_loss": 3.6938788890838623, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.04019409045577049, "gather_rate": 0.4025202691555023, "flee_rate": 0.11674391478300095, "rest_rate": 0.09697277098894119, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.2049536556005478, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 37}
+{"topsim": 0.5221644860447411, "mode": "test", "epoch": 37}
+{"loss": -0.7280622124671936, "mean_reward": 1.3075286149978638, "expected_reward": 1.1489994525909424, "recon_loss": 3.6947529315948486, "recon_acc": 0.02621334232389927, "valid_action_rate": 1.0, "hunt_rate": 0.04747334122657776, "gather_rate": 0.4222915768623352, "flee_rate": 0.12702223658561707, "rest_rate": 0.10563348233699799, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.1855156272649765, "craft_rate": 0.10956434905529022, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 38}
+{"loss": -0.7356964945793152, "mean_reward": 1.3115367889404297, "expected_reward": 1.1480478048324585, "recon_loss": 3.6938233375549316, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.04041135683655739, "gather_rate": 0.3992612957954407, "flee_rate": 0.11449883878231049, "rest_rate": 0.09820394217967987, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20900927484035492, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 38}
+{"topsim": 0.520061784720085, "mode": "test", "epoch": 38}
+{"loss": -0.7280786633491516, "mean_reward": 1.307619333267212, "expected_reward": 1.1490424871444702, "recon_loss": 3.69474196434021, "recon_acc": 0.026220915839076042, "valid_action_rate": 1.0, "hunt_rate": 0.04742789641022682, "gather_rate": 0.4223294258117676, "flee_rate": 0.12683288753032684, "rest_rate": 0.10584555566310883, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18550048768520355, "craft_rate": 0.10956434905529022, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 39}
+{"loss": -0.7358240485191345, "mean_reward": 1.3122354745864868, "expected_reward": 1.1526108980178833, "recon_loss": 3.6935629844665527, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.039759561419487, "gather_rate": 0.40020278096199036, "flee_rate": 0.11688876152038574, "rest_rate": 0.09784182906150818, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20669177174568176, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 39}
+{"topsim": 0.5050751253968779, "mode": "test", "epoch": 39}
+{"loss": -0.7279847264289856, "mean_reward": 1.3076735734939575, "expected_reward": 1.149004578590393, "recon_loss": 3.694638729095459, "recon_acc": 0.026220915839076042, "valid_action_rate": 1.0, "hunt_rate": 0.04752635583281517, "gather_rate": 0.42258694767951965, "flee_rate": 0.1270373910665512, "rest_rate": 0.10572437196969986, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.1850687712430954, "craft_rate": 0.10955677181482315, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 40}
+
+============================================================
+  Survival Game Evaluation — Epoch 40
+============================================================
+  Episodes:      100
+  Survival rate: 38.0%
+  Mean reward:   279.2
+  Mean msg len:  3.00
+  Valid action%: 100.0%
+  Action distribution:
+              hunt:  5.2% ██
+            gather: 40.9% ████████████████
+              flee:  8.2% ███
+              rest:  5.3% ██
+          mitigate:  1.5% 
+            endure:  0.0% 
+               eat: 26.7% ██████████
+       craft_spear:  2.9% █
+        craft_fire:  3.7% █
+     craft_shelter:  2.6% █
+         craft_rod:  3.1% █
+============================================================
+
+{"loss": -0.7357546091079712, "mean_reward": 1.3119033575057983, "expected_reward": 1.1489312648773193, "recon_loss": 3.694002866744995, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.040121667087078094, "gather_rate": 0.40078216791152954, "flee_rate": 0.1194959431886673, "rest_rate": 0.09364137053489685, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20734356343746185, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 40}
+
+  Message Analysis — Epoch 40
+   Entity Type |  Count | Unique |                             Top messages
+  -------------+--------+--------+-----------------------------------------
+        Animal |   3422 |      7 | [14 43 0]×929 | [45 31 0]×595 | [45 14 0]×552 | [45 16 0]×543 | [43 31 0]×380 | [45 45 0]×215 | [44 45 0]×208
+      Resource |   4749 |      3 | [20 14 0]×2340 | [28 14 0]×1423 | [11 14 0]×986
+        Danger |   2763 |      3 | [45 15 0]×1433 | [31 31 0]×763 | [45 7 0]×567
+      CraftOpp |   1414 |      2 | [28 14 0]×1132 | [20 14 0]×282
+         Event |   1460 |      3 | [20 14 0]×844 | [28 14 0]×429 | [16 14 0]×187
+
+{"topsim": 0.4955248343630951, "mode": "test", "epoch": 40}
+{"loss": -0.7281169891357422, "mean_reward": 1.3075953722000122, "expected_reward": 1.1491305828094482, "recon_loss": 3.694897413253784, "recon_acc": 0.02621334232389927, "valid_action_rate": 1.0, "hunt_rate": 0.04742032289505005, "gather_rate": 0.4223445951938629, "flee_rate": 0.12721915543079376, "rest_rate": 0.10548200458288193, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18547019362449646, "craft_rate": 0.10956434905529022, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 41}
+{"loss": -0.7358061671257019, "mean_reward": 1.3119217157363892, "expected_reward": 1.1530214548110962, "recon_loss": 3.693723678588867, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.0399044044315815, "gather_rate": 0.4033169150352478, "flee_rate": 0.11761298030614853, "rest_rate": 0.09458284825086594, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20596756041049957, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 41}
+{"topsim": 0.4930702168109004, "mode": "test", "epoch": 41}
+{"loss": -0.7281299829483032, "mean_reward": 1.3074628114700317, "expected_reward": 1.1491689682006836, "recon_loss": 3.694788932800293, "recon_acc": 0.026220915839076042, "valid_action_rate": 1.0, "hunt_rate": 0.04742789641022682, "gather_rate": 0.4223824441432953, "flee_rate": 0.12702980637550354, "rest_rate": 0.10567135363817215, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18540959060192108, "craft_rate": 0.10957949608564377, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 42}
+{"loss": -0.7358307242393494, "mean_reward": 1.3122389316558838, "expected_reward": 1.1546754837036133, "recon_loss": 3.693617105484009, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.040121667087078094, "gather_rate": 0.39998552203178406, "flee_rate": 0.11659907549619675, "rest_rate": 0.09574159979820251, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20893685519695282, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 42}
+{"topsim": 0.5278179313673903, "mode": "test", "epoch": 42}
+{"loss": -0.7281535267829895, "mean_reward": 1.3077164888381958, "expected_reward": 1.149260401725769, "recon_loss": 3.694917678833008, "recon_acc": 0.026220915839076042, "valid_action_rate": 1.0, "hunt_rate": 0.047382451593875885, "gather_rate": 0.4223521649837494, "flee_rate": 0.12711311876773834, "rest_rate": 0.1056865006685257, "mitigate_rate": 0.0024918201379477978, "endure_rate": 0.0, "eat_rate": 0.18539445102214813, "craft_rate": 0.10957949608564377, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 43}
+{"loss": -0.7358881235122681, "mean_reward": 1.312506914138794, "expected_reward": 1.1507270336151123, "recon_loss": 3.6938540935516357, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.040049247443675995, "gather_rate": 0.40056487917900085, "flee_rate": 0.11587485671043396, "rest_rate": 0.09805909544229507, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20683661103248596, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 43}
+{"topsim": 0.4942541344500281, "mode": "test", "epoch": 43}
+{"loss": -0.7281650304794312, "mean_reward": 1.3076828718185425, "expected_reward": 1.1492598056793213, "recon_loss": 3.694922685623169, "recon_acc": 0.026220915839076042, "valid_action_rate": 1.0, "hunt_rate": 0.047359731048345566, "gather_rate": 0.4223748743534088, "flee_rate": 0.12714341282844543, "rest_rate": 0.10559561103582382, "mitigate_rate": 0.002499394118785858, "endure_rate": 1.2408787831814184e-17, "eat_rate": 0.18545503914356232, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 44}
+{"loss": -0.7358725070953369, "mean_reward": 1.311750054359436, "expected_reward": 1.1538528203964233, "recon_loss": 3.693881034851074, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.0399768240749836, "gather_rate": 0.4032444953918457, "flee_rate": 0.1197132095694542, "rest_rate": 0.09414832293987274, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.2043018490076065, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 44}
+{"topsim": 0.5041661810096356, "mode": "test", "epoch": 44}
+{"loss": -0.7281849980354309, "mean_reward": 1.3077791929244995, "expected_reward": 1.14930260181427, "recon_loss": 3.695011854171753, "recon_acc": 0.02621334232389927, "valid_action_rate": 1.0, "hunt_rate": 0.04735215753316879, "gather_rate": 0.4223294258117676, "flee_rate": 0.1271509975194931, "rest_rate": 0.10581525415182114, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18527325987815857, "craft_rate": 0.10957949608564377, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 45}
+
+============================================================
+  Survival Game Evaluation — Epoch 45
+============================================================
+  Episodes:      100
+  Survival rate: 41.0%
+  Mean reward:   276.0
+  Mean msg len:  3.00
+  Valid action%: 100.0%
+  Action distribution:
+              hunt:  5.6% ██
+            gather: 39.4% ███████████████
+              flee:  9.6% ███
+              rest:  6.0% ██
+          mitigate:  1.0% 
+            endure:  0.0% 
+               eat: 27.2% ██████████
+       craft_spear:  2.3% 
+        craft_fire:  2.3% 
+     craft_shelter:  2.3% 
+         craft_rod:  4.3% █
+============================================================
+
+{"loss": -0.735805332660675, "mean_reward": 1.3123135566711426, "expected_reward": 1.149592399597168, "recon_loss": 3.694061040878296, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.04084588587284088, "gather_rate": 0.40165120363235474, "flee_rate": 0.11754055321216583, "rest_rate": 0.09523464739322662, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20611239969730377, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 45}
+{"topsim": 0.48807516145353913, "mode": "test", "epoch": 45}
+{"loss": -0.7282012701034546, "mean_reward": 1.3077356815338135, "expected_reward": 1.1493558883666992, "recon_loss": 3.6949849128723145, "recon_acc": 0.026220915839076042, "valid_action_rate": 1.0, "hunt_rate": 0.04750363528728485, "gather_rate": 0.422435462474823, "flee_rate": 0.12711311876773834, "rest_rate": 0.10561833530664444, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18525812029838562, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 46}
+{"loss": -0.7358824014663696, "mean_reward": 1.3123918771743774, "expected_reward": 1.1539000272750854, "recon_loss": 3.6939220428466797, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.04026651382446289, "gather_rate": 0.40099942684173584, "flee_rate": 0.11544032394886017, "rest_rate": 0.09849362820386887, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20618481934070587, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 46}
+{"topsim": 0.4926953376451973, "mode": "test", "epoch": 46}
+{"loss": -0.7282131910324097, "mean_reward": 1.3078299760818481, "expected_reward": 1.14937162399292, "recon_loss": 3.6949636936187744, "recon_acc": 0.02621334232389927, "valid_action_rate": 1.0, "hunt_rate": 0.04739760234951973, "gather_rate": 0.42255663871765137, "flee_rate": 0.12711311876773834, "rest_rate": 0.10574708878993988, "mitigate_rate": 0.002499394118785858, "endure_rate": 4.1656815648170474e-17, "eat_rate": 0.18510663509368896, "craft_rate": 0.10957949608564377, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 47}
+{"loss": -0.7359145283699036, "mean_reward": 1.3125077486038208, "expected_reward": 1.1508588790893555, "recon_loss": 3.6939597129821777, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.040049247443675995, "gather_rate": 0.40099942684173584, "flee_rate": 0.11616454273462296, "rest_rate": 0.09733487665653229, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20683661103248596, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 47}
+{"topsim": 0.5283073717588028, "mode": "test", "epoch": 47}
+{"loss": -0.7282349467277527, "mean_reward": 1.307908296585083, "expected_reward": 1.149396300315857, "recon_loss": 3.694948434829712, "recon_acc": 0.026220915839076042, "valid_action_rate": 1.0, "hunt_rate": 0.04744304344058037, "gather_rate": 0.42242032289505005, "flee_rate": 0.12710554897785187, "rest_rate": 0.10551987588405609, "mitigate_rate": 0.002499394118785858, "endure_rate": 3.7883804991938474e-18, "eat_rate": 0.18543989956378937, "craft_rate": 0.1095719188451767, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 48}
+{"loss": -0.7359198331832886, "mean_reward": 1.312314748764038, "expected_reward": 1.1559125185012817, "recon_loss": 3.693941354751587, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.040121667087078094, "gather_rate": 0.40114426612854004, "flee_rate": 0.11667149513959885, "rest_rate": 0.0965382382273674, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20690904557704926, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 48}
+{"topsim": 0.4855068807694369, "mode": "test", "epoch": 48}
+{"loss": -0.7282390594482422, "mean_reward": 1.3078498840332031, "expected_reward": 1.1494088172912598, "recon_loss": 3.6950159072875977, "recon_acc": 0.02621334232389927, "valid_action_rate": 1.0, "hunt_rate": 0.04742789641022682, "gather_rate": 0.42255663871765137, "flee_rate": 0.12702980637550354, "rest_rate": 0.10561075806617737, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18531113862991333, "craft_rate": 0.10956434905529022, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 49}
+{"loss": -0.7359599471092224, "mean_reward": 1.3123080730438232, "expected_reward": 1.1564629077911377, "recon_loss": 3.694061040878296, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.0399768240749836, "gather_rate": 0.4017236530780792, "flee_rate": 0.11645422875881195, "rest_rate": 0.09610370546579361, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20712630450725555, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 49}
+{"topsim": 0.5084257636166173, "mode": "test", "epoch": 49}
+{"loss": -0.728269636631012, "mean_reward": 1.3078588247299194, "expected_reward": 1.1495124101638794, "recon_loss": 3.6950201988220215, "recon_acc": 0.02621334232389927, "valid_action_rate": 1.0, "hunt_rate": 0.04745061695575714, "gather_rate": 0.42248091101646423, "flee_rate": 0.1270979791879654, "rest_rate": 0.1056031882762909, "mitigate_rate": 0.002499394118785858, "endure_rate": 0.0, "eat_rate": 0.18531113862991333, "craft_rate": 0.10955677181482315, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "train", "epoch": 50}
+
+============================================================
+  Survival Game Evaluation — Epoch 50
+============================================================
+  Episodes:      100
+  Survival rate: 46.0%
+  Mean reward:   309.5
+  Mean msg len:  3.00
+  Valid action%: 100.0%
+  Action distribution:
+              hunt:  4.8% █
+            gather: 39.5% ███████████████
+              flee:  9.8% ███
+              rest:  7.7% ███
+          mitigate:  0.6% 
+            endure:  0.0% 
+               eat: 26.0% ██████████
+       craft_spear:  2.5% 
+        craft_fire:  3.7% █
+     craft_shelter:  1.7% 
+         craft_rod:  3.6% █
+============================================================
+
+{"loss": -0.7360324859619141, "mean_reward": 1.3126980066299438, "expected_reward": 1.1501659154891968, "recon_loss": 3.6943612098693848, "recon_acc": 0.022595597431063652, "valid_action_rate": 1.0, "hunt_rate": 0.0399768240749836, "gather_rate": 0.40063729882240295, "flee_rate": 0.11797508597373962, "rest_rate": 0.09690035134553909, "mitigate_rate": 0.002027809852734208, "endure_rate": 0.0, "eat_rate": 0.20589512586593628, "craft_rate": 0.1365874856710434, "invalid_entity_idx_rate": 0.0, "length": 3.0, "mode": "test", "epoch": 50}
+
+  Message Analysis — Epoch 50
+   Entity Type |  Count | Unique |                             Top messages
+  -------------+--------+--------+-----------------------------------------
+        Animal |   3422 |      7 | [14 43 0]×929 | [45 31 0]×595 | [45 14 0]×552 | [45 16 0]×543 | [43 31 0]×380 | [45 45 0]×215 | [44 45 0]×208
+      Resource |   4749 |      3 | [20 14 0]×2340 | [28 14 0]×1423 | [11 14 0]×986
+        Danger |   2763 |      3 | [45 15 0]×1433 | [31 31 0]×763 | [45 7 0]×567
+      CraftOpp |   1414 |      2 | [28 14 0]×1132 | [20 14 0]×282
+         Event |   1460 |      3 | [20 14 0]×844 | [28 14 0]×429 | [16 14 0]×187
+
+{"topsim": 0.5029671290956403, "mode": "test", "epoch": 50}
+
+============================================================
+  Final Test Set Evaluation
+============================================================
+  Test samples:    13596
+  Test loss:       -0.0115
+  Test recon_acc: 0.0000
+  Test mean_reward: 1.3187
+  Test expected_reward: 1.1490
+============================================================
+
+Training complete.

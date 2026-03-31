@@ -107,22 +107,6 @@ def _unpack_labels(labels: torch.Tensor):
     return entity_vecs, state_vecs, entity_idxs, weather, turns, max_turns_vals
 
 
-def _reconstruct_entity(entity_vec: torch.Tensor, entity_idx: int) -> Entity:
-    """
-    Reconstruct an Entity object from the packed label data.
-    Uses the entity index to look up from ALL_ENTITIES if available,
-    otherwise creates a minimal Entity from the vector.
-    """
-    idx = int(entity_idx)
-    if 0 <= idx < len(ALL_ENTITIES):
-        return ALL_ENTITIES[idx]
-
-    # Fallback: reconstruct from vector
-    vec = entity_vec.tolist()
-    vec = [int(v) for v in vec]
-    return Entity(name="unknown", vector=vec, description="fallback-from-label")
-
-
 def _resolve_entity_and_target_idx(
     entity_vec: torch.Tensor,
     entity_idx: int,
@@ -194,7 +178,7 @@ def _reconstruct_state(state_vec: torch.Tensor, weather: int,
 
 
 # =============================================================================
-# Reward computation (per-sample, on CPU)
+# Reward computation helpers
 # =============================================================================
 
 def _compute_single_reward(action_id: int, entity: Entity,
@@ -287,7 +271,7 @@ def _compute_expected_rewards(entity: Entity, state: GameState) -> torch.Tensor:
     inv = state.inventory
 
     # Death proximity: remaining turns of expected reward forfeited if agent dies.
-    # Dying = game over → lose (remaining_turns × avg_reward) future value.
+    # Dying = game over -> lose (remaining_turns * avg_reward) future value.
     remaining_turns = max(1, state.max_turns - state.turn)
     future_value = remaining_turns * 8.0  # conservative avg reward per surviving turn
 
@@ -400,8 +384,8 @@ def _compute_expected_rewards(entity: Entity, state: GameState) -> torch.Tensor:
             else:
                 r = 50.0  # discovery bonus
 
-        # ── DEATH PROXIMITY PENALTY ──────────────────────────────
-        # Dying = game over → agent forfeits all future rewards.
+        # DEATH PROXIMITY PENALTY
+        # Dying = game over -> agent forfeits all future rewards.
         # This makes the per-turn loss reflect the terminal cost of
         # death, creating gradient pressure to stay alive.
         #
@@ -410,7 +394,7 @@ def _compute_expected_rewards(entity: Entity, state: GameState) -> torch.Tensor:
         # the death threshold.  It applies uniformly based on state,
         # not per-action bias.
 
-        # Starvation risk (energy → 0 = death)
+        # Starvation risk (energy -> 0 = death)
         if state.energy < 20:
             starvation_urgency = 1.0 - state.energy / 20.0  # 1.0 at 0, 0.0 at 20
             if action_id == EAT:
@@ -420,10 +404,10 @@ def _compute_expected_rewards(entity: Entity, state: GameState) -> torch.Tensor:
                 # Rest gives +5 energy, somewhat helpful
                 r += starvation_urgency * future_value * 0.1
             else:
-                # Not addressing starvation → closer to death
+                # Not addressing starvation -> closer to death
                 r -= starvation_urgency * future_value * 0.3
 
-        # Injury risk (health → 0 = death)
+        # Injury risk (health -> 0 = death)
         if state.health < 25:
             injury_urgency = 1.0 - state.health / 25.0  # 1.0 at 0, 0.0 at 25
             risky_action = (
@@ -605,11 +589,11 @@ class SurvivalLoss(nn.Module):
         Differentiable loss for Gumbel-Softmax training.
 
         Instead of picking argmax (non-differentiable), we:
-        1. Compute reward R[a] for EVERY action a ∈ {0..10} via simulation.
+        1. Compute reward R[a] for EVERY action a in {0..10} via simulation.
         2. Compute soft action probabilities: p = softmax(logits).
-        3. Loss = -Σ_a p[a] * R[a]  (differentiable through softmax).
+        3. Loss = -sum_a p[a] * R[a]  (differentiable through softmax).
 
-        This gives the gradient: ∇_θ loss = -Σ_a (∇_θ p[a]) * R[a]
+        This gives the gradient: grad_theta loss = -sum_a (grad_theta p[a]) * R[a]
         which directly encourages high-reward actions to get higher probability.
         """
         batch_size = receiver_output.size(0)
@@ -713,7 +697,7 @@ class SurvivalLoss(nn.Module):
             )
 
         # ---- Differentiable soft action selection ----
-        # Apply action temperature: higher τ → flatter distribution → more
+        # Apply action temperature: higher tau -> flatter distribution -> more
         # exploration.  Decoupled from the GS message temperature so we can
         # keep action exploration high even as messages sharpen.
         action_probs = F.softmax(
@@ -728,8 +712,8 @@ class SurvivalLoss(nn.Module):
 
         # ---- Action entropy bonus ----
         # Prevents action distribution from collapsing to a single action.
-        # H(p) = -Σ p·log(p) is maximised when all actions are equally likely.
-        # Adding -coeff·H to the loss encourages broader exploration.
+        # H(p) = -sum of p*log(p) is maximised when all actions are equally likely.
+        # Adding -coeff*H to the loss encourages broader exploration.
         action_entropy = -(action_probs * (action_probs + 1e-10).log()).sum(dim=-1)
         entropy_loss = -self.action_entropy_coeff * action_entropy
 
@@ -737,8 +721,8 @@ class SurvivalLoss(nn.Module):
         # Entity-IDENTITY prediction from receiver's message-based hidden state.
         # 40-class cross-entropy: forces sender to encode which specific entity
         # it sees, not just the broad type.  This creates 40 distinct messages.
-        # Gradient path: CE → entity_pred → receiver fc_recon → receiver RNN
-        #   hidden state → message embeddings → sender RNN → sender MLP
+        # Gradient path: CE -> entity_pred -> receiver fc_recon -> receiver RNN
+        #   hidden state -> message embeddings -> sender RNN -> sender MLP
         recon_loss = F.cross_entropy(entity_pred, entity_targets, reduction='none')
         recon_correct = (entity_pred.detach().argmax(dim=-1) == entity_targets).float()
 
