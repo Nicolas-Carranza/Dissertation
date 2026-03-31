@@ -37,7 +37,7 @@ import textwrap
 
 
 # ============================================================================
-# SECTION 1: REVISED VECTOR SCHEMA
+# SECTION 1: VECTOR SCHEMA
 # ============================================================================
 #
 # Vector format: [entity_type, subtype, danger_level, energy_value, tool_required, weather_dependency]
@@ -872,7 +872,7 @@ def generate_encounter(state: GameState) -> Entity:
 
 
 def update_weather(state: GameState):
-    """Cycle weather every 4–6 turns."""
+    """Cycle weather every 4-6 turns."""
     if state.turn > 0 and state.turn % random.randint(4, 6) == 0:
         state.weather = random.choice(WEATHERS)
 
