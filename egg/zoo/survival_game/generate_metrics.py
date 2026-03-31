@@ -43,6 +43,117 @@ import warnings
 warnings.filterwarnings('ignore', category=UserWarning)
 
 
+def _extract_run_id(name: str) -> Optional[str]:
+    """Extract numeric run id from a filename stem like train_run19."""
+    match = re.search(r"run(\d+)", name)
+    if not match:
+        return None
+    return match.group(1)
+
+
+def _sanitize_stem_for_filename(stem: str) -> str:
+    """Convert arbitrary stem into a safe filename token."""
+    token = re.sub(r"[^A-Za-z0-9._-]+", "_", stem)
+    token = re.sub(r"_+", "_", token).strip("._")
+    return token or "run"
+
+
+def _stable_run_label(file_name: str) -> str:
+    """Build stable output label while preserving legacy runNN names when possible."""
+    stem = Path(file_name).stem
+    run_id = _extract_run_id(stem)
+    if run_id is not None and re.fullmatch(r"train_run\d+", stem):
+        return f"run{run_id}"
+    return _sanitize_stem_for_filename(stem)
+
+
+def _dedupe_paths(paths: List[Path]) -> List[Path]:
+    """Keep insertion order while removing duplicates."""
+    seen = set()
+    out: List[Path] = []
+    for path in paths:
+        key = str(path)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(path)
+    return out
+
+
+def _derive_log_suffixes(log_stem: str) -> List[str]:
+    """Derive candidate suffixes used by train.py naming contract."""
+    suffixes: List[str] = []
+
+    def push(value: str) -> None:
+        if value not in suffixes:
+            suffixes.append(value)
+
+    push(log_stem)
+    if log_stem.startswith("train_"):
+        push(log_stem[len("train_"):])
+    if log_stem.startswith("train"):
+        push(log_stem[len("train"):].lstrip("_"))
+    return suffixes
+
+
+def _resolve_artifact_for_log(
+    run_dir: Path,
+    log_stem: str,
+    artifact_prefix: str,
+    extension: str,
+) -> Optional[Path]:
+    """Resolve artifact path for a log stem while avoiding ambiguous fallbacks."""
+    suffixes = _derive_log_suffixes(log_stem)
+    run_id = _extract_run_id(log_stem)
+
+    exact_candidates: List[Path] = []
+    for suffix in suffixes:
+        if suffix:
+            exact_candidates.append(run_dir / f"{artifact_prefix}_{suffix}{extension}")
+            if suffix.startswith("_"):
+                exact_candidates.append(run_dir / f"{artifact_prefix}{suffix}{extension}")
+        else:
+            exact_candidates.append(run_dir / f"{artifact_prefix}{extension}")
+
+    if run_id is not None:
+        exact_candidates.append(run_dir / f"{artifact_prefix}_run{run_id}{extension}")
+
+    for path in _dedupe_paths(exact_candidates):
+        if path.exists():
+            return path
+
+    fuzzy_candidates: List[Path] = []
+    for suffix in suffixes:
+        if suffix:
+            fuzzy_candidates.extend(sorted(run_dir.glob(f"{artifact_prefix}*{suffix}*{extension}")))
+    if run_id is not None:
+        fuzzy_candidates.extend(sorted(run_dir.glob(f"{artifact_prefix}*run{run_id}*{extension}")))
+    fuzzy_candidates = _dedupe_paths(fuzzy_candidates)
+
+    if len(fuzzy_candidates) == 1:
+        return fuzzy_candidates[0]
+    if len(fuzzy_candidates) > 1:
+        scored = []
+        for candidate in fuzzy_candidates:
+            name = candidate.stem.lower()
+            score = 0
+            for suffix in suffixes:
+                if suffix and suffix.lower() in name:
+                    score = max(score, len(suffix))
+            if run_id is not None and f"run{run_id}" in name:
+                score += 5
+            scored.append((score, len(candidate.name), candidate))
+        scored.sort(reverse=True, key=lambda item: (item[0], item[1]))
+        if len(scored) >= 2 and scored[0][0] > scored[1][0]:
+            return scored[0][2]
+        return None
+
+    all_candidates = sorted(run_dir.glob(f"{artifact_prefix}*{extension}"))
+    if len(all_candidates) == 1:
+        return all_candidates[0]
+    return None
+
+
 class MetricsGenerator:
     """
     Generates metric visualizations from training log files.
@@ -102,7 +213,10 @@ class MetricsGenerator:
     def _find_log_file(self, explicit_log_file: Optional[str]) -> Path:
         """Find the training log file with sane fallbacks."""
         if explicit_log_file:
-            return (self.run_dir / explicit_log_file).resolve()
+            explicit_path = Path(explicit_log_file)
+            if not explicit_path.is_absolute():
+                explicit_path = self.run_dir / explicit_path
+            return explicit_path.resolve()
 
         # Common default first
         default_log = self.run_dir / "train_run.log"
@@ -113,6 +227,15 @@ class MetricsGenerator:
         if default_txt.exists():
             return default_txt
 
+        # train.py default when run_name is not set.
+        default_train_log = self.run_dir / "train.log"
+        if default_train_log.exists():
+            return default_train_log
+
+        default_train_txt = self.run_dir / "train.txt"
+        if default_train_txt.exists():
+            return default_train_txt
+
         # Any run-specific log, e.g. train_run13.log
         candidates = sorted(self.run_dir.glob("train_run*.log"))
         if candidates:
@@ -121,6 +244,14 @@ class MetricsGenerator:
         txt_candidates = sorted(self.run_dir.glob("train_run*.txt"))
         if txt_candidates:
             return txt_candidates[0]
+
+        generic_candidates = sorted(self.run_dir.glob("train*.log"))
+        if generic_candidates:
+            return generic_candidates[0]
+
+        generic_txt_candidates = sorted(self.run_dir.glob("train*.txt"))
+        if generic_txt_candidates:
+            return generic_txt_candidates[0]
 
         # Let validation raise a clear error
         return default_log
@@ -739,30 +870,24 @@ class MetricsGenerator:
 
     @staticmethod
     def _extract_run_id(name: str) -> Optional[str]:
-        match = re.search(r"run(\d+)", name)
-        if not match:
-            return None
-        return match.group(1)
+        return _extract_run_id(name)
 
     def _resolve_snapshot_paths_for_selected_log(self) -> Tuple[Optional[Path], Optional[Path]]:
-        """Resolve progression/final snapshot paths, preferring files that match selected log run id."""
-        run_id = self._extract_run_id(self.log_file.stem)
+        """Resolve progression/final snapshot paths for the currently selected log."""
+        log_stem = self.log_file.stem
 
-        progression_path: Optional[Path] = None
-        final_path: Optional[Path] = None
-
-        if run_id is not None:
-            specific_progression = self.run_dir / f"message_progression_run{run_id}.jsonl"
-            specific_final = self.run_dir / f"message_snapshot_final_run{run_id}.json"
-            if specific_progression.exists():
-                progression_path = specific_progression
-            if specific_final.exists():
-                final_path = specific_final
-
-        if progression_path is None:
-            progression_path = self._find_first_existing(["message_progression*.jsonl"])
-        if final_path is None:
-            final_path = self._find_first_existing(["message_snapshot_final*.json"])
+        progression_path = _resolve_artifact_for_log(
+            self.run_dir,
+            log_stem,
+            artifact_prefix="message_progression",
+            extension=".jsonl",
+        )
+        final_path = _resolve_artifact_for_log(
+            self.run_dir,
+            log_stem,
+            artifact_prefix="message_snapshot_final",
+            extension=".json",
+        )
 
         return progression_path, final_path
 
@@ -1324,10 +1449,11 @@ class MultiRunMetricsAggregator:
     """
     Aggregate metrics across multiple run logs in one directory.
 
-    Expected filenames include patterns such as train_run14.log or train_run14.txt.
+    Expected filenames include patterns such as train_run14.txt or
+    train_msg_len_2_gs_temp_2.0_action_ent_0.3_action_temp_2.0_run24.txt.
     """
 
-    def __init__(self, run_dir: Path, log_pattern: str = "train_run*"):
+    def __init__(self, run_dir: Path, log_pattern: str = "train*"):
         self.run_dir = Path(run_dir).resolve()
         self.metrics_dir = self.run_dir / "metrics"
         self.log_pattern = log_pattern
@@ -1340,6 +1466,15 @@ class MultiRunMetricsAggregator:
             candidates = sorted(self.run_dir.glob(stem_pattern))
             return [p for p in candidates if p.is_file()]
 
+        wildcard_candidates = sorted(self.run_dir.glob(stem_pattern))
+        filtered = [
+            p for p in wildcard_candidates
+            if p.is_file() and p.suffix in {".log", ".txt"}
+        ]
+        if filtered:
+            return filtered
+
+        # Backward-compatible fallback for stem-style patterns.
         log_candidates = sorted(self.run_dir.glob(f"{stem_pattern}.log"))
         txt_candidates = sorted(self.run_dir.glob(f"{stem_pattern}.txt"))
         by_name: Dict[str, Path] = {}
@@ -1388,31 +1523,22 @@ class MultiRunMetricsAggregator:
 
     @staticmethod
     def _extract_run_id(name: str) -> Optional[str]:
-        m = re.search(r"run(\d+)", name)
-        if not m:
-            return None
-        return m.group(1)
+        return _extract_run_id(name)
 
     def _load_snapshot_for_log(self, log_file: Path) -> Optional[Dict]:
-        run_id = self._extract_run_id(log_file.stem)
-        candidates: List[Path] = []
-
-        if run_id is not None:
-            candidates.append(self.run_dir / f"message_snapshot_final_run{run_id}.json")
-
-        fallback_pattern = f"message_snapshot_final*{log_file.stem}*.json"
-        candidates.extend(sorted(self.run_dir.glob(fallback_pattern)))
-        candidates.extend(sorted(self.run_dir.glob("message_snapshot_final*.json")))
-
-        for path in candidates:
-            if not path.exists():
-                continue
-            try:
-                with open(path, "r", encoding="utf-8") as f:
-                    return json.load(f)
-            except (OSError, json.JSONDecodeError):
-                continue
-        return None
+        snapshot_path = _resolve_artifact_for_log(
+            self.run_dir,
+            log_file.stem,
+            artifact_prefix="message_snapshot_final",
+            extension=".json",
+        )
+        if snapshot_path is None:
+            return None
+        try:
+            with open(snapshot_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (OSError, json.JSONDecodeError):
+            return None
 
     @staticmethod
     def _snapshot_to_count_matrix(snapshot: Dict) -> Tuple[List[str], List[str], List[str], np.ndarray]:
@@ -1504,8 +1630,8 @@ class MultiRunMetricsAggregator:
         ax.set_title(f"Message → Entity Heatmap ({run_name})", fontsize=12, fontweight="bold")
         plt.tight_layout()
 
-        run_id = self._extract_run_id(run_name) or run_name.replace(".", "_")
-        out_name = f"message_entity_heatmap_run{run_id}.png"
+        run_label = _stable_run_label(run_name)
+        out_name = f"message_entity_heatmap_{run_label}.png"
         plt.savefig(self.metrics_dir / out_name, dpi=300, bbox_inches="tight")
         plt.close()
         print(f"    ✓ Saved: {out_name}")
@@ -1522,8 +1648,10 @@ class MultiRunMetricsAggregator:
             total_by_msg = counts.sum(axis=0)
             reused = [i for i, n in enumerate(msg_entity_counts) if int(n) >= 2]
 
+            run_label = _stable_run_label(run_name)
             rows.append({
                 "run": run_name,
+                "run_label": run_label,
                 "n_entities": len(entity_names),
                 "n_messages": len(messages),
                 "reused_messages": len(reused),
@@ -1535,8 +1663,7 @@ class MultiRunMetricsAggregator:
             })
 
             # Per-run detailed csv for manual synonym inspection.
-            run_id = self._extract_run_id(run_name) or run_name.replace(".", "_")
-            detail_csv = self.metrics_dir / f"message_reuse_summary_run{run_id}.csv"
+            detail_csv = self.metrics_dir / f"message_reuse_summary_{run_label}.csv"
             with open(detail_csv, "w", encoding="utf-8", newline="") as f:
                 writer = csv.writer(f)
                 writer.writerow([
@@ -1557,7 +1684,7 @@ class MultiRunMetricsAggregator:
                         float(total_by_msg[i]),
                         "|".join(ents),
                     ])
-            print(f"    ✓ Saved: message_reuse_summary_run{run_id}.csv")
+            print(f"    ✓ Saved: message_reuse_summary_{run_label}.csv")
 
         if not rows:
             print("    ⚠ No snapshot reuse summaries generated (no valid snapshots found).")
@@ -1567,6 +1694,7 @@ class MultiRunMetricsAggregator:
         with open(summary_csv, "w", encoding="utf-8", newline="") as f:
             fieldnames = [
                 "run",
+                "run_label",
                 "n_entities",
                 "n_messages",
                 "reused_messages",
@@ -1582,7 +1710,7 @@ class MultiRunMetricsAggregator:
         print("    ✓ Saved: message_reuse_summary_across_runs.csv")
 
         # Bar chart: count of reused messages per run for quick comparison.
-        run_labels = [r["run"] for r in rows]
+        run_labels = [r["run_label"] for r in rows]
         reused_vals = [float(r["reused_messages"]) for r in rows]
         ratio_vals = [float(r["reuse_ratio"]) for r in rows]
 
@@ -1645,6 +1773,7 @@ class MultiRunMetricsAggregator:
         summary_json = {
             "run_dir": str(self.run_dir),
             "runs": run_names,
+            "run_labels": {rn: _stable_run_label(rn) for rn in run_names},
             "n_runs": len(run_names),
             "metrics": {},
         }
@@ -1679,35 +1808,41 @@ class MultiRunMetricsAggregator:
         with open(json_path, "w", encoding="utf-8") as jf:
             json.dump(summary_json, jf, indent=2)
 
+        # Wide per-run table for thesis-ready reporting.
+        final_table_csv = self.metrics_dir / "multi_run_final_metrics.csv"
+        available_metrics = [m for m in selected_metrics if m in metric_map]
+        with open(final_table_csv, "w", encoding="utf-8", newline="") as f_csv:
+            writer = csv.writer(f_csv)
+            writer.writerow(["run", "run_label"] + available_metrics)
+            for rn in run_names:
+                row = [rn, _stable_run_label(rn)]
+                for metric in available_metrics:
+                    value = metric_map.get(metric, {}).get(rn)
+                    row.append("" if value is None else f"{float(value):.6f}")
+                writer.writerow(row)
+
+        topsim_per_run = metric_map.get("topsim", {})
+        if topsim_per_run:
+            topsim_rank_csv = self.metrics_dir / "topsim_ranking.csv"
+            ranked = sorted(
+                topsim_per_run.items(),
+                key=lambda item: float(item[1]),
+                reverse=True,
+            )
+            with open(topsim_rank_csv, "w", encoding="utf-8", newline="") as f_rank:
+                writer = csv.writer(f_rank)
+                writer.writerow(["rank", "run", "run_label", "topsim"])
+                for idx, (rn, value) in enumerate(ranked, start=1):
+                    writer.writerow([idx, rn, _stable_run_label(rn), f"{float(value):.6f}"])
+
         print("    ✓ Saved: multi_run_summary.txt")
         print("    ✓ Saved: multi_run_summary.json")
+        print("    ✓ Saved: multi_run_final_metrics.csv")
+        if topsim_per_run:
+            print("    ✓ Saved: topsim_ranking.csv")
 
     def _plot_aggregate_metric(self, metric_name: str, out_name: str) -> None:
-        # Build union of epochs across runs.
-        all_epochs = sorted({
-            ep
-            for payload in self.run_payloads.values()
-            for ep in payload["metrics"]["test"].keys()
-        })
-        if not all_epochs:
-            return
-
-        means = []
-        stds = []
-        valid_epochs = []
-
-        for ep in all_epochs:
-            vals = []
-            for payload in self.run_payloads.values():
-                row = payload["metrics"]["test"].get(ep, {})
-                if metric_name in row:
-                    vals.append(float(row[metric_name]))
-            if not vals:
-                continue
-            valid_epochs.append(ep)
-            means.append(float(np.mean(vals)))
-            stds.append(self._sample_std(vals))
-
+        valid_epochs, means, stds = self._aggregate_metric_series(metric_name)
         if not valid_epochs:
             return
 
@@ -1736,18 +1871,401 @@ class MultiRunMetricsAggregator:
         plt.close()
         print(f"    ✓ Saved: {out_name}")
 
+    def _aggregate_metric_series(self, metric_name: str) -> Tuple[List[int], List[float], List[float]]:
+        # Build union of epochs across runs.
+        all_epochs = sorted({
+            ep
+            for payload in self.run_payloads.values()
+            for ep in payload["metrics"]["test"].keys()
+        })
+        if not all_epochs:
+            return
+
+        means = []
+        stds = []
+        valid_epochs = []
+
+        for ep in all_epochs:
+            vals = []
+            for payload in self.run_payloads.values():
+                row = payload["metrics"]["test"].get(ep, {})
+                if metric_name in row:
+                    vals.append(float(row[metric_name]))
+            if not vals:
+                continue
+            valid_epochs.append(ep)
+            means.append(float(np.mean(vals)))
+            stds.append(self._sample_std(vals))
+
+        return valid_epochs, means, stds
+
     def generate(self) -> None:
         print("\n[Generating multi-run aggregate metrics...]")
         self.load_all()
         self._plot_aggregate_metric("loss", "aggregate_loss_test.png")
         self._plot_aggregate_metric("mean_reward", "aggregate_mean_reward_test.png")
+        self._plot_aggregate_metric("expected_reward", "aggregate_expected_reward_test.png")
         self._plot_aggregate_metric("recon_acc", "aggregate_recon_acc_test.png")
         self._plot_aggregate_metric("topsim", "aggregate_topsim_test.png")
+        self._plot_aggregate_metric("length", "aggregate_length_test.png")
         for run_name in sorted(self.run_snapshots.keys()):
             self._plot_run_snapshot_heatmap(run_name, self.run_snapshots[run_name])
         self._save_message_reuse_group_summary()
         self._save_final_summary()
         print("\n✓ Multi-run aggregation completed")
+        print(f"✓ Results saved to: {self.metrics_dir}")
+
+
+class GroupComparisonAggregator:
+    """
+    Compare multiple named run groups into one thesis-ready bundle.
+
+    Group spec format:
+        --group <name>=<subdir>[:<pattern>]
+
+    Examples:
+        --group with_recon=with_recon
+        --group no_recon=no_recon:train*
+        --group tuning_len2_ae03=no_recon_tuning:train_msg_len_2_gs_temp_2.0_action_ent_0.3_action_temp_2.0_run*
+    """
+
+    def __init__(self, root_dir: Path, group_specs: List[str]):
+        self.root_dir = Path(root_dir).resolve()
+        self.metrics_dir = self.root_dir / "metrics"
+        self.group_specs = list(group_specs or [])
+        self.group_order: List[str] = []
+        self.groups: List[Dict[str, object]] = []
+        self._parse_group_specs()
+
+    @staticmethod
+    def _parse_single_group_spec(raw_spec: str) -> Tuple[str, str, str]:
+        if "=" not in raw_spec:
+            raise ValueError(
+                f"Invalid --group value '{raw_spec}'. Expected format: name=subdir[:pattern]"
+            )
+
+        name, rhs = raw_spec.split("=", 1)
+        name = name.strip()
+        rhs = rhs.strip()
+        if not name or not rhs:
+            raise ValueError(
+                f"Invalid --group value '{raw_spec}'. Expected format: name=subdir[:pattern]"
+            )
+
+        if ":" in rhs:
+            rel_dir, pattern = rhs.split(":", 1)
+            rel_dir = rel_dir.strip()
+            pattern = pattern.strip() or "train*"
+        else:
+            rel_dir = rhs
+            pattern = "train*"
+
+        rel_dir = rel_dir or "."
+        return name, rel_dir, pattern
+
+    def _resolve_group_dir(self, rel_dir: str) -> Path:
+        path = Path(rel_dir)
+        if path.is_absolute():
+            return path.resolve()
+        return (self.root_dir / path).resolve()
+
+    def _parse_group_specs(self) -> None:
+        if not self.group_specs:
+            raise ValueError(
+                "--compare-groups requires at least two --group values (name=subdir[:pattern])."
+            )
+
+        names = set()
+        for spec in self.group_specs:
+            name, rel_dir, pattern = self._parse_single_group_spec(spec)
+            if name in names:
+                raise ValueError(f"Duplicate group name in --group: '{name}'")
+            names.add(name)
+
+            run_dir = self._resolve_group_dir(rel_dir)
+            aggregator = MultiRunMetricsAggregator(run_dir, log_pattern=pattern)
+            self.groups.append({
+                "name": name,
+                "rel_dir": rel_dir,
+                "run_dir": run_dir,
+                "pattern": pattern,
+                "aggregator": aggregator,
+            })
+            self.group_order.append(name)
+
+        if len(self.groups) < 2:
+            raise ValueError("--compare-groups requires at least two --group entries.")
+
+    @staticmethod
+    def _selected_metrics() -> List[str]:
+        return [
+            "topsim",
+            "mean_reward",
+            "expected_reward",
+            "loss",
+            "recon_acc",
+            "length",
+            "valid_action_rate",
+            "invalid_entity_idx_rate",
+        ]
+
+    def load_all(self) -> None:
+        self.metrics_dir.mkdir(parents=True, exist_ok=True)
+        print(f"✓ Group compare mode: {len(self.groups)} groups")
+
+        for group in self.groups:
+            name = str(group["name"])
+            run_dir = group["run_dir"]
+            pattern = str(group["pattern"])
+            aggregator = group["aggregator"]
+            print(f"  - Loading group '{name}' from {run_dir} (pattern='{pattern}')")
+            aggregator.load_all()
+
+    def _build_summary(self, metrics: List[str]) -> Tuple[Dict[str, object], List[Dict[str, object]]]:
+        summary: Dict[str, object] = {
+            "root_dir": str(self.root_dir),
+            "n_groups": len(self.groups),
+            "groups": {},
+        }
+        per_run_rows: List[Dict[str, object]] = []
+
+        groups_summary = summary["groups"]
+        for group in self.groups:
+            name = str(group["name"])
+            pattern = str(group["pattern"])
+            run_dir = group["run_dir"]
+            aggregator = group["aggregator"]
+
+            run_names, metric_map = aggregator._final_epoch_metrics()
+            run_labels = {rn: _stable_run_label(rn) for rn in run_names}
+
+            metric_summary: Dict[str, Dict[str, object]] = {}
+            for metric in metrics:
+                per_run = metric_map.get(metric, {})
+                values = [float(per_run[rn]) for rn in run_names if rn in per_run]
+                if not values:
+                    continue
+                metric_summary[metric] = {
+                    "n": len(values),
+                    "mean": float(np.mean(values)),
+                    "std": MultiRunMetricsAggregator._sample_std(values),
+                    "min": float(np.min(values)),
+                    "max": float(np.max(values)),
+                    "per_run": {rn: float(per_run[rn]) for rn in run_names if rn in per_run},
+                }
+
+            groups_summary[name] = {
+                "run_dir": str(run_dir),
+                "log_pattern": pattern,
+                "n_runs": len(run_names),
+                "runs": run_names,
+                "run_labels": run_labels,
+                "metrics": metric_summary,
+            }
+
+            for rn in run_names:
+                row = {
+                    "group": name,
+                    "run": rn,
+                    "run_label": run_labels.get(rn, rn),
+                }
+                for metric in metrics:
+                    value = metric_map.get(metric, {}).get(rn)
+                    row[metric] = None if value is None else float(value)
+                per_run_rows.append(row)
+
+        return summary, per_run_rows
+
+    def _write_summary_files(
+        self,
+        summary: Dict[str, object],
+        per_run_rows: List[Dict[str, object]],
+        metrics: List[str],
+    ) -> None:
+        txt_path = self.metrics_dir / "group_compare_summary.txt"
+        json_path = self.metrics_dir / "group_compare_summary.json"
+        per_run_csv = self.metrics_dir / "group_compare_final_metrics_per_run.csv"
+        by_group_csv = self.metrics_dir / "group_compare_final_metrics_by_group.csv"
+
+        groups = summary.get("groups", {})
+
+        with open(txt_path, "w", encoding="utf-8") as f:
+            f.write("=" * 70 + "\n")
+            f.write("GROUP COMPARISON METRICS SUMMARY (FINAL TEST EPOCH)\n")
+            f.write("=" * 70 + "\n\n")
+            f.write(f"Root Directory: {self.root_dir}\n")
+            f.write(f"Groups: {len(self.group_order)}\n\n")
+
+            for group_name in self.group_order:
+                group_info = groups.get(group_name, {})
+                f.write(f"[{group_name}]\n")
+                f.write(f"  run_dir: {group_info.get('run_dir')}\n")
+                f.write(f"  pattern: {group_info.get('log_pattern')}\n")
+                f.write(f"  n_runs: {group_info.get('n_runs')}\n")
+
+                metrics_info = group_info.get("metrics", {})
+                for metric in metrics:
+                    metric_stats = metrics_info.get(metric)
+                    if not metric_stats:
+                        continue
+                    f.write(
+                        f"  {metric}: mean={float(metric_stats['mean']):.6f}, "
+                        f"std={float(metric_stats['std']):.6f}, "
+                        f"n={int(metric_stats['n'])}\n"
+                    )
+                f.write("\n")
+
+        with open(json_path, "w", encoding="utf-8") as jf:
+            json.dump(summary, jf, indent=2)
+
+        with open(per_run_csv, "w", encoding="utf-8", newline="") as f_csv:
+            writer = csv.writer(f_csv)
+            writer.writerow(["group", "run", "run_label"] + metrics)
+            for row in per_run_rows:
+                values = [
+                    ""
+                    if row.get(metric) is None
+                    else f"{float(row[metric]):.6f}"
+                    for metric in metrics
+                ]
+                writer.writerow([
+                    row.get("group", ""),
+                    row.get("run", ""),
+                    row.get("run_label", ""),
+                ] + values)
+
+        with open(by_group_csv, "w", encoding="utf-8", newline="") as f_csv:
+            writer = csv.writer(f_csv)
+            writer.writerow(["group", "metric", "n", "mean", "std", "min", "max"])
+
+            for group_name in self.group_order:
+                group_info = groups.get(group_name, {})
+                metrics_info = group_info.get("metrics", {})
+                for metric in metrics:
+                    metric_stats = metrics_info.get(metric)
+                    if not metric_stats:
+                        continue
+                    writer.writerow([
+                        group_name,
+                        metric,
+                        int(metric_stats["n"]),
+                        f"{float(metric_stats['mean']):.6f}",
+                        f"{float(metric_stats['std']):.6f}",
+                        f"{float(metric_stats['min']):.6f}",
+                        f"{float(metric_stats['max']):.6f}",
+                    ])
+
+        print("    ✓ Saved: group_compare_summary.txt")
+        print("    ✓ Saved: group_compare_summary.json")
+        print("    ✓ Saved: group_compare_final_metrics_per_run.csv")
+        print("    ✓ Saved: group_compare_final_metrics_by_group.csv")
+
+    def _plot_group_metric_bars(self, summary: Dict[str, object], metric_name: str) -> None:
+        groups = summary.get("groups", {})
+        labels: List[str] = []
+        means: List[float] = []
+        stds: List[float] = []
+
+        for group_name in self.group_order:
+            group_info = groups.get(group_name, {})
+            metric_info = group_info.get("metrics", {}).get(metric_name)
+            if not metric_info:
+                continue
+            labels.append(group_name)
+            means.append(float(metric_info["mean"]))
+            stds.append(float(metric_info["std"]))
+
+        if not labels:
+            return
+
+        x = np.arange(len(labels))
+        fig, ax = plt.subplots(figsize=(10, 6))
+        bars = ax.bar(x, means, yerr=stds, capsize=5, color="#1f77b4", alpha=0.9)
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, rotation=20, ha="right")
+        ax.set_ylabel(metric_name, fontsize=11, fontweight="bold")
+        ax.set_title(
+            f"Group comparison: final-epoch {metric_name} (test)",
+            fontsize=12,
+            fontweight="bold",
+        )
+        ax.grid(True, axis="y", alpha=0.3, linestyle="--")
+
+        for bar, value in zip(bars, means):
+            ax.text(
+                bar.get_x() + bar.get_width() / 2.0,
+                bar.get_height(),
+                f"{value:.3f}",
+                ha="center",
+                va="bottom",
+                fontsize=8,
+            )
+
+        plt.tight_layout()
+        out_name = f"group_compare_final_{metric_name}.png"
+        plt.savefig(self.metrics_dir / out_name, dpi=300, bbox_inches="tight")
+        plt.close()
+        print(f"    ✓ Saved: {out_name}")
+
+    def _plot_group_trajectory(self, metric_name: str, out_name: str) -> None:
+        colors = plt.cm.tab10(np.linspace(0, 1, max(1, len(self.groups))))
+        fig, ax = plt.subplots(figsize=(10, 6))
+
+        plotted = False
+        for idx, group in enumerate(self.groups):
+            name = str(group["name"])
+            aggregator = group["aggregator"]
+            epochs, means, stds = aggregator._aggregate_metric_series(metric_name)
+            if not epochs:
+                continue
+
+            plotted = True
+            epochs_np = np.array(epochs)
+            means_np = np.array(means)
+            stds_np = np.array(stds)
+            color = colors[idx]
+
+            ax.plot(epochs_np, means_np, color=color, linewidth=2.0, label=name)
+            ax.fill_between(
+                epochs_np,
+                means_np - stds_np,
+                means_np + stds_np,
+                color=color,
+                alpha=0.15,
+            )
+
+        if not plotted:
+            plt.close()
+            return
+
+        ax.set_title(f"Group comparison trajectory: {metric_name} (test)", fontsize=12, fontweight="bold")
+        ax.set_xlabel("Epoch", fontsize=11, fontweight="bold")
+        ax.set_ylabel(metric_name, fontsize=11, fontweight="bold")
+        ax.grid(True, alpha=0.3, linestyle="--")
+        ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+        ax.legend(loc="best")
+        plt.tight_layout()
+        plt.savefig(self.metrics_dir / out_name, dpi=300, bbox_inches="tight")
+        plt.close()
+        print(f"    ✓ Saved: {out_name}")
+
+    def generate(self) -> None:
+        print("\n[Generating grouped comparison metrics...]")
+        self.load_all()
+
+        metrics = self._selected_metrics()
+        summary, per_run_rows = self._build_summary(metrics)
+        self._write_summary_files(summary, per_run_rows, metrics)
+
+        for metric in metrics:
+            self._plot_group_metric_bars(summary, metric)
+
+        self._plot_group_trajectory("topsim", "group_compare_topsim_test.png")
+        self._plot_group_trajectory("mean_reward", "group_compare_mean_reward_test.png")
+        self._plot_group_trajectory("expected_reward", "group_compare_expected_reward_test.png")
+        self._plot_group_trajectory("length", "group_compare_length_test.png")
+
+        print("\n✓ Grouped comparison completed")
         print(f"✓ Results saved to: {self.metrics_dir}")
 
 
@@ -1785,10 +2303,21 @@ def main():
         help='Aggregate all run files in run_dir (mean/std across runs)'
     )
     parser.add_argument(
+        '--compare-groups',
+        action='store_true',
+        help='Compare multiple run groups via repeated --group entries'
+    )
+    parser.add_argument(
+        '--group',
+        action='append',
+        default=[],
+        help='Group spec for --compare-groups: name=subdir[:pattern] (repeatable)'
+    )
+    parser.add_argument(
         '--log-pattern',
         type=str,
-        default='train_run*',
-        help='Filename glob stem for run discovery in --all-runs mode (default: train_run*)'
+        default='train*',
+        help='Filename glob or stem used for run discovery in --all-runs mode (default: train*)'
     )
     
     args = parser.parse_args()
@@ -1798,7 +2327,16 @@ def main():
         print("SURVIVAL GAME - METRICS GENERATOR")
         print("=" * 70)
 
-        if args.all_runs:
+        if args.compare_groups and args.all_runs:
+            raise ValueError("Use either --all-runs or --compare-groups, not both.")
+
+        if args.compare_groups:
+            comparator = GroupComparisonAggregator(
+                args.run_dir,
+                group_specs=args.group,
+            )
+            comparator.generate()
+        elif args.all_runs:
             aggregator = MultiRunMetricsAggregator(
                 args.run_dir,
                 log_pattern=args.log_pattern,

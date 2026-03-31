@@ -1,0 +1,15 @@
+message,entities_using_message,total_count,entity_list
+32 47 47 0,9,3466.0,Wood|Water|Herbs|Berries|Stone|Rocky Outcrop|Herb Garden|Supply Cache|River Crossing
+32 21 21 0,5,1991.0,Flint|Weapon Cache|Riverbank|Animal Migration|Cave
+34 34 34 0,5,1433.0,Storm|Frost|Poison Plant|Cliff|Infection
+0 0 0 0,3,966.0,Lizard|Snake|Squirrel
+10 7 7 0,3,929.0,Goat|Deer|Rabbit
+32 14 21 0,2,993.0,Firewood|Dry Campsite
+25 21 21 0,2,986.0,Muddy Water|Mushrooms
+25 10 10 0,2,698.0,Thorns|Fever
+10 7 34 0,2,595.0,Lion|Bear
+39 34 34 0,2,567.0,Blizzard|Quicksand
+10 10 10 0,2,380.0,Fish|Salmon
+10 34 34 0,1,552.0,Wolf
+47 47 47 0,1,187.0,Berry Patch
+25 7 7 0,1,65.0,Cold Night

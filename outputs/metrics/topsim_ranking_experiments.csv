@@ -1,0 +1,6 @@
+rank,experiment,topsim_mean,topsim_std,n_runs
+1,tuning_ae05_len2,0.452432,0.119406,5
+2,tuning_ae05_len3,0.439227,0.057365,5
+3,tuning_ae03_len2,0.438693,0.058650,5
+4,no_recon,0.413854,0.143490,5
+5,with_recon,0.261673,0.086217,5

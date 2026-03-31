@@ -1,0 +1,6 @@
+run,run_label,run_id,n_entities,n_messages,reused_messages,reuse_ratio,max_entities_on_one_message,top_reused_message
+train_run24.txt,run24,24,40,16,10,0.625,7,42 42 0
+train_run25.txt,run25,25,40,16,11,0.6875,8,38 33 0
+train_run26.txt,run26,26,40,15,9,0.6,9,34 19 0
+train_run27.txt,run27,27,40,18,11,0.6111111111111112,7,35 33 0
+train_run28.txt,run28,28,40,15,9,0.6,9,12 12 0

@@ -441,7 +441,7 @@ This project is based entirely on computational simulation and does not involve 
 #pagebreak()
 
 = Design <group1>
-
+\
 Throughout this chapter, I have defined and documented the design decisions made for the survival game and the planned architecture for the systems conceptual structure, modelling assumptions, and justifications. Although implementation details and empirical findings are discussed elsewhere, this chapter explains why each part of the system was designed as it was, what changed over time, and how those changes improved scientific validity. 
 
 At this stage, all primary objectives up to and including Objective 3 had been completed, shifting my focus towards the remaining Objective 4 and all secondary objectives. At a high level, the project was designed around one central principle, *communication must be instrumentally necessary rather than decorative.* Thus, the game environment, the agent's protocols, the action constraints, and the evaluation plan were all defined to create pressure for meaningful signalling. As I applied an iterative approach, several structural decisions were revised during implementation when early training behaviour exposed weaknesses in the original plan. Thus, this chapter covers the reasoning behind the initial design, the revisions that were made and why, and how the final design remained aligned with the research question on emergent communication under survival constraints.
@@ -451,7 +451,7 @@ At this stage, all primary objectives up to and including Objective 3 had been c
 
 Note that the design was shaped by two parallel bodies of prior work completed during the preparation phase. On one hand, the MNIST adaptation had demonstrated that image based inputs could drive meaningful discrimination in EGG, which initially motivated a visually grounded survival scenario. This design idea was also supported by the supervisor, as it was inspired by real-world imagery and environments that resemble natural survival settings, helping to create a more realistic and grounded scenario. On the other hand, while working through the `zoo/basic_games` module in the previous phase, it established a clear understanding of how vector based attribute inputs could be constructed efficiently and paired directly with EGG's communication wrappers. These two influences led to two distinct game designs being considered in parallel during week nine of the first semester, one image based and one vector based, with the vector based design ultimately being selected for reasons discussed at the end of this chapter. *MAKE SURE IT IS EXPLAINED (it provided tighter control over world structure, clearer attribution of communication effects, and lower development risk within the 15 credit scope)*
 
-
+\
 == Survival Game Environment and State/Action Structure <group1>
 \
 The survival game was designed around the main sender/receiver communication loop that had to be embedded within cooperative survival scenarios. The core premise is that a sender agent observes a survival encounter, in the form of an entity from the game world, and must communicate sufficient information to a receiver agent for the receiver to select the best action in response. Without the sender's message, the receiver operates blindly and cannot make contextually appropriate decisions, thus making communication strictly necessary for optimal performance. This design property is essential for the research because if the receiver could perform well without any message, there would be no selective pressure for the sender to develop a meaningful protocol.
@@ -580,7 +580,7 @@ The split policy adopted following this revision was 80 percent training, 10 per
 ) <data-generation-results>
 
 \
-== Architecture planned for the models
+== Architecture planned for the models <group1>
 \
 Moving on to the projects architecture, I designed it leveraging the standard EGG sender/receiver core in which two neural networks communicate through a discrete symbolic channel. This framing allowed me to create a natural information asymmetry, where the sender has perceptual access to the entity but not to the survival state, and the receiver has access to the survival state but not to the entity. The sender was designed to map encounter representation into a communication latent state, while the receiver maps said message plus some game context into an action preference,  extended with a reconstruction head to provide a supervised auxiliary signal alongside the reward driven communication objective. Neither agent can act optimally in isolation, which makes communication strictly necessary for survival and ensures that any learned protocol carries genuine task relevant information.
 
@@ -639,150 +639,59 @@ As mentioned earlier, alongside the vector based design, an image based survival
 
 Despite its conceptual relevance, the image branch was removed from the core implementation scope following a reassessment as the image branch would have introduced significant overhead in data generation or curation, representation validation, and computational cost. This would have reduced the depth of investigation into the central research question within the available project timeline.
 
-
-#pagebreak()
-= Implementation <group1>
-
-This chapter describes how the designed survival environment was implemented as an executable training system, how each module was connected through EGG, and how the final experimentation workflow was instrumented. To avoid repetition with the design chapter, the emphasis here is on concrete code structure, class and method responsibilities, and implementation decisions made during iterative runs.
-
-
-== Testing and experimentation workflow <group1>
-
-Testing was conducted in three layers. First, repository tests were used to protect baseline wrapper and trainer behaviour. Second, smoke runs were used to validate tensor dimensions, mask logic, callback serialisation, and output artefacts. Third, full seeded training runs were executed and compared through saved run outputs.
-
-During implementation, training did not consist of isolated trials. Stored artefacts show repeated full run cycles, including run9 to run12 in the root outputs directory and run14 to run23 across with_recon and no_recon branches, in addition to smoke outputs. Typical long-run configuration at this stage used 50 epochs, 10,000 generated episodes per run, and max_turns equal to 20. This run volume was sufficient to expose both stable trends and failure modes.
-
-Logging evolved alongside training. The final pipeline wrote per-run text or log streams through stdout teeing, periodic evaluator summaries from SurvivalGameEvaluator, validation language summaries from MessageAnalyzer, message progression snapshots in JSONL, and final message snapshots in JSON. This produced both human-readable debugging traces and machine-readable artefacts for later evaluation.
-
-Hyperparameter updates were applied as explicit interventions rather than ad hoc edits. The principal controls tuned during implementation were reconstruction weight, action entropy coefficient, action temperature, message temperature schedule, reward scaling, and data-seed alignment. Early iteration over-weighted survival rate as the primary success signal. Later iteration corrected this by jointly tracking survival outcomes with protocol-quality diagnostics, particularly message diversity and reconstruction progression, yielding a more balanced and interpretable training process.
-
 #pagebreak()
 
 = Implementation <group1>
 \
-Throughout this chapter I describe how the designed survival environment was implemented, how each module was connected through EGG, and how the final experimentation workflow was instrumented. The emphasis here is on concrete module structure, class and method responsibilities, and implementation decisions made during the development. As the design choices have been covered in the preceding chapter, the focus here is on how those choices were realised in practice and what arose during implementation that required further decisions.
-
-
-
-== Testing and Experimentation Workflow <group1>
-\
-Testing was conducted in three layers. First, the game mechanics were validated
-through the prototype baseline policies before any EGG code was written,
-confirming that the reward structure produced a clear performance gradient from
-random to blind to greedy to optimal and that the communication necessity gap
-was large enough to justify the experiment. Second, smoke runs of one to five
-epochs were used throughout implementation to validate tensor dimensions, mask
-logic, callback serialisation, and output file creation before committing to
-long training runs. Third, full seeded training runs were executed and compared
-through saved log files and message snapshots.
-
-During implementation, training was conducted iteratively rather than as a
-sequence of isolated trials. Long runs accumulated across the project,
-typically configured at 50 to 300 epochs with 10,000 generated episodes and a
-maximum of 20 turns per episode. This volume was sufficient to expose both
-stable convergence trends and failure modes, including the message collapse that
-motivated the shift from five-class to 40-class reconstruction targets, the
-gradient starvation that motivated the action entropy bonus, and the temperature
-decay instability that led to fixing the message temperature at a constant value
-in the primary experimental runs.
-
-Logging evolved alongside training. The final pipeline produced per-run console
-streams captured through stdout multiplexing, periodic evaluator summaries from
-_SurvivalGameEvaluator_, per-analysis message tables from _MessageAnalyzer_,
-message progression snapshots in JSONL format, and a final message snapshot in
-JSON. This combination produced both human-readable debugging traces and
-machine-readable artefacts for protocol analysis, without requiring model
-checkpoints to be retained for every run.
-
-Hyperparameter updates were applied as explicit command-line interventions
-rather than code edits between runs. The principal controls revised during
-implementation were reconstruction weight, action entropy coefficient, action
-temperature, message temperature schedule, reward scaling, and the choice
-between temperature decay and a fixed temperature. Early iteration used survival
-rate as the primary success signal, which proved insufficient because high
-survival could coexist with degenerate communication. Later iteration balanced
-survival outcomes against protocol quality diagnostics, particularly
-reconstruction accuracy, unique message count, and topographic similarity
-trajectories, yielding a more complete picture of whether communication was
-genuinely informative or merely incidental to the agent's survival strategy.
-#pagebreak()
-
-= Implementation <group1>
-
-
+This chapter describes how the designed survival environment was implemented as an executable training system, how each module was integrated through EGG, and how the experimentation and testing workflow was instrumented. Building on the design decisions outlined in the previous chapter, the focus here is on the practical realisation of those components, including module structure, class and method responsibilities, and key implementation choices made during development. The chapter concludes with an overview of the testing strategy used to evaluate the system through iterative experimental runs.
 
 \
 == Survival game implementation <group1>
 \
-Before building the full training stack, I developed the prototype implementation as the first complete version of the game logic, and this work was carried out before the final agentic pipeline was assembled, mainly from the end of semester one into the early implementation weeks because I needed a stable semantic reference that could later be reused by both data generation and reward computation. As I have done in previous projects, I organised the file into explicit sections so each part of the game could be reasoned about independently while still composing into one execution flow, which made it easier to manage complexity and maintain clarity as the codebase grew through development and supervisor meetings.
+Before building the full training stack, I developed the #raw("prototype.py") implementation as the first complete version of the game logic, and this work was carried out before the final agentic pipeline was assembled, mainly from the end of semester one into the early implementation weeks because I needed a stable semantic reference that could later be reused by both data generation and reward computation. As I have done in previous projects, I organised the file into explicit sections so each part of the game could be reasoned about independently while still composing into one execution flow, which made it easier to manage complexity and maintain clarity as the codebase grew through development and supervisor meetings.
 
-The first section defines the vector schema and global mappings, where dimensions, probabilities, names, and value maps are fixed at the top level to avoid hidden assumptions in later functions. For example, the definition of danger injury probabilities is defined as #raw("DANGER_INJURY_PROB = {0: 0.00, 1: 0.10, 2: 0.25, 3: 0.45, 4: 0.70}"), later used throughout different functions and files.
+The first section defines the vector schema and global mappings, where dimensions, probabilities, names, and value maps are fixed at the top level to avoid hidden assumptions in later functions. For example, the definition of danger injury probabilities is defined as #raw("DANGER_INJURY_PROB = {0: 0.00, 1: 0.10, 2: 0.25, 3: 0.45, 4: 0.70}"), later used throughout different functions and files. The second section defines the full entity catalogue, where I made a data class where the 40 entities are defined and manually curated to keep encounters plausible, as this project required a controlled world where interpretation and analysis remain feasible. Here you can also find the different spawn weights for each entity, which were tuned through trial and error to achieve a balanced distribution that supports learning without overwhelming the agent with too many rare or too many common entities.
 
-The second section defines the full entity catalogue, where I made a data class where the 40 entities are defined and manually curated to keep encounters plausible, as this project required a controlled world where interpretation and analysis remain feasible. Here you can also find the different spawn weights for each entity, which were tuned through trial and error to achieve a balanced distribution that supports learning without overwhelming the agent with too many rare or too many common entities.
+Moreover, the next section introduces the Inventory and GameState classes defined earlier in operational terms, where Inventory provides standard add, remove, and query operations for tools, materials, and consumables. The GameState class on the other hand provides the evolving state that all decision and reward logic depends on. I also added tracking related fields in this stage because I already expected that behaviour analysis would be central later, and this early decision avoided retrofitting instrumentation into unstable code paths. Following this, I defined the action space and validity logic, where the game determines which actions are legal for a given entity and state, and then I implement action resolution where each chosen action produces both a concrete state transition and a reward value. It is crucial to note that this is the mechanical core of the environment, because health, energy, inventory, and weather effects all depend on these functions, and also the strategic core, because reward shaping is encoded here and therefore determines what kind of behaviour can emerge during optimisation.
 
-Moreover, the next section introduces the Inventory and GameState classes in operational terms, where Inventory provides standard add, remove, and query operations for tools, materials, and consumables. The GameState class on the other hand provides the evolving state that all decision and reward logic depends on. I also added tracking related fields in this stage because I already expected that behaviour analysis would be central later, and this early decision avoided retrofitting instrumentation into unstable code paths.
+Then, the next section moves to encounter generation, where it first constructs a weather compatible pool of entities, then applies the defined weight sampling with sanity checks (in case no entity exists under the weather condition), and finally samples a concrete entity from the selected type. This method was intentional because a direct uninformed random entity draw would have produced unrealistic distributions and weaker task pressure for communication. Although this part looks simple at runtime, it is important for distribution control because encounter frequency directly affects both baseline performance and model learning dynamics. After this, the episode runner section executes the full turn pipeline in sequence, where a new GameState is created, energy drain is applied, weather is updated, an encounter is generated, valid actions are computed, a policy callback chooses an action, the action is resolved, and terminal conditions are checked before returning the updated state. Something that stands out here is the _policy\_fn_ hook, a strategy interface which allowed me to evaluate handcrafted baselines and later plug in learned agents with the same environment implementation, enhancing abstraction.
 
-Following this, I define the action space and validity logic, where the game determines which actions are legal for a given entity and state, and then I implement action resolution where each chosen action produces both a concrete state transition and a reward value. It is crucial to note that this is the mechanical core of the environment, because health, energy, inventory, and weather effects all depend on these functions, and also the strategic core, because reward shaping is encoded here and therefore determines what kind of behaviour can emerge during optimisation. Also note I used internal abstractions such as _\_resolve\_craft_ to avoid duplicated logic across crafting variants, which made behavioural changes much safer when I later tuned the reward surface, a practice learned from many years of experience.
+In addition, I implemented four baseline policies in the prototype stage as defined in the Design chapter, namely random, greedy, optimal, and blind resting. While implementing them, I ensured that each policy reflected a distinct approach to decision making. For example, the greedy policy follows explicit priority rules such as "if danger then mitigate, else endure it", or "if energy drops lower than 25 and I have food then eat". All of the rules are defined within the comments of the function. Similarly, the optimal policy follows a more informed strategy that invests earlier in tools, hunts more aggressively once equipped, and manages food more proactively, while the blind policy isolates performance without meaningful perception. This baseline phase was developed before the final implementation chapter experiments, mainly across weeks one to three in semester two, and it provided the first evidence that the environment supports non trivial strategy differences.
 
-Then, the next section moves to encounter generation, where it first constructs a weather compatible pool of entities, then applies the defined weight sampling with sanity checks (in case no entity exists under the weather condition), and finally samples a concrete entity from the selected type. This method was intentional because a direct uninformed random entity draw would have produced unrealistic distributions and weaker task pressure for communication. Although this part looks simple at runtime, it is important for distribution control because encounter frequency directly affects both baseline performance and model learning dynamics.
-
-After this, the episode runner section executes the full turn pipeline in sequence, where a new GameState is created, energy drain is applied, weather is updated, an encounter is generated, valid actions are computed, a policy callback chooses an action, the action is resolved, and terminal conditions are checked before returning the updated state. Note that here the _policy\_fn_ hook is a strategy interface rather than model code itself, which allowed me to evaluate handcrafted baselines and later plug in learned agents with the same environment implementation.
-
-In addition, I implemented four baseline policies in the prototype stage as defined in the Design chapter, namely random, greedy, optimal heuristic, and blind resting. While implementing them, I ensured that each policy reflected a distinct approach to decision-making. For example, the greedy policy follows explicit priority rules such as "if danger then mitigate, else endure it", or "if energy drops lower than 25 and I have food then eat". All of the rules are defined within the comments of the function. Similarly, the optimal heuristic policy follows a more informed strategy that invests earlier in tools, hunts more aggressively once equipped, and manages food more proactively, while the blind policy isolates performance without meaningful perception. This baseline phase was developed before the final implementation chapter experiments, mainly across weeks one to three in semester two, and it provided the first evidence that the environment supports non trivial strategy differences.
-
-
-Finally, the closing sections of prototype.py handle statistics, reporting, and baseline execution entry points, so this file became the canonical semantic source used later by data.py and losses.py, ensuring that world mechanics seen during data generation remain aligned with the reward simulation used during optimisation.
+Finally, the closing sections of #raw("prototype.py") handle statistics, reporting, and baseline execution entry points, so this file became the canonical semantic source used later by #raw("data.py") and #raw("losses.py"), ensuring that world mechanics seen during data generation remain aligned with the reward simulation used during optimisation.
 
 \
-== AI Agent Models and EGG Integration
+== AI Agent Models and EGG Integration <group1>
 \
-Following the survival game implementation stage, I moved on to the production of the core agentic model. The main file that controls the flow is train.py, where I orchestrate the full pipeline rather than implementing game mechanics directly, and this separation was deliberate because I wanted experiment control and reproducibility to be handled in one place. The file has two main components, where get_params defines the configurable interface and main executes the training workflow, and this structure mirrors the Design chapter goal of high configurability through arguments rather than constant code rewrites.
+Following the survival game implementation, I moved on according to plan to the production of the core agentic model. The main file that controls the flow is train.py, where I orchestrate the full pipeline rather than implementing game mechanics directly, a separation done deliberately because I wanted experiment control and reproducibility to be handled in one place. The file has two main components, where #raw("get_params") defines the configurable interface and #raw("main") executes the training workflow, mirroring the Design chapter goal of high configurability through arguments rather than constant code rewrites. Something to note here is that #raw("get_params") integrates project specific arguments with standard EGG arguments through #raw("core.init"), which means one command line entry point controls model mode, data size, optimisation settings, logging options, and analysis toggles. This was crucial during the run to run iteration phase from approximately week five onward because I could test hypotheses about temperature, entropy, reward scaling, and message settings without rewriting infrastructure.
 
-Furthermore, get_params integrates project specific arguments with standard EGG arguments through core.init, which means one command line entry point controls model mode, data size, optimisation settings, logging options, and analysis toggles. This was crucial during the run to run iteration phase from approximately week six onward, because I could test hypotheses about temperature, entropy, reward scaling, and message settings without rewriting infrastructure.
+Then main follows a strict build order, where data is generated through data.py, the game object is assembled through games.py, optimisation is built through EGG core utilities, callbacks are attached for progress and analysis, temperature updating is configured for communication control, and trainer execution runs the actual learning process. Although trainer.train appears as a single call, all previously defined components are instantiated before that point, so this file is effectively the integration layer that binds every implementation file into one executable experimental system. Moreover, I added tracking flags for topsim, disent, posdis, and entropy as part of this integration stage, because by that point I had already begun planning the Evaluation chapter and needed instrumentation to be available during long runs rather than as an afterthought. Thus, train.py is not only a launcher, it is also the consistency point where output directories, naming conventions, logging granularity, and analysis artefacts are coordinated.
 
-Then main follows a strict build order, where data is generated through data.py, the game object is assembled through games.py, optimisation is built through EGG core utilities, callbacks are attached for progress and analysis, temperature updating is configured for communication control, and trainer execution runs the actual learning process. Although trainer.train appears as a single call, all previously defined components are instantiated before that point, so this file is effectively the integration layer that binds every implementation file into one executable experimental system.
+After training orchestration is defined, the role of data.py is to convert the prototype world into model ready supervised samples, making this file the bridge between environment simulation and training batches. As described in the Design, the game mechanics exist in prototype.py, yet the agents consume tensors, so this module encapsulates the transformations required to preserve semantics while adapting the format.
 
-Moreover, I added tracking flags for topsim, disent, posdis, and entropy as part of this integration stage, because by that point I had already begun planning the Evaluation chapter and needed instrumentation to be available during long runs rather than as an afterthought. Thus train.py is not only a launcher, it is also the consistency point where output directories, naming conventions, logging granularity, and analysis artefacts are coordinated.
+The file is organised into four parts, namely encoding helpers, episode simulation for data generation, a PyTorch dataset class, and a dataloader factory. The three encoding helpers follow a clear separation of concerns, where one converts a six dimension entity vector into a 30 dimension one hot sender input ($6 times 5 = 30$), another converts GameState into a normalised 16 dimension receiver state tensor, and a third packs label information used later by the loss helpers. This explicit encoding stage is important because it keeps feature semantics stable across experiments and prevents hidden coupling between environment and architecture code. Following this, the data generation simulator produces episodes and then decomposes them into turn level samples, where each sample is split into sender input, receiver input, and labels. In this process, the valid action mask is added to the receiver input with 1 for valid actions and 0 for invalid actions, which later supports masked decision logic in the receiver and reward interpretation in losses.
 
-data.py
+The final factory stage handles the dataset scale, split discipline, and overlap control. Episodes are generated with controlled seeds for reproducibility, shuffled at episode level rather than turn level to preserve trajectory consistency, split into train/validation/test partitions, and flattened into samples. On the other hand, a fingerprint based deduplication pass removes overlap between partitions, a mechanism that became essential after overlap was detected. By hashing sender and receiver inputs for membership checks, it provided an efficient and reliable way to eliminate leakage across splits. After deduplication, each partition is wrapped by SurvivalGameDataset and loaded through torch.utils.data dataloaders, so the output of data.py is a clean and reproducible tensor pipeline aligned with the game semantics defined in prototype.py.
 
-After training orchestration is defined, the role of data.py is to convert the prototype world into model ready supervised samples, and this file is therefore the bridge between environment simulation and training batches. As described in Design, the game mechanics exist in prototype.py, yet the agents consume tensors, so this module encapsulates the transformations required to preserve semantics while adapting format.
+With the data pipeline established, games.py is the composition layer that builds the actual EGG game object from sender/receiver architectures, wrappers, and loss. Although the file is intentionally compact, its responsibility is central, as it decides how communication, decision, and optimisation components are connected under either GS or Reinforce mode.
 
-The file is organised into four parts, namely encoding helpers, episode simulation for data generation, a PyTorch dataset class, and a dataloader factory. The three encoding helpers follow a clear separation of concerns, where one converts a six dimension entity vector into a 30 dimension one hot sender input, another converts GameState into a normalised 16 dimension receiver state tensor, and a third packs label information used later by the loss helpers. This explicit encoding stage is important because it keeps feature semantics stable across experiments and prevents hidden coupling between environment and architecture code.
+In this file, I instantiate Sender and Receiver from archs.py, instantiate SurvivalLoss from losses.py with relevant configuration terms such as action entropy coefficient, action temperature, and reward normalisation, then wrap the agents with the EGG recurrent wrappers according to mode. For GS mode this means RnnSenderGS and RnnReceiverGS are used and combined through SenderReceiverRnnGS, while Reinforce mode uses the corresponding Reinforce wrappers from the core folder. Moreover, this design keeps the internal model definitions independent from training regime specifics because wrappers handle sequence level communication behaviour and optimisation compatible interfaces, while my architecture code focuses on representational learning for sender and receiver cores. Thus games.py is small by lines of code, yet it is the exact place where the full talking game is assembled end to end.
 
-Following this, the data generation simulator produces episodes and then decomposes them into turn level samples, where each sample is split into sender input, receiver input, and labels. In this process, the valid action mask is added to the receiver input with 1 for valid actions and 0 for invalid actions, which later supports masked decision logic in the receiver and reward interpretation in losses.
+At this point, archs.py defines the project specific sender and receiver neural cores described in the Design chapter, developed as the controlled implementation of the intended information asymmetry, where sender sees the entity and receiver sees state plus message. I implemented these as two classes, Sender and Receiver, with compatible hidden dimensionality so they integrate smoothly with the recurrent wrappers.
 
-The final factory stage handles dataset scale, split discipline, and overlap control. On the one hand, episodes are generated with controlled seeds for reproducibility, shuffled at episode level rather than turn level to preserve trajectory consistency, split into train validation test partitions, and flattened into samples, and on the other hand a fingerprint based deduplication pass removes overlap between partitions. This fingerprint mechanism became essential after overlap was detected during supervisor guided review, and by hashing sender and receiver inputs for membership checks, it provided an efficient and reliable way to eliminate leakage across splits.
+The sender is an MLP that maps the 30 dimension one hot entity input into a hidden representation used to initialise message generation. In practical terms, the forward propagation applies linear layers with ReLU as an activation function to produce the initial recurrent state, and the message sequence itself is generated by the wrapper in gs_wrappers.py, where the recurrent cell is unrolled for max_len steps and vocabulary logits are produced at each step, followed by a sampling of differentiable symbols through Gumbel Softmax and an EOS token being appended at the end.
 
-After deduplication, each partition is wrapped by SurvivalGameDataset and loaded through torch.utils.data dataloaders, so the output of data.py is a clean and reproducible tensor pipeline aligned with the game semantics defined in prototype.py.
+The receiver follows a similar linear ReLU core but includes both action prediction and reconstruction pathways. The input to the receiver core is the concatenation of message representation and state features, while the valid mask is applied at the logits stage rather than as hidden features, following the design choice that semantic interpretation should be driven by message and state rather than by directly feeding legality structure into feature extraction. In this setup, fc1 acts as the hidden feature extractor and fc2 maps hidden features to action logits over eleven actions. Invalid action logits are set to a very large negative value (resembling $-infinity$) so that masked actions receive effectively zero probability after softmax.
 
-games.py
+Furthermore, after some testing I added a reconstruction head using nn.Sequential with intermediate dimensionality and final output over N_ENTITIES, as this auxiliary signal was intended to strengthen communication learning when action rewards alone were too weak early in training. The gradient route for this path is important, since cross entropy loss updates the reconstruction head, then flows through the receiver hidden representation and recurrent message decoder, through the message channel, and back into sender parameters. Thus the reconstruction objective contributes not only to receiver discrimination but also to shaping sender messages. In addition, the GS receiver wrapper decodes the incoming sequence step by step and provides outputs across time, where the game level wrapper aggregates these outputs with EOS weighted logic, which keeps training differentiable while accounting for variable effective message length.
 
-With the data pipeline established, games.py is the composition layer that builds the actual EGG game object from sender receiver architectures, wrappers, and loss. Although the file is intentionally compact, its responsibility is central, because it decides how communication, decision, and optimisation components are connected under either GS or Reinforce mode.
+The next layer is losses.py, which defines the training objective and therefore acts as the optimisation interface between environment semantics and model updates. For clarity I separated it into label unpacking helpers, reward computation helpers, and the main loss class.
 
-In this file I instantiate Sender and Receiver from archs.py, instantiate SurvivalLoss from losses.py with relevant configuration terms such as action entropy coefficient, action temperature, and reward normalisation, then wrap the agents with the EGG recurrent wrappers according to mode. For GS mode this means RnnSenderGS and RnnReceiverGS are used and combined through SenderReceiverRnnGS, while Reinforce mode uses the corresponding Reinforce wrappers.
+The unpacking helpers where made to support the loss creation, where I abstracted first over recovering structured components from packed labels, then resolving entity identity and target index, and finally reconstructing the GameState from encoded vectors so reward simulation can be run in the same semantic space as the environment. This means the model does not infer the original entity at this stage, instead it recovers ground truth metadata from labels and falls back to vector matching only when indices are invalid, which protects training from inconsistent labels while keeping behaviour deterministic.
 
-Moreover, this design keeps the internal model definitions independent from training regime specifics, because wrappers handle sequence level communication behaviour and optimisation compatible interfaces, while my architecture code focuses on representational learning for sender and receiver cores. Thus games.py is small by lines of code, yet it is the exact place where the full talking game is assembled end to end.
+Similarly, the reward helpers compute both single action outcomes and expected rewards across actions, a crucial part where game logic is translated into differentiable supervision.
 
-archs.py
-
-At this point, archs.py defines the project specific sender and receiver neural cores described in the Design chapter, and this file was developed as the controlled implementation of the intended information asymmetry, where sender sees the entity and receiver sees state plus message. I implemented these as two classes, Sender and Receiver, with compatible hidden dimensionality so they integrate smoothly with the recurrent wrappers.
-
-The sender is an MLP that maps the 30 dimension one hot entity input into a hidden representation used to initialise message generation. In practical terms, forward propagation applies linear layers with ReLU activations to produce the initial recurrent state, and the message sequence itself is generated by the wrapper in gs_wrappers.py, where the recurrent cell is unrolled for max_len steps, vocabulary logits are produced at each step, differentiable symbols are sampled through Gumbel Softmax, and an EOS token is appended at the end.
-
-The receiver follows a similar linear ReLU core but includes both action prediction and reconstruction pathways. The input to the receiver core is the concatenation of message representation and state features, while the valid mask is applied at the logits stage rather than as hidden features, which enforces the design choice that semantic interpretation should be driven by message and state rather than by directly feeding legality structure into feature extraction. In this setup, fc1 acts as the hidden feature extractor and fc2 maps hidden features to action logits over eleven actions, and invalid action logits are set to a very large negative value so that masked actions receive effectively zero probability after softmax.
-
-Furthermore, I added a reconstruction head using nn.Sequential with intermediate dimensionality and final output over N_ENTITIES, because this auxiliary signal was intended to strengthen communication learning when action rewards alone were too weak early in training. The gradient route for this path is important, since cross entropy loss updates the reconstruction head, then flows through the receiver hidden representation and recurrent message decoder, through the message channel, and back into sender parameters. Thus the reconstruction objective contributes not only to receiver discrimination but also to shaping sender messages.
-
-In addition, the GS receiver wrapper decodes the incoming sequence step by step and provides outputs across time, and the game level wrapper aggregates these outputs with EOS weighted logic, which keeps training differentiable while accounting for variable effective message length.
-
-losses.py
-
-From the architecture side, the next layer is losses.py, which defines the training objective and therefore acts as the optimisation interface between environment semantics and model updates, and for clarity I separated it into label unpacking helpers, reward computation helpers, and the main loss class.
-
-The unpacking helpers first recover structured components from packed labels, then resolve entity identity and target index, and finally reconstruct GameState from encoded vectors so reward simulation can be run in the same semantic space as the environment. This means the model does not infer the original entity at this stage, instead it recovers ground truth metadata from labels and falls back to vector matching only when indices are invalid, which protects training from inconsistent labels while keeping behaviour deterministic.
-
-The reward helpers compute both single action outcomes and expected rewards across actions, and this is the crucial part where game logic is translated into differentiable supervision. As requested, the mathematical specification below is kept intact.
+*MAYBE APPENDIX MATERIAL*
 
 In `losses.py`, the function builds a deterministic reward vector $R in RR^{11}$, where each invalid action starts at $-30$ and valid actions are replaced by the formulas below.
 
@@ -923,52 +832,80 @@ $ R_a = R_a^"base" + Delta_E + Delta_H $
 
 while invalid actions remain at $-30$.
 
-Then, in the main GS loss path, for each batch sample I reconstruct the exact survival context, compute rewards for all actions, and store them in reward_matrix, while also preparing reconstruction targets and action behaviour diagnostics, so after the loop each row represents the full action value landscape for one concrete state. If reward normalisation is enabled, rewards are standardised per sample across valid actions only, while invalid penalties remain fixed at minus thirty, because this prevents large magnitude actions such as successful crafting from dominating gradients and suppressing subtler but relevant differences.
+Then, in the main GS loss path, for each batch sample I reconstruct the exact survival context, compute rewards for all actions, and store them in reward_matrix, while also preparing reconstruction targets and action behaviour diagnostics, so after the loop each row represents the full action value landscape for one concrete state. If reward normalisation is enabled, rewards are standardised per sample across valid actions only, while invalid penalties remain fixed at $-30$ as this prevents large magnitude actions such as successful crafting from dominating gradients and suppressing subtler but relevant differences.
 
-Following this, logits are converted into soft action probabilities using action temperature, expected reward is computed as the probability weighted sum over actions, and game loss is defined as negative expected reward scaled by reward_scale. Moreover, entropy regularisation is added to discourage premature collapse to a single action, and reconstruction cross entropy is added to encourage message content that preserves entity identity information. Thus the final objective learns both decision quality and communication informativeness within one differentiable framework
+Following this, logits are converted into soft action probabilities using action temperature, and the expected reward is computed as the probability weighted sum over actions. The game loss is defined as negative expected reward scaled by reward_scale, an addition added throughout development to compensate the lack of motivation for some rewards. Moreover, I added entropy regularisation to discourage premature collapse to a single action, further explained in the evaluation chapter, and reconstruction cross entropy is added to encourage message content that preserves entity identity information. Thus the final objective learns both decision quality and communication informativeness within one differentiable framework:
 
-#raw(" 
-loss = game_loss + self.recon_weight * recon_loss + entropy_loss
-")
+#raw("           loss = game_loss + self.recon_weight * recon_loss + entropy_loss")
 
 In the evaluation chapter I discuss why reconstruction weight was eventually reduced and in some settings set to zero, since this changed how the protocol balanced strict identity coding against synonym like message behaviour.
 
-callbacks.py
+Finally, once these files had been crafted, my last add on was callbacks.py meant to monitor behaviour and language evolution in ways that the default training loss output cannot show directly, and while EGG provides generic callbacks in core, this project required domain specific diagnostics for survival and emergent communication analysis. The file therefore defines two classes, SurvivalGameEvaluator and MessageAnalyzer, and both are analysis components rather than optimisation components.
 
-Finally, callbacks.py was added to monitor behaviour and language evolution in ways that the default training loss output cannot show directly, and while EGG provides generic callbacks in core, this project required domain specific diagnostics for survival and emergent communication analysis. The file therefore defines two classes, SurvivalGameEvaluator and MessageAnalyzer, and both are analysis components rather than optimisation components.
+The first class runs full simulated episodes with the current model extracted from the game object, and this process acts as policy evaluation rather than learning as no gradients are applied and no weights are updated. In practical terms, the evaluator plays fresh episodes using the current sender receiver policy and reports metrics such as survival rate, mean reward, valid action rate, message length, and action distribution. Following this approach, the model is tested in sequential gameplay conditions that reflect long horizon state transitions rather than isolated turn samples.
 
-The first class runs full simulated episodes with the current model extracted from the game object, and this process acts as policy evaluation rather than learning, because no gradients are applied and no weights are updated. In practical terms, the evaluator plays fresh episodes using the current sender receiver policy, applies the chosen actions to the environment, computes rewards and terminal outcomes, and reports survival focused metrics such as survival rate, mean reward, valid action rate, message length, and action distribution. Following this approach, the model is tested in sequential gameplay conditions that reflect long horizon state transitions rather than isolated turn samples.
-
-The second class analyses emergent language from validation interaction logs, and unlike the evaluator it does not run new episodes. Instead, it reads the messages produced in the current validation stage, converts GS soft distributions to discrete token sequences when needed, groups message strings by entity type, counts frequencies per type, computes uniqueness and top frequent messages, tracks global diversity, then performs a finer pass by specific entity vector before writing snapshots and printing summaries. Moreover, this class currently keeps top three messages in practice, since the reporting path is fixed to top three for legacy compatibility, so the analysis emphasises stability and comparability across runs.
-
-Overall, callbacks.py is less central to forward execution than architecture or loss code, yet it is essential for interpretation, because it provides the behavioural and protocol evidence used later in evaluation and critical appraisal.
-
-
-
-== Training pipeline and experiment configuration <group1>
-
-Here I want to talk about all the hyper parameters used and why i changed them. Also about how training developed and changed over time.
-
-It is crucial to talk about the changes that emerged as each training run was done, learning from each run. *We could also potentially mention we focused too much on the survival rate metric at first?*
-
-== Logging, instrumentation, and output artefacts <group1>
-
-Here I want to be talking about how i was keeping track of the progress and logging the information from each run. Explain the different difficulties faced and what the final logging style that was implemented.
-
-Here we can include examples of the outputs, evaluation and analysis of messages.
-
-== Design implications and changes done <group1>
-
-In here I want to talk about what changed throughout the implementation. What each run found and what I decided to change to solve the given problem. *Maybe this can go in design?*
-
-Go through the runs and the technical change done, with an explanation and justification.
+The second class analyses emergent language from validation interaction logs, and unlike the evaluator it does not run new episodes. Instead, it reads the messages produced in the current validation stage, groups message strings by entity type and counts frequencies per type, computes uniqueness, tracks global diversity, and then performs a finer pass by specific entity vector before writing snapshots and printing summaries. Overall, callbacks.py is less central to forward execution than architecture or loss code, yet it is essential for interpretation, because it provides the behavioural and protocol evidence used later in evaluation and critical appraisal.
 
 \
-= Evaluation and Critical Appraisal <group1>
+== Testing and Training <group1>
+\
+Given the experimental nature of this project, traditional unit or integration testing was not the primary validation mechanism. Instead, the system was evaluated through a structured empirical testing strategy based on continuous experimental runs and controlled comparisons across configurations, where performance and behaviour were assessed through observed metrics rather than predefined test cases. 
+
+Testing was conducted in three layers, first, the underlying game mechanics were validated using prototype baseline policies to confirm a clear performance gradient and justify the communication setting. Second, short smoke runs (one to five epochs) were used during implementation to verify tensor dimensions, masking logic, callbacks, and output generation. And third, full training runs were executed and compared through logged metrics and message snapshots. This approach emphasised iterative refinement, with each run informing subsequent design decisions.
+
+Experiments were executed across both local and lab environments, with early runs conducted on a personal CPU setup and later runs migrated to GPU-enabled lab machines to improve computational efficiency and enable repeated trials. In total, the project comprised over twenty individual runs, including both exploratory and controlled configurations, with later stages incorporating multiple repetitions per setting to support more reliable comparison. This progression enabled faster iteration, more robust evaluation, and increased confidence in the consistency of observed performance trends.
+
+#pagebreak()
+
+= Experimental Results and Analysis <group1>
 
 You should evaluate your own work with respect to your original objectives. You should also critically evaluate your work with respect to related work done by others. You should compare and contrast the project to similar work in the public domain, for example as written about in published papers, or as distributed in software available to you.
 
 First I need to explain the results by objectives, what objectives were not achieved Here I am going to talk about the results of the game and how successful the AI agents where.
+
+
+During this stage of the project, I started to focus also on running controlled experiments, and although the implementation section above explains how each file was constructed, this section explains how training was actually executed over time and how each observed result informed the next design decision across the sequence of runs.
+
+Following the initial integration of the full pipeline, the first experimental block covered runs 1 to 8 on my personal laptop using CPU only, and this period corresponds to the earlier semester two weeks where each run required roughly five to nine hours, which constrained iteration speed but still provided crucial behavioural evidence that the early configuration was learning stable but sub optimal strategies. Moreover, this phase was where I validated practical convergence behaviour, where I did not keep epoch counts fixed by default but adjusted training length according to observed convergence in the logs, because continuing long after metric flattening was not efficient on CPU while stopping too early prevented reliable comparisons.
+
+After these early runs, I continued iterating and also completed runs 10 to 12, and although those files are not currently central in the summary artefacts, they were part of the same exploratory stream that connected weekly supervisor feedback to concrete parameter updates. Then run 13 became a major transition point, because it was the first run after the data overlap sanity checks were resolved and it was also the point where I started storing message progression and final message snapshots as standard outputs, which provided a much stronger basis for later language analysis than relying only on scalar metrics.
+
+Furthermore, the next block covered runs 14 to 18 with reconstruction enabled, where I systematically changed settings such as temperature schedules and related optimisation parameters, and this was the stage in which I observed that removing temperature decay improved stability in several trajectories. On the one hand, reconstruction gave strong identity pressure and high decoding quality, and on the other hand the same pressure sometimes restricted action policy flexibility, which led to the supervisor guided decision to test recon_weight set to zero, despite this being initially counter to the design intuition. Despite this being counter intuitive, the no reconstruction setting produced behaviour that was more aligned with the objective of improving policy outcomes while still maintaining useful communication structure.
+
+From run 18 onward, training moved to the lab machines with CUDA enabled as described in the Design chapter, and this reduced experiment runtime enough to support repeat based reporting rather than one off claims. Thus, from this point I adopted a minimum of five runs per fixed configuration so the reported values could be expressed with standard deviation and not only single run point estimates, which materially improved result credibility and made comparisons between settings statistically more informative.
+
+Following this shift, I organised the experimental outputs into grouped directories, where with reconstruction runs are stored under outputs with_recon for runs 14 to 18, no reconstruction runs are stored under outputs no_recon for runs 19 to 23, and scripted no reconstruction tuning runs are stored under outputs no_recon_tuning for the fifteen run batch built as three parameter configurations each repeated with five seeds. The scripted batch was a long execution block of approximately fifteen hours, and its purpose was to test parameter effects extrapolated from lessons in the preparation phase basic games experiments, while keeping seed controlled repetition for fair comparison.
+
+For logging and monitoring, I leveraged the callback outputs directly during training rather than adding a separate external logger, where SurvivalGameEvaluator provided periodic policy level metrics from fresh episode rollouts and MessageAnalyzer provided language snapshots from validation messages, and this gave me two complementary views, one for survival behaviour and one for protocol structure. In practical terms, each run generated train logs with per epoch scalar metrics, periodic message progression files, and final message snapshot files, then post processing scripts produced aggregate tables and plots used for comparison. Thus, logging was not treated as cosmetic output, it was the core mechanism used to decide whether a change was retained, reverted, or moved to the next tuning phase.
+
+Using the five run summaries currently available for the reconstruction and no reconstruction settings, the final test epoch aggregates show a clear pattern. With reconstruction enabled across runs 14 to 18, mean reward was 1.306295 with standard deviation 0.004578, expected reward was 1.295786 with standard deviation 0.004865, reconstruction accuracy was 0.992553 with standard deviation 0.016652, and topographic similarity was 0.261673 with standard deviation 0.086217. Without reconstruction across runs 19 to 23, mean reward was 1.307678 with standard deviation 0.002518, expected reward was 1.296982 with standard deviation 0.002726, reconstruction accuracy dropped to 0.045135 with standard deviation 0.030472 as expected under zero weight, and topographic similarity increased to 0.413854 with standard deviation 0.143490, while valid action rate remained 1.0 in both settings. Moreover, message length remained stable at 3.0 in the no reconstruction block, indicating that the policy shift was not due to a trivial collapse in sequence length.
+
+#figure(
+  table(
+    columns: (auto, auto, auto, auto, auto, auto),
+    align: (left, left, left, left, left, left),
+    table.header(
+      [*Setting*],
+      [*Runs*],
+      [*Mean reward*],
+      [*Expected reward*],
+      [*Recon acc*],
+      [*TopSim*],
+    ),
+    [With reconstruction], [14 to 18], [1.3063 ± 0.0046], [1.2958 ± 0.0049], [0.9926 ± 0.0167], [0.2617 ± 0.0862],
+    [No reconstruction], [19 to 23], [1.3077 ± 0.0025], [1.2970 ± 0.0027], [0.0451 ± 0.0305], [0.4139 ± 0.1435],
+  ),
+  caption: [Final test epoch summary over five run groups, values are mean plus minus standard deviation.]
+)
+
+In addition, message reuse summaries and heatmap outputs from the no reconstruction runs showed partial synonym like behaviour where certain semantically close entities could share or rotate messages, including examples such as fish and salmon under overlapping codes in some runs, while other entities still maintained distinct mappings, and this behaviour is reported here as an observed result rather than interpreted causally, because the deeper interpretation is reserved for the Evaluation chapter.
+
+Following these observations, the design changes were made incrementally and always tied to observed evidence rather than preference. Early CPU runs motivated reward shaping and exploration adjustments, mid stage runs motivated stricter logging and snapshot capture, post overlap runs motivated identity tracking at higher granularity, and later CUDA runs enabled repeated configuration comparison with variance reporting, which in turn justified retaining no reconstruction as a serious experimental branch. Thus the final training narrative is not a single parameter success story, it is a sequence of constrained decisions where each new setting was chosen because the previous logs exposed a specific failure mode or limitation.
+
+*IMPORTANT REMINDER FOR FINAL DISSERTATION EDITING, add the exact run commands in README and in the Appendix so all reported figures can be reproduced from the documented command lines.*
+
+Moreover, to keep the main chapter readable, only summarised curves and tables are intended to remain here, while full per epoch outputs, full message snapshots, and extended plots should remain in the Appendix where they can be referenced without overloading the implementation narrative.
+
 
 == Communication emergence analysis <group1>
 
@@ -1003,6 +940,8 @@ Problems encountered, limitations of the game (inherent in the design), difficul
 
 Critically analyse our results, how relevant they are, do they answer the research question and how successful was the project. Maybe compare to related work in the field?
 
+= Evaluation and Critical Appraisal <group1>
+
 = Conclusion and Future Work <group1>
 
 You should summarise your project, emphasising your key achievements and significant drawbacks to your work, and discuss future directions your work could be taken in.
@@ -1028,6 +967,10 @@ Future work that can be done based off these results.
 #bibliography("references.bib", style: "ieee", title: none )
 #pagebreak()
 
+
+
+#block[
+
 = Appendix <group1>
 
 Extra resources
@@ -1041,13 +984,13 @@ Progress:
 
 Learnt ML -> learn Pytorch -> Learnt EGG -> Implemented MNIST in EGG -> Designed Game (complex) -> Implemented the Game -> Analysed the Language -> Writing thesis
 
-#pagebreak()
+#colbreak()
 // main.typ
 
 
 == Impplementation relevant Material
 
-#pagebreak()
+#colbreak()
 
 #figure(
   table(
@@ -1258,7 +1201,7 @@ Class Probabilities:
 ======================================================================
 ")
 
-#pagebreak()
+#colbreak()
 
 === PyTorch Learning <pytorch_app>
 \
@@ -1429,7 +1372,7 @@ Layer: linear_relu_stack.4.weight | Shape: (10, 512) | mean=-0.0005 std=0.0253
 Layer: linear_relu_stack.4.bias | Shape: (10,) | mean=-0.0090 std=0.0232
 ")
 
-#pagebreak()
+#colbreak()
 
 === MNIST Classifier Output <train-logs-mnist>
 \
@@ -1552,7 +1495,7 @@ Training complete!
 } <no-wc>
 
 
-#pagebreak()
+#colbreak()
 
 == User Manual <group1>
 
@@ -1668,7 +1611,7 @@ Without recon:
   caption: [No Recon]
 ) #label("runs-without-recon")
 
-#pagebreak()
+#colbreak()
 
 Questions:
   1. What should i submit from my code, it only works integrated to third party code.
@@ -1701,3 +1644,5 @@ Questions:
 - Given that I am only submitting my own code (not the full framework), how explicitly should I document modifications to external framework components?
 
 - How much emphasis should I place on discussing limitations such as local optima, metric sensitivity, and design trade-offs in the evaluation section?
+
+] <no-wc>
