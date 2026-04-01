@@ -1,0 +1,699 @@
+(.venv) nc212@PortatilNico:~/StAndrews/Documents/Dissertation/egg_repo/outputs/metrics$ find . -type f -name "*.csv" -print0 | while IFS= read -r -d '' f; do echo "=== $f ==="; cat "$f"; echo; done
+=== ./experiments/tuning_ae05_len2/message_reuse_summary.csv ===
+run,run_label,run_id,n_entities,n_messages,reused_messages,reuse_ratio,max_entities_on_one_message,top_reused_message
+train_run24.txt,run24,24,40,16,10,0.625,7,42 42 0
+train_run25.txt,run25,25,40,16,11,0.6875,8,38 33 0
+train_run26.txt,run26,26,40,15,9,0.6,9,34 19 0
+train_run27.txt,run27,27,40,18,11,0.6111111111111112,7,35 33 0
+train_run28.txt,run28,28,40,15,9,0.6,9,12 12 0
+
+=== ./experiments/tuning_ae05_len2/message_reuse_run25.csv ===
+message,entities_using_message,total_count,entity_list
+38 33 0,8,3154.0,Wood|Water|Herbs|Stone|Rocky Outcrop|Herb Garden|Supply Cache|River Crossing
+46 33 0,7,2984.0,Firewood|Flint|Weapon Cache|Dry Campsite|Riverbank|Animal Migration|Cave
+33 46 0,3,929.0,Goat|Deer|Rabbit
+24 21 0,3,891.0,Frost|Poison Plant|Infection
+12 33 0,2,986.0,Muddy Water|Mushrooms
+49 21 0,2,751.0,Lizard|Snake
+14 14 0,2,698.0,Thorns|Fever
+38 38 0,2,595.0,Lion|Bear
+17 49 0,2,567.0,Blizzard|Quicksand
+19 38 0,2,499.0,Berries|Berry Patch
+33 33 0,2,380.0,Fish|Salmon
+18 18 0,1,552.0,Wolf
+43 21 0,1,421.0,Cliff
+21 21 0,1,215.0,Squirrel
+17 21 0,1,121.0,Storm
+14 46 0,1,65.0,Cold Night
+
+=== ./experiments/tuning_ae05_len2/message_reuse_run26.csv ===
+message,entities_using_message,total_count,entity_list
+34 19 0,9,3522.0,Wood|Water|Herbs|Berries|Stone|Rocky Outcrop|Herb Garden|Supply Cache|River Crossing
+34 14 0,7,2962.0,Firewood|Flint|Weapon Cache|Dry Campsite|Riverbank|Animal Migration|Cave
+42 34 0,4,1311.0,Storm|Poison Plant|Cliff|Infection
+23 26 0,3,988.0,Goat|Deer|Rabbit
+23 45 0,3,760.0,Cold Night|Thorns|Fever
+12 23 0,2,964.0,Muddy Water|Mushrooms
+26 26 0,2,626.0,Lion|Bear
+42 48 0,2,563.0,Blizzard|Quicksand
+23 23 0,2,318.0,Fish|Salmon
+48 34 0,1,516.0,Snake
+7 26 0,1,508.0,Wolf
+34 34 0,1,219.0,Squirrel
+40 34 0,1,219.0,Lizard
+34 26 0,1,157.0,Berry Patch
+16 34 0,1,61.0,Frost
+
+=== ./experiments/tuning_ae05_len2/final_metrics_summary.csv ===
+metric,n,mean,std,min,max
+loss,5,-0.879204,0.001792,-0.880774,-0.876178
+mean_reward,5,1.306050,0.004487,1.299518,1.310862
+expected_reward,5,0.881756,0.005186,0.875660,0.889692
+recon_acc,5,0.014775,0.020056,0.000000,0.048428
+topsim,5,0.452432,0.119406,0.247718,0.546769
+
+=== ./experiments/tuning_ae05_len2/message_reuse_run28.csv ===
+message,entities_using_message,total_count,entity_list
+12 12 0,9,3178.0,Wood|Water|Herbs|Berries|Stone|Rocky Outcrop|Herb Garden|Supply Cache|River Crossing
+10 12 0,7,2883.0,Firewood|Flint|Weapon Cache|Dry Campsite|Riverbank|Animal Migration|Cave
+40 40 0,3,1275.0,Poison Plant|Cliff|Infection
+0 0 0,3,971.0,Lizard|Snake|Squirrel
+19 19 0,3,926.0,Goat|Deer|Rabbit
+31 16 0,3,747.0,Cold Night|Thorns|Fever
+32 32 0,2,880.0,Muddy Water|Mushrooms
+16 16 0,2,366.0,Fish|Salmon
+47 40 0,2,185.0,Storm|Frost
+36 12 0,1,555.0,Lion
+40 22 0,1,552.0,Wolf
+47 36 0,1,425.0,Blizzard
+12 44 0,1,171.0,Berry Patch
+36 36 0,1,137.0,Quicksand
+36 22 0,1,47.0,Bear
+
+=== ./experiments/tuning_ae05_len2/message_reuse_run24.csv ===
+message,entities_using_message,total_count,entity_list
+42 42 0,7,2827.0,Water|Herbs|Stone|Rocky Outcrop|Herb Garden|Supply Cache|River Crossing
+42 34 0,6,2942.0,Firewood|Flint|Weapon Cache|Dry Campsite|Riverbank|Animal Migration
+31 36 0,5,1518.0,Storm|Frost|Poison Plant|Cliff|Infection
+45 45 0,3,1011.0,Goat|Deer|Rabbit
+31 31 0,3,771.0,Cold Night|Thorns|Fever
+34 45 0,2,970.0,Muddy Water|Mushrooms
+42 45 0,2,607.0,Wood|Berries
+18 18 0,2,567.0,Lion|Bear
+31 4 0,2,502.0,Blizzard|Quicksand
+34 31 0,2,340.0,Fish|Salmon
+30 36 0,1,537.0,Snake
+39 28 0,1,535.0,Wolf
+36 36 0,1,210.0,Squirrel
+44 36 0,1,209.0,Lizard
+18 42 0,1,199.0,Berry Patch
+38 36 0,1,43.0,Cave
+
+=== ./experiments/tuning_ae05_len2/final_metrics_per_run.csv ===
+run,run_label,loss,mean_reward,expected_reward,recon_acc,topsim
+train_run24.txt,run24,-0.880260,1.303800,0.881592,0.016681,0.526849
+train_run25.txt,run25,-0.879279,1.308972,0.882652,0.008763,0.474867
+train_run26.txt,run26,-0.879529,1.307098,0.879183,0.000000,0.546769
+train_run27.txt,run27,-0.880774,1.310862,0.889692,0.000000,0.247718
+train_run28.txt,run28,-0.876178,1.299518,0.875660,0.048428,0.465959
+
+=== ./experiments/tuning_ae05_len2/message_reuse_run27.csv ===
+message,entities_using_message,total_count,entity_list
+35 33 0,7,3212.0,Wood|Water|Herbs|Berries|Stone|Supply Cache|River Crossing
+12 47 0,5,2317.0,Firewood|Flint|Weapon Cache|Dry Campsite|Cave
+33 47 0,3,945.0,Goat|Deer|Rabbit
+44 14 0,3,730.0,Cold Night|Thorns|Fever
+35 43 0,3,618.0,Storm|Frost|Poison Plant
+37 47 0,2,1017.0,Muddy Water|Mushrooms
+37 43 0,2,775.0,Cliff|Infection
+37 19 0,2,628.0,Lion|Bear
+35 26 0,2,551.0,Blizzard|Quicksand
+47 14 0,2,386.0,Fish|Salmon
+21 33 0,2,311.0,Rocky Outcrop|Herb Garden
+9 9 0,1,542.0,Snake
+37 37 0,1,492.0,Wolf
+35 47 0,1,387.0,Animal Migration
+47 47 0,1,236.0,Squirrel
+43 43 0,1,216.0,Lizard
+21 47 0,1,212.0,Riverbank
+35 22 0,1,188.0,Berry Patch
+
+=== ./experiments/tuning_ae05_len3/message_reuse_summary.csv ===
+run,run_label,run_id,n_entities,n_messages,reused_messages,reuse_ratio,max_entities_on_one_message,top_reused_message
+train_run24.txt,run24,24,40,15,9,0.6,8,33 46 31 0
+train_run25.txt,run25,25,40,14,11,0.7857142857142857,9,32 47 47 0
+train_run26.txt,run26,26,40,14,9,0.6428571428571429,9,4 9 29 0
+train_run27.txt,run27,27,40,15,9,0.6,8,10 20 20 0
+train_run28.txt,run28,28,40,16,9,0.5625,9,9 20 20 0
+
+=== ./experiments/tuning_ae05_len3/message_reuse_run25.csv ===
+message,entities_using_message,total_count,entity_list
+32 47 47 0,9,3466.0,Wood|Water|Herbs|Berries|Stone|Rocky Outcrop|Herb Garden|Supply Cache|River Crossing
+32 21 21 0,5,1991.0,Flint|Weapon Cache|Riverbank|Animal Migration|Cave
+34 34 34 0,5,1433.0,Storm|Frost|Poison Plant|Cliff|Infection
+0 0 0 0,3,966.0,Lizard|Snake|Squirrel
+10 7 7 0,3,929.0,Goat|Deer|Rabbit
+32 14 21 0,2,993.0,Firewood|Dry Campsite
+25 21 21 0,2,986.0,Muddy Water|Mushrooms
+25 10 10 0,2,698.0,Thorns|Fever
+10 7 34 0,2,595.0,Lion|Bear
+39 34 34 0,2,567.0,Blizzard|Quicksand
+10 10 10 0,2,380.0,Fish|Salmon
+10 34 34 0,1,552.0,Wolf
+47 47 47 0,1,187.0,Berry Patch
+25 7 7 0,1,65.0,Cold Night
+
+=== ./experiments/tuning_ae05_len3/message_reuse_run26.csv ===
+message,entities_using_message,total_count,entity_list
+4 9 29 0,9,3522.0,Wood|Water|Herbs|Berries|Stone|Rocky Outcrop|Herb Garden|Supply Cache|River Crossing
+8 11 29 0,7,2962.0,Firewood|Flint|Weapon Cache|Dry Campsite|Riverbank|Animal Migration|Cave
+8 9 7 0,5,1372.0,Storm|Frost|Poison Plant|Cliff|Infection
+30 29 29 0,3,988.0,Goat|Deer|Rabbit
+3 30 30 0,3,760.0,Cold Night|Thorns|Fever
+4 29 30 0,2,964.0,Muddy Water|Mushrooms
+1 1 1 0,2,626.0,Lion|Bear
+8 15 7 0,2,563.0,Blizzard|Quicksand
+7 7 4 0,2,318.0,Fish|Salmon
+8 7 7 0,1,516.0,Snake
+39 1 1 0,1,508.0,Wolf
+6 21 7 0,1,219.0,Squirrel
+8 6 7 0,1,219.0,Lizard
+4 4 30 0,1,157.0,Berry Patch
+
+=== ./experiments/tuning_ae05_len3/final_metrics_summary.csv ===
+metric,n,mean,std,min,max
+loss,5,-0.879449,0.001422,-0.880940,-0.877326
+mean_reward,5,1.306937,0.003845,1.302265,1.311607
+expected_reward,5,0.882388,0.002572,0.880565,0.886863
+recon_acc,5,0.053280,0.037035,0.004505,0.091442
+topsim,5,0.439227,0.057365,0.380925,0.534567
+
+=== ./experiments/tuning_ae05_len3/message_reuse_run28.csv ===
+message,entities_using_message,total_count,entity_list
+9 20 20 0,9,3178.0,Wood|Water|Herbs|Berries|Stone|Rocky Outcrop|Herb Garden|Supply Cache|River Crossing
+15 20 20 0,6,2821.0,Firewood|Flint|Weapon Cache|Dry Campsite|Riverbank|Animal Migration
+47 6 6 0,5,1460.0,Storm|Frost|Poison Plant|Cliff|Infection
+6 20 20 0,3,926.0,Goat|Deer|Rabbit
+37 20 20 0,2,880.0,Muddy Water|Mushrooms
+20 20 20 0,2,684.0,Thorns|Fever
+9 6 20 0,2,602.0,Lion|Bear
+36 6 6 0,2,562.0,Blizzard|Quicksand
+30 20 20 0,2,366.0,Fish|Salmon
+47 36 36 0,1,572.0,Snake
+9 6 30 0,1,552.0,Wolf
+32 32 32 0,1,203.0,Squirrel
+9 32 32 0,1,196.0,Lizard
+47 20 20 0,1,171.0,Berry Patch
+9 6 6 0,1,63.0,Cold Night
+42 20 20 0,1,62.0,Cave
+
+=== ./experiments/tuning_ae05_len3/message_reuse_run24.csv ===
+message,entities_using_message,total_count,entity_list
+33 46 31 0,8,3052.0,Wood|Water|Herbs|Berries|Stone|Rocky Outcrop|Herb Garden|River Crossing
+33 37 31 0,7,2985.0,Firewood|Flint|Weapon Cache|Dry Campsite|Riverbank|Animal Migration|Cave
+5 30 30 0,5,1518.0,Storm|Frost|Poison Plant|Cliff|Infection
+37 31 31 0,3,1011.0,Goat|Deer|Rabbit
+31 31 12 0,3,771.0,Cold Night|Thorns|Fever
+39 37 31 0,2,970.0,Muddy Water|Mushrooms
+46 46 46 0,2,567.0,Lion|Bear
+5 39 39 0,2,502.0,Blizzard|Quicksand
+31 31 31 0,2,340.0,Fish|Salmon
+10 10 10 0,1,537.0,Snake
+41 46 46 0,1,535.0,Wolf
+39 46 31 0,1,382.0,Supply Cache
+9 9 9 0,1,210.0,Squirrel
+9 28 28 0,1,209.0,Lizard
+2 2 46 0,1,199.0,Berry Patch
+
+=== ./experiments/tuning_ae05_len3/final_metrics_per_run.csv ===
+run,run_label,loss,mean_reward,expected_reward,recon_acc,topsim
+train_run24.txt,run24,-0.880563,1.304399,0.880835,0.087612,0.434051
+train_run25.txt,run25,-0.879179,1.309913,0.880565,0.031648,0.534567
+train_run26.txt,run26,-0.879236,1.306499,0.881631,0.051190,0.431661
+train_run27.txt,run27,-0.880940,1.311607,0.886863,0.004505,0.414931
+train_run28.txt,run28,-0.877326,1.302265,0.882044,0.091442,0.380925
+
+=== ./experiments/tuning_ae05_len3/message_reuse_run27.csv ===
+message,entities_using_message,total_count,entity_list
+10 20 20 0,8,3196.0,Wood|Water|Herbs|Stone|Rocky Outcrop|Herb Garden|Supply Cache|River Crossing
+42 20 21 0,7,2916.0,Firewood|Flint|Weapon Cache|Dry Campsite|Riverbank|Animal Migration|Cave
+42 41 41 0,5,1393.0,Storm|Frost|Poison Plant|Cliff|Infection
+19 19 2 0,3,945.0,Goat|Deer|Rabbit
+2 2 8 0,3,730.0,Cold Night|Thorns|Fever
+42 21 2 0,2,1017.0,Muddy Water|Mushrooms
+42 47 47 0,2,628.0,Lion|Bear
+22 47 41 0,2,551.0,Blizzard|Quicksand
+2 2 2 0,2,386.0,Fish|Salmon
+8 41 41 0,1,542.0,Snake
+42 42 42 0,1,492.0,Wolf
+7 20 20 0,1,327.0,Berries
+41 41 41 0,1,236.0,Squirrel
+3 41 41 0,1,216.0,Lizard
+28 20 20 0,1,188.0,Berry Patch
+
+=== ./experiments/no_recon/message_reuse_summary.csv ===
+run,run_label,run_id,n_entities,n_messages,reused_messages,reuse_ratio,max_entities_on_one_message,top_reused_message
+train_run19.txt,run19,19,40,16,8,0.5,7,13 14 0
+train_run20.txt,run20,20,40,13,10,0.7692307692307693,14,15 32 0
+train_run21.txt,run21,21,40,13,9,0.6923076923076923,9,15 7 0
+train_run22.txt,run22,22,40,18,8,0.4444444444444444,8,12 20 0
+train_run23.txt,run23,23,40,11,7,0.6363636363636364,8,29 29 0
+
+=== ./experiments/no_recon/message_reuse_run23.csv ===
+message,entities_using_message,total_count,entity_list
+43 8 0,8,2602.0,Squirrel|Wood|Water|Herbs|Berries|Rocky Outcrop|Herb Garden|Supply Cache
+29 29 0,8,2131.0,Fish|Salmon|Muddy Water|Mushrooms|Cold Night|Thorns|Fever|Cave
+16 16 0,7,2056.0,Storm|Blizzard|Frost|Poison Plant|Cliff|Quicksand|Infection
+7 29 0,4,1807.0,Firewood|Weapon Cache|Dry Campsite|Riverbank
+39 29 0,4,1696.0,Goat|Deer|Rabbit|Stone
+29 16 0,3,1081.0,Wolf|Lion|Bear
+32 8 0,2,460.0,Lizard|Berry Patch
+39 16 0,1,694.0,Flint
+13 16 0,1,551.0,Snake
+6 8 0,1,403.0,River Crossing
+4 4 0,1,391.0,Animal Migration
+
+=== ./experiments/no_recon/message_reuse_run19.csv ===
+message,entities_using_message,total_count,entity_list
+13 14 0,7,2681.0,Wood|Water|Herbs|Berries|Stone|Rocky Outcrop|Herb Garden
+8 6 0,6,2628.0,Firewood|Flint|Weapon Cache|Dry Campsite|Riverbank|Cave
+14 1 0,6,1628.0,Storm|Frost|Poison Plant|Cliff|Quicksand|Infection
+20 30 0,3,978.0,Goat|Deer|Rabbit
+9 23 0,3,702.0,Cold Night|Thorns|Fever
+37 14 0,3,523.0,Fish|Salmon|Berry Patch
+44 44 0,2,883.0,Muddy Water|Mushrooms
+14 7 0,2,573.0,Lion|Bear
+14 23 0,1,539.0,Wolf
+37 37 0,1,517.0,Snake
+14 45 0,1,446.0,Blizzard
+39 14 0,1,384.0,River Crossing
+14 14 0,1,368.0,Animal Migration
+39 6 0,1,366.0,Supply Cache
+46 23 0,1,238.0,Squirrel
+3 23 0,1,201.0,Lizard
+
+=== ./experiments/no_recon/final_metrics_summary.csv ===
+metric,n,mean,std,min,max
+loss,5,-0.665787,0.001308,-0.667547,-0.664067
+mean_reward,5,1.307678,0.002518,1.305152,1.311018
+expected_reward,5,1.296982,0.002726,1.293769,1.300575
+recon_acc,5,0.045135,0.030472,0.013572,0.093665
+topsim,5,0.413854,0.143490,0.199462,0.544537
+
+=== ./experiments/no_recon/message_reuse_run22.csv ===
+message,entities_using_message,total_count,entity_list
+12 20 0,8,3269.0,Squirrel|Wood|Water|Herbs|Stone|Herb Garden|Supply Cache|River Crossing
+29 20 0,7,2894.0,Firewood|Flint|Weapon Cache|Dry Campsite|Riverbank|Animal Migration|Cave
+47 39 0,4,1075.0,Storm|Frost|Poison Plant|Infection
+43 20 0,3,945.0,Goat|Deer|Rabbit
+25 20 0,2,979.0,Muddy Water|Mushrooms
+20 20 0,2,568.0,Lion|Bear
+12 7 0,2,366.0,Berries|Rocky Outcrop
+43 43 0,2,350.0,Fish|Salmon
+20 19 0,1,530.0,Wolf
+7 39 0,1,524.0,Snake
+49 39 0,1,443.0,Cliff
+20 7 0,1,433.0,Blizzard
+3 43 0,1,409.0,Fever
+6 43 0,1,266.0,Thorns
+8 8 0,1,229.0,Lizard
+7 7 0,1,192.0,Berry Patch
+39 47 0,1,133.0,Quicksand
+16 43 0,1,54.0,Cold Night
+
+=== ./experiments/no_recon/message_reuse_run20.csv ===
+message,entities_using_message,total_count,entity_list
+15 32 0,14,4814.0,Lizard|Squirrel|Wood|Water|Herbs|Berries|Stone|Flint|Rocky Outcrop|Herb Garden|Supply Cache|River Crossing|Berry Patch|Cave
+44 32 0,5,2200.0,Firewood|Weapon Cache|Dry Campsite|Riverbank|Animal Migration
+15 15 0,3,951.0,Goat|Deer|Rabbit
+32 29 0,3,653.0,Storm|Frost|Cliff
+42 22 0,2,992.0,Muddy Water|Mushrooms
+32 9 0,2,830.0,Poison Plant|Infection
+42 16 0,2,624.0,Lion|Bear
+32 12 0,2,610.0,Blizzard|Quicksand
+18 26 0,2,452.0,Cold Night|Fever
+42 21 0,2,351.0,Fish|Salmon
+42 8 0,1,541.0,Wolf
+35 32 0,1,499.0,Snake
+16 26 0,1,261.0,Thorns
+
+=== ./experiments/no_recon/final_metrics_per_run.csv ===
+run,run_label,loss,mean_reward,expected_reward,recon_acc,topsim
+train_run19.txt,run19,-0.666017,1.308684,1.297623,0.093665,0.359681
+train_run20.txt,run20,-0.664067,1.305152,1.293769,0.013572,0.541423
+train_run21.txt,run21,-0.667547,1.311018,1.300575,0.028831,0.544537
+train_run22.txt,run22,-0.665064,1.305161,1.294804,0.051761,0.424169
+train_run23.txt,run23,-0.666242,1.308373,1.298137,0.037846,0.199462
+
+=== ./experiments/no_recon/message_reuse_run21.csv ===
+message,entities_using_message,total_count,entity_list
+15 7 0,9,3415.0,Wood|Water|Herbs|Berries|Stone|Rocky Outcrop|Herb Garden|Supply Cache|River Crossing
+15 42 0,7,2906.0,Firewood|Flint|Weapon Cache|Dry Campsite|Riverbank|Animal Migration|Cave
+25 44 0,5,1470.0,Storm|Frost|Poison Plant|Cliff|Infection
+32 36 0,4,924.0,Cold Night|Thorns|Fever|Berry Patch
+43 43 0,3,989.0,Goat|Deer|Rabbit
+7 35 0,2,942.0,Muddy Water|Mushrooms
+44 44 0,2,584.0,Lion|Bear
+5 44 0,2,529.0,Blizzard|Quicksand
+49 43 0,2,356.0,Fish|Salmon
+35 44 0,1,555.0,Snake
+44 5 0,1,513.0,Wolf
+46 35 0,1,230.0,Squirrel
+7 7 0,1,218.0,Lizard
+
+=== ./experiments/with_recon/message_reuse_summary.csv ===
+run,run_label,run_id,n_entities,n_messages,reused_messages,reuse_ratio,max_entities_on_one_message,top_reused_message
+train_run14.txt,run14,14,40,40,0,0.0,1,0 40 0
+train_run15.txt,run15,15,40,40,0,0.0,1,0 0 0
+train_run16.txt,run16,16,40,40,0,0.0,1,0 0 0
+train_run17.txt,run17,17,40,37,2,0.05405405405405406,3,0 0 0
+train_run18.txt,run18,18,40,40,0,0.0,1,1 33 0
+
+=== ./experiments/with_recon/message_reuse_run15.csv ===
+message,entities_using_message,total_count,entity_list
+16 26 0,1,756.0,Water
+40 26 0,1,713.0,Mushrooms
+26 26 0,1,702.0,Flint
+26 47 0,1,696.0,Firewood
+7 20 0,1,691.0,Stone
+26 20 0,1,630.0,Weapon Cache
+11 33 0,1,557.0,Goat
+25 26 0,1,549.0,Wolf
+33 26 0,1,515.0,Lion
+33 33 0,1,476.0,Snake
+8 33 0,1,469.0,Infection
+20 48 0,1,452.0,Blizzard
+20 1 0,1,442.0,Cliff
+11 11 0,1,429.0,Fever
+37 23 0,1,397.0,Animal Migration
+20 5 0,1,395.0,Poison Plant
+20 20 0,1,392.0,River Crossing
+20 40 0,1,363.0,Supply Cache
+20 25 0,1,338.0,Wood
+20 33 0,1,335.0,Berries
+20 26 0,1,331.0,Herbs
+23 20 0,1,244.0,Deer
+5 23 0,1,240.0,Lizard
+20 23 0,1,228.0,Muddy Water
+14 23 0,1,227.0,Rabbit
+23 23 0,1,221.0,Thorns
+2 23 0,1,219.0,Dry Campsite
+3 23 0,1,216.0,Squirrel
+8 23 0,1,216.0,Herb Garden
+23 0 0,1,194.0,Riverbank
+39 0 0,1,192.0,Berry Patch
+42 0 0,1,181.0,Salmon
+0 0 0,1,175.0,Fish
+4 0 0,1,115.0,Quicksand
+29 0 0,1,111.0,Storm
+18 0 0,1,67.0,Bear
+15 0 0,1,66.0,Cold Night
+21 0 0,1,58.0,Frost
+1 0 0,1,53.0,Cave
+5 0 0,1,51.0,Rocky Outcrop
+
+=== ./experiments/with_recon/final_metrics_summary.csv ===
+metric,n,mean,std,min,max
+loss,5,-0.540864,0.279994,-0.668234,-0.040009
+mean_reward,5,1.306295,0.004578,1.301276,1.311425
+expected_reward,5,1.295786,0.004865,1.290298,1.301480
+recon_acc,5,0.992553,0.016652,0.962766,1.000000
+topsim,5,0.261673,0.086217,0.136036,0.346536
+
+=== ./experiments/with_recon/message_reuse_run17.csv ===
+message,entities_using_message,total_count,entity_list
+0 0 0,3,548.0,Salmon|Storm|Riverbank
+35 0 0,2,389.0,Fish|Dry Campsite
+45 45 0,1,767.0,Flint
+35 6 0,1,735.0,Water
+35 35 0,1,725.0,Mushrooms
+35 2 0,1,715.0,Firewood
+2 2 0,1,696.0,Stone
+23 35 0,1,675.0,Weapon Cache
+13 35 0,1,558.0,Goat
+35 48 0,1,543.0,Wolf
+35 47 0,1,539.0,Snake
+31 2 0,1,536.0,Lion
+41 0 0,1,458.0,Fever
+13 0 0,1,435.0,Cliff
+29 6 0,1,419.0,Poison Plant
+40 0 0,1,409.0,Infection
+13 23 0,1,395.0,Blizzard
+49 0 0,1,395.0,River Crossing
+13 8 0,1,381.0,Animal Migration
+13 2 0,1,354.0,Supply Cache
+9 0 0,1,315.0,Berries
+43 0 0,1,301.0,Wood
+39 0 0,1,295.0,Herbs
+11 0 0,1,258.0,Muddy Water
+36 0 0,1,246.0,Thorns
+32 0 0,1,221.0,Herb Garden
+12 0 0,1,220.0,Squirrel
+46 0 0,1,220.0,Deer
+3 0 0,1,198.0,Lizard
+38 0 0,1,176.0,Rabbit
+19 0 0,1,165.0,Berry Patch
+7 0 0,1,128.0,Quicksand
+14 0 0,1,69.0,Bear
+28 0 0,1,58.0,Cave
+45 0 0,1,56.0,Rocky Outcrop
+22 0 0,1,52.0,Frost
+17 0 0,1,47.0,Cold Night
+
+=== ./experiments/with_recon/message_reuse_run18.csv ===
+message,entities_using_message,total_count,entity_list
+20 43 0,1,749.0,Stone
+20 20 0,1,741.0,Firewood
+20 15 0,1,740.0,Flint
+20 49 0,1,734.0,Water
+20 5 0,1,683.0,Weapon Cache
+20 46 0,1,673.0,Mushrooms
+20 39 0,1,539.0,Wolf
+20 17 0,1,525.0,Lion
+20 26 0,1,517.0,Snake
+20 41 0,1,512.0,Goat
+25 10 0,1,448.0,Cliff
+15 10 0,1,446.0,Blizzard
+22 25 0,1,444.0,Poison Plant
+15 26 0,1,440.0,Infection
+20 6 0,1,418.0,Fever
+15 33 0,1,384.0,River Crossing
+15 41 0,1,368.0,Animal Migration
+25 12 0,1,366.0,Supply Cache
+28 33 0,1,331.0,Berries
+20 33 0,1,296.0,Wood
+5 33 0,1,291.0,Herbs
+4 8 0,1,248.0,Rabbit
+6 41 0,1,238.0,Squirrel
+38 33 0,1,229.0,Herb Garden
+39 33 0,1,226.0,Thorns
+36 33 0,1,218.0,Deer
+1 33 0,1,210.0,Muddy Water
+25 8 0,1,209.0,Dry Campsite
+8 8 0,1,202.0,Riverbank
+6 33 0,1,201.0,Lizard
+31 33 0,1,186.0,Berry Patch
+33 33 0,1,172.0,Salmon
+33 31 0,1,165.0,Fish
+33 25 0,1,123.0,Storm
+33 8 0,1,115.0,Quicksand
+12 41 0,1,58.0,Cold Night
+26 33 0,1,58.0,Frost
+8 33 0,1,53.0,Cave
+40 33 0,1,51.0,Rocky Outcrop
+33 41 0,1,48.0,Bear
+
+=== ./experiments/with_recon/final_metrics_per_run.csv ===
+run,run_label,loss,mean_reward,expected_reward,recon_acc,topsim
+train_run14.txt,run14,-0.667425,1.308480,1.298009,1.000000,0.321490
+train_run15.txt,run15,-0.668234,1.311425,1.301480,1.000000,0.213501
+train_run16.txt,run16,-0.662722,1.301276,1.291089,1.000000,0.290801
+train_run17.txt,run17,-0.040009,1.301617,1.290298,0.962766,0.136036
+train_run18.txt,run18,-0.665929,1.308679,1.298052,1.000000,0.346536
+
+=== ./experiments/with_recon/message_reuse_run16.csv ===
+message,entities_using_message,total_count,entity_list
+22 38 0,1,726.0,Firewood
+22 22 0,1,719.0,Stone
+36 38 0,1,717.0,Water
+22 2 0,1,701.0,Flint
+27 22 0,1,694.0,Mushrooms
+27 31 0,1,649.0,Weapon Cache
+9 31 0,1,588.0,Wolf
+9 2 0,1,542.0,Goat
+2 27 0,1,513.0,Snake
+9 7 0,1,505.0,Lion
+38 40 0,1,480.0,Fever
+7 7 0,1,448.0,Blizzard
+15 31 0,1,430.0,Supply Cache
+38 7 0,1,428.0,Poison Plant
+38 9 0,1,428.0,Infection
+31 40 0,1,414.0,Cliff
+40 40 0,1,368.0,Animal Migration
+30 27 0,1,345.0,River Crossing
+38 38 0,1,331.0,Wood
+38 46 0,1,324.0,Berries
+38 32 0,1,288.0,Herbs
+8 0 0,1,268.0,Muddy Water
+32 46 0,1,243.0,Herb Garden
+46 32 0,1,240.0,Squirrel
+19 0 0,1,229.0,Riverbank
+43 31 0,1,229.0,Dry Campsite
+21 0 0,1,225.0,Lizard
+14 0 0,1,211.0,Fish
+46 46 0,1,210.0,Deer
+6 0 0,1,209.0,Thorns
+0 0 0,1,204.0,Salmon
+46 0 0,1,192.0,Rabbit
+3 0 0,1,168.0,Berry Patch
+11 0 0,1,140.0,Storm
+24 0 0,1,127.0,Quicksand
+28 0 0,1,63.0,Frost
+4 0 0,1,58.0,Bear
+45 0 0,1,58.0,Cave
+35 0 0,1,52.0,Rocky Outcrop
+48 0 0,1,49.0,Cold Night
+
+=== ./experiments/with_recon/message_reuse_run14.csv ===
+message,entities_using_message,total_count,entity_list
+42 42 0,1,711.0,Stone
+37 0 0,1,705.0,Firewood
+48 48 0,1,700.0,Flint
+24 46 0,1,692.0,Weapon Cache
+47 42 0,1,686.0,Mushrooms
+47 0 0,1,652.0,Water
+16 16 0,1,560.0,Wolf
+19 30 0,1,556.0,Goat
+16 46 0,1,549.0,Snake
+8 24 0,1,529.0,Lion
+16 27 0,1,426.0,Poison Plant
+16 42 0,1,422.0,Infection
+16 30 0,1,416.0,Blizzard
+16 15 0,1,407.0,Fever
+16 0 0,1,406.0,Animal Migration
+16 28 0,1,403.0,Cliff
+5 0 0,1,387.0,River Crossing
+19 0 0,1,342.0,Supply Cache
+15 0 0,1,314.0,Wood
+24 0 0,1,305.0,Herbs
+21 0 0,1,277.0,Berries
+18 40 0,1,253.0,Muddy Water
+40 40 0,1,240.0,Thorns
+18 43 0,1,226.0,Riverbank
+14 0 0,1,220.0,Deer
+3 43 0,1,220.0,Lizard
+43 0 0,1,219.0,Dry Campsite
+13 0 0,1,217.0,Herb Garden
+16 44 0,1,216.0,Squirrel
+39 0 0,1,202.0,Rabbit
+43 40 0,1,194.0,Salmon
+30 0 0,1,184.0,Berry Patch
+0 40 0,1,156.0,Fish
+40 30 0,1,127.0,Storm
+3 33 0,1,109.0,Quicksand
+14 30 0,1,67.0,Bear
+40 33 0,1,65.0,Cold Night
+16 5 0,1,53.0,Frost
+3 40 0,1,50.0,Rocky Outcrop
+40 43 0,1,47.0,Cave
+
+=== ./experiments/tuning_ae03_len2/message_reuse_summary.csv ===
+run,run_label,run_id,n_entities,n_messages,reused_messages,reuse_ratio,max_entities_on_one_message,top_reused_message
+train_run24.txt,run24,24,40,14,9,0.6428571428571429,10,44 40 0
+train_run25.txt,run25,25,40,14,9,0.6428571428571429,9,20 14 0
+train_run26.txt,run26,26,40,14,8,0.5714285714285714,9,49 33 0
+train_run27.txt,run27,27,40,16,8,0.5,9,27 6 0
+train_run28.txt,run28,28,40,16,10,0.625,6,16 24 0
+
+=== ./experiments/tuning_ae03_len2/message_reuse_run25.csv ===
+message,entities_using_message,total_count,entity_list
+20 14 0,9,3466.0,Wood|Water|Herbs|Berries|Stone|Rocky Outcrop|Herb Garden|Supply Cache|River Crossing
+28 14 0,7,2984.0,Firewood|Flint|Weapon Cache|Dry Campsite|Riverbank|Animal Migration|Cave
+45 15 0,5,1433.0,Storm|Frost|Poison Plant|Cliff|Infection
+14 43 0,3,929.0,Goat|Deer|Rabbit
+31 31 0,3,763.0,Cold Night|Thorns|Fever
+11 14 0,2,986.0,Muddy Water|Mushrooms
+45 31 0,2,595.0,Lion|Bear
+45 7 0,2,567.0,Blizzard|Quicksand
+43 31 0,2,380.0,Fish|Salmon
+45 14 0,1,552.0,Wolf
+45 16 0,1,543.0,Snake
+45 45 0,1,215.0,Squirrel
+44 45 0,1,208.0,Lizard
+16 14 0,1,187.0,Berry Patch
+
+=== ./experiments/tuning_ae03_len2/message_reuse_run26.csv ===
+message,entities_using_message,total_count,entity_list
+49 33 0,9,3522.0,Wood|Water|Herbs|Berries|Stone|Rocky Outcrop|Herb Garden|Supply Cache|River Crossing
+49 34 0,6,2886.0,Firewood|Flint|Weapon Cache|Dry Campsite|Riverbank|Animal Migration
+17 2 0,5,1372.0,Storm|Frost|Poison Plant|Cliff|Infection
+34 34 0,5,1078.0,Fish|Salmon|Cold Night|Thorns|Fever
+1 34 0,3,988.0,Goat|Deer|Rabbit
+27 34 0,2,964.0,Muddy Water|Mushrooms
+48 48 0,2,626.0,Lion|Bear
+10 48 0,2,563.0,Blizzard|Quicksand
+17 17 0,1,516.0,Snake
+8 48 0,1,508.0,Wolf
+15 42 0,1,219.0,Lizard
+42 42 0,1,219.0,Squirrel
+9 40 0,1,157.0,Berry Patch
+9 33 0,1,76.0,Cave
+
+=== ./experiments/tuning_ae03_len2/final_metrics_summary.csv ===
+metric,n,mean,std,min,max
+loss,5,-0.734955,0.001554,-0.736442,-0.732469
+mean_reward,5,1.308570,0.004080,1.303977,1.312858
+expected_reward,5,1.146950,0.004690,1.141652,1.153071
+recon_acc,5,0.035267,0.030517,0.000000,0.082318
+topsim,5,0.438693,0.058650,0.350415,0.502967
+
+=== ./experiments/tuning_ae03_len2/message_reuse_run28.csv ===
+message,entities_using_message,total_count,entity_list
+16 24 0,6,2509.0,Firewood|Flint|Weapon Cache|Dry Campsite|Riverbank|Cave
+6 24 0,6,2325.0,Water|Stone|Rocky Outcrop|Herb Garden|Supply Cache|River Crossing
+29 17 0,5,1460.0,Storm|Frost|Poison Plant|Cliff|Infection
+22 24 0,3,926.0,Goat|Deer|Rabbit
+29 9 0,3,853.0,Wood|Herbs|Berries
+31 24 0,3,747.0,Cold Night|Thorns|Fever
+42 22 0,2,880.0,Muddy Water|Mushrooms
+22 31 0,2,602.0,Lion|Bear
+29 22 0,2,562.0,Blizzard|Quicksand
+24 24 0,2,366.0,Fish|Salmon
+49 9 0,1,572.0,Snake
+22 42 0,1,552.0,Wolf
+40 24 0,1,374.0,Animal Migration
+9 9 0,1,203.0,Squirrel
+3 9 0,1,196.0,Lizard
+11 9 0,1,171.0,Berry Patch
+
+=== ./experiments/tuning_ae03_len2/message_reuse_run24.csv ===
+message,entities_using_message,total_count,entity_list
+44 40 0,10,3633.0,Wood|Water|Herbs|Berries|Stone|Rocky Outcrop|Herb Garden|Supply Cache|River Crossing|Berry Patch
+44 34 0,7,2985.0,Firewood|Flint|Weapon Cache|Dry Campsite|Riverbank|Animal Migration|Cave
+41 16 0,5,1518.0,Storm|Frost|Poison Plant|Cliff|Infection
+37 21 0,3,1011.0,Goat|Deer|Rabbit
+44 15 0,2,970.0,Muddy Water|Mushrooms
+21 44 0,2,716.0,Thorns|Fever
+44 16 0,2,567.0,Lion|Bear
+43 16 0,2,502.0,Blizzard|Quicksand
+44 21 0,2,340.0,Fish|Salmon
+30 16 0,1,537.0,Snake
+37 16 0,1,535.0,Wolf
+11 32 0,1,210.0,Squirrel
+11 16 0,1,209.0,Lizard
+19 15 0,1,55.0,Cold Night
+
+=== ./experiments/tuning_ae03_len2/final_metrics_per_run.csv ===
+run,run_label,loss,mean_reward,expected_reward,recon_acc,topsim
+train_run24.txt,run24,-0.735140,1.305483,1.146337,0.082318,0.479617
+train_run25.txt,run25,-0.736032,1.312698,1.150166,0.022596,0.502967
+train_run26.txt,run26,-0.734689,1.307832,1.143527,0.028407,0.427318
+train_run27.txt,run27,-0.736442,1.312858,1.153071,0.000000,0.433148
+train_run28.txt,run28,-0.732469,1.303977,1.141652,0.043014,0.350415
+
+=== ./experiments/tuning_ae03_len2/message_reuse_run27.csv ===
+message,entities_using_message,total_count,entity_list
+27 6 0,9,3523.0,Wood|Water|Herbs|Berries|Stone|Rocky Outcrop|Herb Garden|Supply Cache|River Crossing
+27 31 0,7,2916.0,Firewood|Flint|Weapon Cache|Dry Campsite|Riverbank|Animal Migration|Cave
+36 36 0,5,1393.0,Storm|Frost|Poison Plant|Cliff|Infection
+16 27 0,3,730.0,Cold Night|Thorns|Fever
+47 31 0,2,1017.0,Muddy Water|Mushrooms
+38 6 0,2,628.0,Lion|Bear
+24 24 0,2,551.0,Blizzard|Quicksand
+22 31 0,2,386.0,Fish|Salmon
+36 26 0,1,542.0,Snake
+10 6 0,1,521.0,Goat
+38 31 0,1,492.0,Wolf
+26 26 0,1,236.0,Squirrel
+41 26 0,1,216.0,Lizard
+6 6 0,1,213.0,Rabbit
+9 6 0,1,211.0,Deer
+29 6 0,1,188.0,Berry Patch
+
+=== ./topsim_ranking_experiments.csv ===
+rank,experiment,topsim_mean,topsim_std,n_runs
+1,tuning_ae05_len2,0.452432,0.119406,5
+2,tuning_ae05_len3,0.439227,0.057365,5
+3,tuning_ae03_len2,0.438693,0.058650,5
+4,no_recon,0.413854,0.143490,5
+5,with_recon,0.261673,0.086217,5
