@@ -1,0 +1,706 @@
+Available online at www.sciencedirect.com
+
+ScienceDirect
+Lingua 272 (2022) 103331
+www.elsevier.com/locate/lingua
+
+Emergence and evolution of language in multi-agent
+systems
+Dorota Lipowska a,⇑, Adam Lipowski b
+a
+
+Faculty of Modern Languages and Literature, Adam Mickiewicz University, Poznań, Poland
+b
+Faculty of Physics, Adam Mickiewicz University, Poznań, Poland
+
+Received 3 December 2020; revised 28 March 2022; accepted in revised form 31 March 2022; Available online 18 April 2022
+
+Abstract
+
+Human language provides a highly eﬃcient communication system, which emerged due to cultural interactions. To
+understand this still mysterious process, various interdisciplinary eﬀorts are being made, which refer to evolutionary linguistics, evolutionary game theory or cognitive sciences. A promising approach considers language as a collective phenomenon, which emerges in a population of communicating agents. Numerous papers based on computational
+modelling demonstrate ubiquity of spontaneous linguistic synchronization among such agents. The approach got considerable impetus with the introduction of the so-called language game models. Their important feature is the horizontal
+nature of interactions between agents, which interplay within one generation only and do not create oﬀspring, to whom
+they would transfer their linguistic skills. Recently, more sophisticated approaches are being developed with agents
+equipped with some cognitive abilities, employing, for example, reinforcement learning. Such a framework originated
+from Lewis signaling game, which was adapted to language evolution with subsequent extensions implementing, for
+example, Bayesian inference, neural networks or deep learning. Models with the reinforcement learning may combine
+single-generation language games with intergenerational learning, and certainly deserve further studies. The present
+paper provides a brief review of this interesting and rapidly developing research ﬁeld.
+Ó 2022 Elsevier B.V. All rights reserved.
+Keywords: Multi-agent systems; Language emergence; Protolanguage; Language evolution
+
+1. INTRODUCTION
+The origin and evolution of language, which according to some researchers is the most signiﬁcant distinguishing feature of a human, is an intriguing scientiﬁc problem and attracts much attention from researchers in multiple disciplines
+(Christiansen and Kirby, 2003; Dor et al., 2014; Hurford, 2014; Laks et al., 2008; Oudeyer, 2006; Progovac, 2015;
+_
+Reboul, 2017; Zywiczyński,
+2018). A very promising approach considers language as a system, probably having some
+adaptive features (Christiansen and Chater, 2016; Pinker and Bloom, 1990), which emerges in a group of communicat-
+
+⇑ Corresponding author.
+
+E-mail addresses: lipowska@amu.edu.pl (D. Lipowska), lipowski@amu.edu.pl (A. Lipowski).
+https://doi.org/10.1016/j.lingua.2022.103331
+0016-7037/Ó 2022 Elsevier B.V. All rights reserved.
+
+2
+
+D. Lipowska, A. Lipowski / Lingua 272 (2022) 103331
+
+ing individuals and whose properties may be a consequence of the cognitive skills of its users and of the nature of the
+interactions between them. Such a standpoint in fact encourages the study of language evolution using computer simulations, where one examines a population of artiﬁcial agents which interact autonomously with the environment and
+communicate among themselves (Cangelosi and Parisi, 2002; Gong et al., 2014; Lipowska, 2016; Nolﬁ and Mirolli,
+2010; Steels, 2012). In such a complex adaptive system (Ellis and Larsen-Freeman, 2009; Steels, 2000), without
+any external stimulus or coordination, an eﬃcient communication system may emerge, shared by a population of agents
+and with properties that may be hoped to parallel those of human language (Baronchelli et al., 2009; Gong, 2009; Smith,
+2014; Smith et al., 2003).
+Reducing the human population to a collection of artiﬁcial agents obeying some simple rules certainly raises some
+concern, but such an approach may indeed be legitimate. The reason is that in some respects humans behave in a
+surprisingly regular manner, as demonstrated by their mobility patterns (González et al., 2008), epidemic spreading
+(Pastor-Satorras and Vespignani, 2001), car traﬃc dynamics (Chandler et al., 1958), and also language formation
+(Jaeger et al., 2009). The advantage of dealing with a collection of (communicating) agents is that one can use the
+methodology developed in the physical sciences to investigate systems composed of many (interacting) atoms, such
+as gases, liquids or solids. Recent years have seen particularly numerous attempts to apply concepts and tools developed in the investigation of physical systems to the study of collective phenomena emerging in social structures
+(Castellano et al., 2009).
+Simple rules followed by agents are designed to mimic some aspects of human interactions. One should take into
+account, however, that such interactions are typically quite complex and encompass, in addition to verbal communication, also gestures, feedback, pointing, or correction of mistakes. This complexity may be disentangled into so-called
+discourse frames (Goﬀman, 1974). In multi-agent modelling, one typically focuses on a particular discourse frame,
+which is implemented with a speciﬁc goal, such as drawing attention to some object in the world or getting the listener
+to perform a particular action. Such an implementation abstract and mimic interactions of communicating individuals and
+is usually called a language game (Wittgenstein, 2009).
+A number of language game models have been studied in some detail, including guessing games, description games
+and construction games (Cangelosi and Parisi, 2002; De Beule et al., 2006; Lyon et al., 2007). The games are played
+repeatedly, each time between only two agents, and thus solely at the local level. As a result, however, certain common
+linguistic conventions disseminate throughout the population. Therefore, within such an approach, one can study the
+process of self-organization of communication, as a result of which a global linguistic coherence emerges in the population (e.g., a common set of sounds, words, categories or syntactic structures). One can also formulate conditions
+needed for the emergence of such a coherence as well as analyse its structure and possible further evolution. Such
+multi-agent modelling can be highly versatile and enables us to take into account, for example, phylogenetic evolution
+of essential traits, ontogenetic language learning, cultural (horizontal and/or vertical) language transmission, the structure of the network of social interactions, agents’ mobility, and many other factors.
+An important class of language games, which can be used to model such semiotic dynamics and the cultural formation and evolution of language, is the naming game (Steels, 1995). This game was conceived to explore the role of selforganization in the evolution of language, but due to its numerous versions and extensions, it acquired a paradigmatic
+role in the ﬁeld of semiotic dynamics. The original paper (Steels, 1995) mainly focused on the formation of a vocabulary
+as a mapping between words and meanings (e.g., names for objects). It evolves through successive interactions, i.e.,
+events that involve a certain number of agents (two, in most implementations) and meanings. Each agent develops its
+own vocabulary, trying to maximize communication success. This results, however, in the alignment of their vocabularies. Thus, a globally shared vocabulary emerges as a result of local adjustments of individual word–meaning associations. In Section 2, we provide a more detailed description of the naming game and brieﬂy mention some related models.
+In Section 3, we consider the use of language games as an approach to semiotic dynamics. These games resemble
+the so-called signaling game that was proposed by D. K. Lewis over 50 years ago, in a philosophical rather than a linguistic context (Lewis, 1969). In later, more language-oriented models based on Lewis’ signaling games, a common
+approach is to apply agents which try to establish an unambiguous language using reinforcement learning to generate
+and recognize signals (Bachwerk, 2011; Barrett, 2006; Barrett, 2009; Franke, 2016; Mühlenbernd and Franke, 2012b;
+Skyrms, 2002; Van Eecke and Beuls, 2020). In some cases, however, they work out a language which is not fully eﬀective and contains homonyms or synonyms. Certainly, the actions of agents in language games with reinforcement learning can be more sophisticated, and some of the research conducted along these lines has a strong cognitive ﬂavour.
+There is a widespread belief that the formation of modern languages was preceded by an intermediate, less complex
+stage, the so-called protolanguage. Despite intensive research, the structure, function, and modality of protolanguage
+largely remain a mystery (Zywiczynski et al., 2017). Following Bickerton (1996, p. 51), by protolanguage we mean a
+lexicon without syntax, and we are mainly interested in the processes of its formation and coordination within a population. Such linguistic synchronization that can spontaneously take place in a population of communicating individuals,
+
+D. Lipowska, A. Lipowski / Lingua 272 (2022) 103331
+
+3
+
+and the emergence of single-word communication, may certainly be relevant to modelling some aspects of protolanguage formation. However, the nature of this kind of research is such that we do not refer to any species, nor do we
+use any kind of timescales or dating. We can only speculate that our studies refer to the earliest stages of (lexical) protolanguage formation. At such a stage, however, “words” and “meanings” were still in statu nascendi, and the usage and
+interpretation of such concepts in our models should be considered with some care. Language games might also contribute to the debate about the nature of protolanguage, and we address this issue in Section 4. Of particular interest is
+the problem of whether protolanguage was holistic (Wray, 1998), compositional (Bickerton, 1990), or maybe a more
+complex scenario led to its emergence (Smith, 2006; Jackendoﬀ, 2002). Various language game models address
+the formation of compositional language (Kirby and Hurford, 2002; Franke, 2016; Steinert-Threlkeld, 2020), and there
+have been some attempts to set the emergence of protolanguage in a broader context of language formation and subsequent evolution (Steels, 2005).
+The advantage of multi-agent modelling is its ﬂexibility. We can easily equip agents with various additional features,
+which are not necessarily related to their linguistic performance. When analysing language formation processes, one
+should also consider such features, as language is intricately interrelated with other parts of our activity. However, if
+we were to take into account all kinds of social interactions along with economic status, political situation and perhaps
+other factors (Trudgill, 2000), we would develop a quite unmanageable model. Thus, it is probably necessary to restrict
+ourselves to some simpler analysis. In Section 5, we will analyse how the mobility of agents aﬀects the dynamics of the
+language games they play. As we will show, even this single factor may considerably aﬀect language formation.
+In our review, we focus on very simple communication between agents, mainly on single-word communication, referring only very brieﬂy to higher-level language structures. Consequently, the term “language” as used in our review refers
+rather to a mapping between forms and meanings. Moreover, in what follows we refer to forms and utterances as
+“words”, as is common in the literature on language games. In some places, we draw attention to similarities between
+language formation and certain more general processes in multi-agent or physical systems, such as self-organization,
+symmetry breaking, or surface-tension-driven dynamics. Conclusions and some ﬁnal remarks are given in Section 6.
+2. LINGUISTIC SYNCHRONIZATION IN THE NAMING GAME
+The primary motivation for introducing the naming game was to show that communicating agents, without any central
+control or steering, can spontaneously bootstrap and synchronize a linguistic convention ﬁnally shared by the entire
+population (Steels, 1995). Many diﬀerent versions of the naming game have already been examined, for example,
+Baronchelli (2011), Bleys et al. (2009), Filho et al. (2009), De Vylder and Tuyls (2006), Gao et al. (2014), Li et al.
+(2013), Lorkiewicz and Katarzyniak (2014), Lou et al. (2018), Maity et al. (2013), Stadler et al. (2012), Steels and
+McIntyre (1998), Tria et al. (2012), Wellens and Loetzsch (2012), Zhou et al. (2018), to mention just a few. Here, we
+present the naming game in its elementary form to illustrate its dynamics. In this version, called the minimal naming
+game (Baronchelli et al., 2006), agents are engaged in pairwise interactions trying to establish a name of a given object.
+Each agent is equipped with an inventory, where the words that are in use are stored. Initially, all inventories are empty.
+At each time step, a pair of interacting agents is randomly chosen, one playing as “speaker” and the other as “hearer”,
+and they communicate according to the following rules:
+ The speaker randomly selects one of its words (or invents a new word if its inventory is empty) and conveys it to the
+hearer;
+ If the hearer’s inventory contains this word, the two agents update their inventories so as to retain only the word that
+was communicated (success);
+ Otherwise, the hearer adds the word to those already stored in its inventory (failure).
+These rules are illustrated in Fig. 1.
+Initially, one observes some accumulation of words in agents’ inventories, and due to the random selection of words
+by speakers, the communication seems to be quite disordered and ineﬃcient. After some time, however, a global consensus is reached and all agents end up with only one and the same word in their repositories. All subsequent communication attempts are, of course, successful. In the naming game, one can measure the level of consensus among
+agents using a communicative success rate, deﬁned as the proportion of successful communication attempts
+(Steels, 2015). In fact, to complete the deﬁnition of the model, one has to specify a network of interactions, the edges
+of which determine which pairs of agents may communicate. Several networks have been examined, including complete
+graphs (Baronchelli et al., 2006), regular two-dimensional lattices (Baronchelli et al., 2006; Lu et al., 2008), small worlds
+(Dall’Asta et al., 2006; Liu et al., 2009), complex networks (Dall’Asta et al., 2006) and directed networks (Lipowski et al.,
+2017), and in all cases a global consensus was reached, albeit the time needed to reach such a state is network-
+
+4
+
+D. Lipowska, A. Lipowski / Lingua 272 (2022) 103331
+
+Fig. 1. An elementary step in the single-object version of the naming game.
+
+dependent. It is only in networks with a strong community structure that a global consensus may not be reached and the
+system remains in a multi-language regime (Dall’Asta et al., 2006). Such a clustering of agents may also be induced
+dynamically in models using adaptive weighted networks (Lipowska and Lipowski, 2012).
+As deﬁned above, success in the minimal naming game completely erases all words but the successful one. In some
+other versions of the naming game, less severe inhibition of unsuccessful words can be implemented by means of
+weights (Steels and McIntyre, 1998). Such a mechanism may correspond to some degree of memory loss by the communicating individuals, which seems to be an essential ingredient of eﬃcient communication systems. We will return to
+this point in Section 6.
+Research on the naming game is focused mainly on the formation of a vocabulary, i.e., a set of associations between
+words and meanings (for instance, objects), but related models have also been used to examine the formation of linguistic categories. Such structures fundamentally determine our perception, recognition and understanding of the surrounding reality. Probably the best-researched example of linguistic categories is colour, as, with amazing universality,
+in virtually all languages an essentially inﬁnite multitude of hues is classiﬁed into several colours (Lindsey and Brown,
+2006; Saunders and van Brakel, 1997; Zaslavsky et al., 2020; Zaslavsky et al., 2019). Due to progress in the cognitive
+sciences, a certain mechanism of the creation of categories emerges, according to which they are culture-dependent
+conventions shared by a given group. There are several studies analysing computer models in which linguistic categories emerge (Baronchelli et al., 2010; Komarova et al., 2007; Li et al., 2017; Loreto et al., 2012; Puglisi et al.,
+2008), and a satisfactory agreement with empirical data (Cook et al., 2005) can be achieved in some cases.
+Interesting implementations of the naming game have also been made in systems of embodied artiﬁcial agents
+(robots) (Steels and Loetzsch, 2012; Steels, 2015). Various aspects of the dynamics of the naming game have already
+been examined, such as the ﬁnite memory of agents (Wang et al., 2007), their reputation (Brigatti, 2008), preference in
+communication for agents with richer inventories (Lipowska and Lipowski, 2014), or the inclination to use a word shared
+by the majority of agents (Lei et al., 2010). A version of the naming game coupled with genetic evolution of a certain trait
+of agents leads to an interesting bio-linguistic transition, which is possibly a manifestation of the so-called Baldwin eﬀect
+(Lipowski and Lipowska, 2008). The Baldwin eﬀect provides a Darwinian explanation of the genetic ﬁxing of traits that
+are learned or developed during the lifespan (Baldwin, 1896). Pinker and Bloom (1990) used the Baldwin eﬀect as an
+argument for an explanation of the origins of language and the evolution of a Language Acquisition Device. Deacon
+(1997), on the other hand, claimed that Baldwinian inheritance can aﬀect only general cognitive capabilities underlying
+language acquisition. Simulations by Munroe and Cangelosi (2002) support Deacon’s hypothesis. Likewise,
+Christiansen et al. (2006) suggest that the inﬂuence of the Baldwin eﬀect on language formation is most likely restricted
+only to its functional features that improve communication abilities. Also in the model of Lipowski and Lipowska (2008),
+the genetically evolving trait is a certain language learning ability, which may be interpreted as a functional trait.
+We should also mention that the naming game may be used to reproduce some experimental results on the spontaneous emergence of social conventions (Centola and Baronchelli, 2015), to detect community structure in complex
+networks (Lu et al., 2009; Zhang and Lim, 2010), or to provide a broadcasting protocol in sensor networks (Lu et al.,
+
+D. Lipowska, A. Lipowski / Lingua 272 (2022) 103331
+
+5
+
+2006; Lu et al., 2008). Some review articles on the naming game, which focus on its statistical-mechanics properties
+(Baronchelli, 2016), provide an in-depth discussion of the emergence of a common lexicon and of a shared set of linguistic categories (Loreto et al., 2011), or analyse a Bayesian learning framework and provide an extensive bibliography
+(Marchetti et al., 2020), are also available.
+3. SIGNALING GAME AND REINFORCEMENT LEARNING
+Of course, it would be desirable to study agents that are able to form a language somewhat more complex than a
+name of a single object. A natural extension is thus establishing names for several objects. In principle, one can deﬁne a
+multi-object naming game, where agents use some non-verbal actions (like pointing) to decide which object they are
+talking about and whether a communication attempt was successful or not. Basically, this means that agents would
+negotiate names for each object independently, and the situation would not be much diﬀerent from the single-object
+version analysed in the previous section (Baronchelli et al., 2006). It is more interesting and ambitious to assume that
+agents can recognize the communicated signal (word) and take an appropriate action (e.g., choose an object corresponding to the word). The pioneering work along these lines by Lewis (1969) laid the ground for an important class
+of models implementing what is known as a signaling game, which has found numerous applications in economics, evolutionary biology, and also linguistics (Skyrms, 2010). Although the signaling game requires agents with more sophisticated cognitive abilities than those in the naming game, it can be used to model very low-level types of learning and
+cognition, such as the signaling behaviour of some type of bacteria (Skyrms, 2010; Fiegna and Velicer, 2003). Most
+likely, higher-level learning skills are needed to reproduce the emergence of more complex phenomena in human language, such as compositionality or grammar.
+In the signaling game, a correct/incorrect recognition of the object should result in some payoﬀ/penalty, which accumulates in the form of weights corresponding to signals or actions (e.g., chosen words or objects). In this way, agents
+learn over time which actions are likely to be successful.
+The signaling game has been typically studied within a class of learning rules known as reinforcement learning,
+which this paper will address exclusively. However, it should be mentioned that the signaling game has also been studied with a range of other classes of update rules, for example, replicator dynamics (Skyrms, 2010) or imitation dynamics
+(Zollman, 2005).
+In multi-agent formulations of the signaling game, agents play in turn the role of a speaker or hearer. A speaker
+learns which word has the best match with a given (selected) object, say O, and a hearer tries to ﬁnd the best matching
+object when a given word, say W, is communicated by a speaker. When the object indicated by the hearer is the same
+as that chosen by the speaker, they achieve a communicative success. As a reward, the speaker and the hearer
+
+Fig. 2. An elementary step in a 2-object version of the signaling game model with reinforcement learning (Lipowska and Lipowski,
+2018). The speaker randomly chooses an object (the corresponding section of the inventory is encircled by a dotted line). Using the
+relevant weights (in solid circles), the speaker selects one of its words (here: “dnab”). Next the hearer tries to guess the object the
+speaker is talking about, taking into account the weights of the communicated word (in circles). If the hearer’s guess is correct, both
+agents increase their corresponding weights by 1. Otherwise, the weights remain unchanged.
+
+6
+
+D. Lipowska, A. Lipowski / Lingua 272 (2022) 103331
+
+increase the weights of W (in association with O). Further successful communication with the pair W O (which continues to increase its weight) can eﬀectively lock the agents on this pair; namely, whenever they want to talk about O
+they will use the word W. Provided that for other objects agents also establish similar unique associations (diﬀerent
+words for diﬀerent objects), they will be able to communicate eﬀectively about their world, i.e., a collection of objects.
+This will not necessarily happen, however. It may be that a certain word will be associated with two (or more) objects
+or a certain object with two (or more) words. Such homonyms and synonyms break the unique object–word mapping
+and usually reduce the eﬃciency of communication. However, they are by no means undesirable or unrealistic, since
+all natural languages contain such forms. Let us also note, though, that true synonyms are considered to be nonexistent or at least very rare compared with homonyms (Clark, 1995; Goldberg, 1995; Lyons, 1981). We should also
+mention that there are some studies which focus on conditions that support the emergence of ambiguity in signaling
+games (Santana, 2014). Moreover, ambiguous signaling does not necessarily reduce communication eﬃciency
+(Mühlenbernd, 2021; O’Connor, 2015), as can be deduced from the principles of mutual information maximization
+and word entropy minimization (Ferrer-i-Cancho, 2005).
+Eﬃciency in the signaling game can be measured by the mean Shannon information content of each signal (Barrett,
+2006), but for our considerations it is suﬃcient to deﬁne it as in the naming game, namely as the proportion of successful
+communication attempts (see Fig. 2). It should be emphasized, however, that the very notion of language eﬃciency constitutes a multidimensional problem that should be examined from various perspectives, and perhaps a more general
+approach than a typical linguistic one would be needed to obtain a comprehensive understanding of it (Semple
+et al., 2022). For example, tolerance of homonyms and the rareness of synonyms result from certain conﬂicting forces
+and constraints which seem to govern language formation processes, and which can be inferred from the principle of
+mutual information maximization (Ferrer-i-Cancho and Vitevitch, 2018). Such an approach can also be applied to the
+study of word order (Ferrer-i-Cancho, 2017). Such an information maximization principle has also been implemented
+in some multi-agent language games, and under a certain regime, Zipf’s law - which describes the frequency of word
+usage - was reproduced (Urbina and Vera, 2019; Vera et al., 2021).
+An adaptation of the signaling game that focuses on language evolution was proposed by Lenaerts et al. (2005).
+They analysed not only the emergence of language and eﬃciency of communication, but also the intergenerational
+transmission of language. Namely, they divided the population of agents into teachers and pupils, and examined
+how the pupils acquired the teachers’ language and whether such a language enabled the pupils to communicate eﬀectively with each other.
+Recently, we have analysed a similar model (its rules are illustrated in Fig. 2) but with the main emphasis on the
+global aspects of the dynamics (Lipowska and Lipowski, 2018). Let us note that in our model, the agents use only
+one set of weights, albeit in diﬀerent ways, to determine a word (when they are playing as sender) or an object (as
+hearer). A sender takes into account the weights of all words in the inventory corresponding to the chosen object.
+On the other hand, to interpret a communicated word, the hearer takes into account the weights of that word in all inventories (see Fig. 2). It should be mentioned, however, that in some implementations of the signaling game, separate
+inventories are used for the selection of communicated words and for their interpretation (Skyrms, 2010;
+Mühlenbernd, 2014).
+A typical feature of reinforcement learning systems is that the accumulation of weights teaches agents which actions
+are likely to be optimal, but at the same time it may lead to some deadlock conﬁgurations, where agents are stuck in a
+language that is far from being eﬃcient, yet can no longer be changed. A possible solution - not unrealistic in fact - is to
+introduce a process of population renewal, in which old (and thus overtrained) agents are replaced with young (and
+therefore linguistically very ﬂexible) ones. Alternatively, one can introduce certain forms of lateral inhibition, which
+reduce the weights of competing words (Spike et al., 2017).
+It turns out that it is much easier to generate an eﬃcient language in signaling games with population renewal or
+lateral inhibition. What is more, the dynamics of language evolution in these cases exhibit some similarity to the naming
+game, and this is because both models generate what is called surface tension. Interestingly, there are some linguistic
+data analyses that suggest that the dynamics of real languages also appear to be driven by surface tension (Burridge,
+2017; Burridge and Blaxter, 2020). We will return to this point in Section 5.
+Let us emphasize, however, that despite some similarities, the naming game and the signaling game are very diﬀerent. In contrast to the signaling game, in the naming game there is no need for the hearer to interpret the communicated
+signal. Instead, before communicating the word, the speaker draws the attention of the hearer to the selected object, for
+example using pointing or gestures. Even multi-object versions of the naming game can operate according to such rules
+(Steels and McIntyre, 1998).
+Certain versions of the signaling game focus on the role of spatial and network structures (Mühlenbernd, 2011;
+Mühlenbernd and Franke, 2012a; Mühlenbernd and Nick, 2014; Wagner, 2009; Zollman, 2005). Moreover, some studies combine (reinforcement) signaling games with network formation processes (Huttegger et al., 2014; Skyrms, 2010,
+
+D. Lipowska, A. Lipowski / Lingua 272 (2022) 103331
+
+7
+
+ch. 14). Especially in the context of language evolution, simulations of the signaling game are typically constructed with
+many agents. It is interesting, however, to examine even a two-agent version (Lipowski and Lipowska, 2009). In this
+case, the emergent language also contains homonyms and synonyms. What is more, homonyms turn out to be much
+more stable than synonyms, which is in agreement with some linguistic observations and evolutionary modelling
+reported by Hurford (2003).
+An interesting model, which combines the naming game with learning based on Bayesian inference, was proposed
+by Patriarca et al. (2020b). In their model, agents learn to associate diﬀerent objects with two possible names, and the
+main emphasis is on the cognitive process rather than on the semiotic dynamics. Bayesian inference is at the core of
+numerous approaches which emphasize the role of the context of speech and reasoning, for example, the rational
+speech act model (Goodman and Frank, 2016). There are also some studies that identify inferential communication
+as the crucial prerequisite that allowed language to emerge (Scott-Phillips, 2015).
+The above brief description of several linguistic versions of the signaling game is rather general, and omits some
+details (such as learning strategies, the weight increases or decreases, and the network of interactions) as well as
+the parameters of the model (number of agents, number of objects, number of words). All these factors play an important
+role and inﬂuence the behaviour of the model; of course, they are discussed in more detail in the literature (Lenaerts
+et al., 2005; Lipowska and Lipowski, 2018; Lipowski and Lipowska, 2009; Skyrms, 2010).
+4. LANGUAGE GAMES AND THE NATURE OF PROTOLANGUAGE
+If language expressions cannot be segmented into parts whose meanings make up the meaning of the whole expression, the language is called holistic. However, usually the meaning of an expression is a function of the meanings of its
+components and the way in which they are combined. This feature, shared by virtually every language, is called compositionality (Brighton, 2002, p. 29; Gong and Wang, 2005, p. 7; Hurford, 2012, pp. 621-623; Krifka, 2001). The formation of a compositional language can be analysed within an iterated learning model (Kirby and Hurford, 2002), which is
+based on the vertical transmission of language (master–student) rather than on horizontal transmission (as in the naming game). The emergence of a compositional language has been reported in a multi-agent system without a strict vertical transmission but within a population of communicating agents that interact with the environment (Mordatch and
+Abbeel, 2018), and also in some versions of the signaling game (Franke, 2016; Skyrms, 2010, ch. 12; SteinertThrelkeld, 2016; Steinert-Threlkeld, 2020). A simple mechanism demonstrating the emergence of a compositional language is based on re-use (De Beule and Bergen, 2006; Vogt, 2005). In this approach, when an agent needs to convey a
+new meaning, it tries to invent a new word or a combination of words based on its repertoire of holistic words/signals.
+The re-use mechanism may suggest the gradual formation of protolanguage (and then languages) largely in line with
+the hypotheses of some researchers (Steels, 2005).
+Such studies can certainly contribute to the debate concerning the nature of protolanguage. The synthetic nature of
+protolanguage was advocated by Bickerton (1990), Bickerton (2000), Bickerton (2007), who claimed that protolanguage
+had incorporated symbols conveying atomic meanings, which could have been used together in ad hoc sequences.
+Then, language developed through the synthesis of such proto-words into more and more complex, hierarchically structured utterances. An opposing explanation was presented by Wray (1998), Wray (2000), who suggested a holistic nature of protolanguage, which “had no words and no rules, just utterances associated with speciﬁc meanings, that
+achieved [certain] goals” (Wray and Perkins, 2000, p. 14). The transition to language took place through a process
+of analysis, in which holistic utterances were gradually broken down into words and their combinations. Smith (2006)
+in turn suggested an account unifying these two apparently opposing theories. Namely, he accepted the possibility that
+basic words (nouns, verbs) were formed as a result of an analysis process from an originally holistic protolanguage, and
+then the resulting synthetic protolanguage underwent processes such as grammaticalization and developed into language. A natural further step would be to assume that protolanguage could have covered a whole series of stages,
+not just two (Jackendoﬀ, 2002). Moreover, such stages were not strictly segregated, perhaps, as diﬀerent processes
+could have overlapped and intermingled, with multiple linguistic features being at diﬀerent stages of development. Obviously, such complex and interacting processes are too diﬃcult to capture by computer modelling, but we can at least try
+to reconstruct their characteristic phases. It appears that the naming game and the signaling game are well suited to
+testing hypotheses on the nature of protolanguage, and may oﬀer some valuable insight into this fundamental problem.
+5. LANGUAGE EVOLUTION AND MOBILITY
+Language, as one of our human attributes, is interrelated with many other parts of our activity. Social interactions,
+economic status or political situation inﬂuence the way language is acquired and changed, or sometimes falls into oblivion. Language, as an integral part of our culture and way of life, is also intricately related to migrations of people
+
+8
+
+D. Lipowska, A. Lipowski / Lingua 272 (2022) 103331
+
+(Canagarajah, 2017; Williams, 1988). Various tribes, ethnic groups, or even entire nations have permanently settled certain areas, while some others, for various reasons, almost constantly migrate. Migration can both mix and separate
+human communities, and language formation processes should thus be strongly inﬂuenced by such a factor. Moreover,
+some modern trends, especially globalization, most likely increase human migration (Czaika and de Haas, 2014). Some
+research even suggests that in some areas the merging of multinational and multicultural migrants creates a new kind of
+super-diverse societies, and to describe their intercommunication, languages as traditionally understood do not seem to
+be suﬃcient (Jørgensen et al., 2011).
+Thus, it would be desirable to have some general understanding of how migration aﬀects language formation processes, and perhaps vice versa. As a simple model enabling such an investigation, we can employ a suitably extended
+naming game. Recently, we analysed such a model in which agents occupy sites in a lattice and can play the naming
+game with neighbouring agents, but with some probability they may also migrate around that lattice (where a fraction of
+the sites is empty) (Lipowska and Lipowski, 2017). Taking into account that people’s willingness or need to migrate may
+depend on their language or culture, the probability of an agent’s migrating also depends on the language it uses. One
+of our ﬁndings was not entirely obvious, namely, that languages associated with a lower probability of migration turned
+out to be favoured by the model dynamics and eventually came to prevail in the system. Let us note that in the naming
+game without migration, languages are perfectly equivalent, and the (dynamic) adoption of the language used by the
+agents when they reach linguistic synchronization is purely random. Apparently, language-speciﬁc migration breaks this
+symmetry, with low-migration languages being favoured.
+Our model may suggest, then, that the languages of settlers might be favoured over the languages of nomadic communities. Of course, we are aware that our model is far too simple to explain the complexity of language competition,
+which is a process aﬀected by a number of linguistic as well as non-linguistic factors (Joseph et al., 2003; Patriarca
+et al., 2020a).
+We also analysed some global aspects of the naming game with migration (Lipowska and Lipowski, 2021). In particular, we examined how the length of borders between diﬀerent languages shrinks in time. Such shrinking might be
+induced by the so-called surface tension, which in the linguistic context may be interpreted as a tendency to conform
+with the majority of our neighbours when adopting a new language. The relatively fast shrinking that we observed in our
+simulations indicates that the dynamics of such systems do generate surface tension. Such results, showing that the
+surface tension drives some models of language formation, are consistent with some recent empirical analyses by
+Burridge (2018) and Burridge and Blaxter (2020). Investigating the Survey of English Dialects (Orton and Dieth,
+1962), they found some indications that surface tension seems to shape patterns of English dialect changes. It would
+certainly be desirable to examine how robust is the mechanism that generates the surface tension in language evolution
+models. Some other studies have also shown that the migration of agents has a considerable inﬂuence on the reaching
+of consensus (Baronchelli and Pastor-Satorras, 2009). The emergence of consensus has also been analysed in a population of agents moving in a continuous space (Baronchelli and Diaz-Guilera, 2012) and in robotic swarms (Cambier
+et al., 2017).
+6. CONCLUSIONS AND FINAL REMARKS
+This paper has discussed some of the issues that arise when analysing a population of agents which try to establish
+a shared communication system, preferably with characteristics similar to those of human language. Hopefully, we have
+managed to demonstrate that multi-agent modelling oﬀers a valuable computational tool with which to approach such
+problems. Our presentation is certainly focused on issues in this ﬁeld with which we have already gained some experience and which we believe are important and stimulating. In particular, we have presented mainly sociocultural
+approaches, where the selection of a given word or a structure is based on cultural choice and its adoption by others.
+An important class of models, hardly discussed in our review, emphasizes the sociobiological aspects of language formation. Such approaches often refer to the notion of ﬁtness, and aim to explain the development of some innate (e.g.,
+cognitive, neural, vocal) language-related predispositions (Hurford, 1989; Nowak et al., 2000). Some multi-agent models
+of the emergence of language may also be considered as a mixture of sociobiological and sociocultural approaches
+Lipowski and Lipowska (2008). We have also omitted several papers where multi-agent simulations are used to show
+that statistical learning provides an eﬃcient means of language acquisition (Christiansen et al., 2000; Christiansen and
+Curtin, 1999). Moreover, although we brieﬂy mentioned the iterated learning framework, which originated from modelling
+studies, we did not discuss how widely it is currently used in experimental research into iterative learning of artiﬁcial
+languages by human participants (Kirby et al., 2008; Kirby et al., 2014).
+The problem of language emergence and evolution is of interest to researchers from a number of disciplines, including evolutionary game theory (Nowak and Krakauer, 1999; Skyrms, 2010), artiﬁcial life (Steels and Loetzsch, 2012),
+cognitive science (Barr, 2004; Goodman and Frank, 2016), and evolutionary linguistics (Oliphant, 1996; Smith,
+
+D. Lipowska, A. Lipowski / Lingua 272 (2022) 103331
+
+9
+
+2002). More eﬀorts to confront these diﬀerent strands of research and develop a uniﬁed approach are certainly desirable
+and are frequently undertaken. For example, an attempt to compare several approaches in which language as a learned
+signaling system may emerge was made by Spike et al. (2017). They suggest that there are three requirements for the
+emergence of language, namely (i) referential information (e.g., pointing), (ii) the presence of a bias against ambiguity
+(e.g., using homonyms does not always result in successful communication, so their usage in the signaling game is
+eﬀectively punished), and (iii) some form of information loss (e.g., forgetting due to the limited memory of agents or population renewal). The signaling game implements the above requirements to some extent, but more sophisticated strategies are also feasible Spike et al. (2017). This type of meta-analysis of various approaches is certainly valuable for
+directing some future research in this ﬁeld. It seems that certain stages in the evolution of language can be distinguished, determined by particular qualitative changes or new developments (Jackendoﬀ, 1999; Steels, 2005). Vocabulary formation, modelled by means of the naming and signaling games (Baronchelli et al., 2006; Barrett, 2006; Ke et al.,
+2002; Tria et al., 2012), was one of the earliest stages, and was most likely followed by the formation of regularity and
+compositionality (Brighton, 2002; De Beule and Bergen, 2006; Gong, 2009; Gong, 2011), and ﬁnally that of syntax generating hierarchical structures (Frank et al., 2012; Steels, 2011). Modelling these latter stages is certainly more diﬃcult,
+but there are some indications that even here progress is likely to be made (Becerra-Bonache and Jiménez-López,
+2015; Beuls and Steels, 2013; Cuskley et al., 2017; Garcia-Casademont, 2017; Gong, 2011; Jaeger et al., 2009;
+Kirby and Hurford, 2002; Kirby et al., 2014; Kirby et al., 2015; Mordatch and Abbeel, 2018; Steels, 2016; Steels and
+Szathmáry, 2018).
+
+Declaration of Competing Interest
+The authors declare that they have no known competing ﬁnancial interests or personal relationships that could have
+appeared to inﬂuence the work reported in this paper.
+References
+Bachwerk, M., 2011. Reinforcement learning in language evolution. In: Proceedings of the ESSLLI 2011 Student Session. pp. 13–
+24.
+Baldwin, J.M., 1896. A new factor in evolution. Am. Nat. 30 (354, 355), 441–451, 536–553.
+Baronchelli, A., 2011. Role of feedback and broadcasting in the naming game. Phys. Rev. E 83 (4), 046103.
+Baronchelli, A., 2016. A gentle introduction to the minimal naming game. Belgian J. Linguistics 30 (1), 171–192.
+Baronchelli, A., Cattuto, C., Loreto, V., Puglisi, A., Minett, J., Wang, W., 2009. Complex systems approach to the emergence of
+language. In: Minett, J.W., Wang, W.S. (Eds.), Language, Evolution and the Brain. City University of Hong Kong Press, Hong
+Kong, pp. 141–178.
+Baronchelli, A., Dall’Asta, L., Barrat, A., Loreto, V., 2006. Topology-induced coarsening in language games. Phys. Rev. E 73,
+015102.
+Baronchelli, A., Diaz-Guilera, A., 2012. Consensus in networks of mobile communicating agents. Phys. Rev. E 85 (1), 016113.
+Baronchelli, A., Felici, M., Loreto, V., Caglioti, E., Steels, L., 2006. Sharp transition towards shared vocabularies in multi-agent
+systems. J. Stat. Mech.: Theory Exp. 2006 (06), P06014.
+Baronchelli, A., Gong, T., Puglisi, A., Loreto, V., 2010. Modeling the emergence of universality in color naming patterns. Proc. Natl.
+Acad. Sci. USA 107 (6), 2403–2407.
+Baronchelli, A., Pastor-Satorras, R., 2009. Effects of mobility on ordering dynamics. J. Stat. Mech.: Theory Exp. 2009 (11), L11001.
+Barr, D.J., 2004. Establishing conventional communication systems: Is common knowledge necessary? Cogn. Sci. 28 (6), 937–962.
+Barrett, J.A., 2006. Numerical simulations of the Lewis signaling game: Learning strategies, pooling equilibria, and the evolution of
+grammar. Institute for Mathematical Behavioral Sciences, UC Irvine, https://escholarship.org/uc/item/5xr0b0vp.
+Barrett, J.A., 2009. The evolution of coding in signaling games. Theory Decis. 67 (2), 223–237.
+Becerra-Bonache, L., Jiménez-López, M.D., 2015. Learning, agents, and formal languages: linguistic applications of
+interdisciplinary ﬁelds. In: Bajo, J., Hernández, J., Mathieu, P., Campbell, A., Fernández-Caballero, A., Moreno, M., Julián,
+V., Alonso-Betanzos, A., Jiménez-López, M., Botti, V. (Eds.), Trends in Practical Applications of Agents, Multi-Agent Systems
+and Sustainability. Springer, pp. 39–46.
+Beuls, K., Steels, L., 2013. Agent-based models of strategies for the emergence and evolution of grammatical agreement. PLoS
+One 8 (3), e58960.
+Bickerton, D., 1990. Language and Species. The University of Chicago Press, Chicago.
+Bickerton, D., 1996. Language and Human Behavior. UCL Press, London.
+Bickerton, D., 2000. How protolanguage became language. In: Knight, C., Studdert-Kennedy, M., Hurford, J.R. (Eds.), The
+Evolutionary Emergence of Language: Social Function and the Origins of Linguistic Form. Cambridge University Press,
+Cambridge, pp. 264–284.
+Bickerton, D., 2007. Language evolution: A brief guide for linguists. Lingua 117 (3), 510–526.
+
+10
+
+D. Lipowska, A. Lipowski / Lingua 272 (2022) 103331
+
+Bleys, J., Loetzsch, M., Spranger, M., Steels, L., 2009. The grounded colour naming game. In: Proceedings of the 18th IEEE
+International Symposium on Robot and Human Interactive Communication (Ro-man 2009). pp. 1–7.
+Brigatti, E., 2008. Consequence of reputation in an open-ended naming game. Phys. Rev. E 78 (4), 046108.
+Brighton, H., 2002. Compositional syntax from cultural transmission. Artif. Life 8 (1), 25–54.
+Burridge, J., 2017. Spatial evolution of human dialects. Phys. Rev. X 7 (3), 031008.
+Burridge, J., 2018. Unifying models of dialect spread and extinction using surface tension dynamics. R. Soc. Open Sci. 5 (1),
+171446.
+Burridge, J., Blaxter, T., 2020. Spatial evidence that language change is not neutral.
+Cambier, N., Frémont, V., Ferrante, E., Oct 2017 2017. Group-size regulation in self-organised aggregation through the naming
+game. In: International Symposium on Swarm Behavior and Bio-Inspired Robotics (SWARM 2017). Kyoto, Japan. https://hal.
+archives-ouvertes.fr/hal-01679600.
+Canagarajah, S. (Ed.), 2017. The Routledge Handbook of Migration and Language. Routledge, New York.
+Cangelosi, A., Parisi, D. (Eds.), 2002. Simulating the Evolution of Language. Springer-Verlag, London.
+Castellano, C., Fortunato, S., Loreto, V., 2009. Statistical physics of social dynamics. Rev. Mod. Phys. 81 (2), 591–646.
+Centola, D., Baronchelli, A., 2015. The spontaneous emergence of conventions: An experimental study of cultural evolution. Proc.
+Natl. Acad. Sci. USA 112 (7), 1989–1994.
+Chandler, R.E., Herman, R., Montroll, E.W., 1958. Trafﬁc dynamics: Studies in car following. Oper. Res. 6 (2), 165–184.
+Christiansen, M.H., Chater, N., 2016. The Now-or-Never bottleneck: A fundamental constraint on language. Behav. Brain Sci. 39,
+e62.
+Christiansen, M.H., Conway, C.M., Curtin, S., 2000. A connectionist single-mechanism account of rule-like behavior in infancy. In:
+Gleitman, L., Joshi, A. (Eds.), Proceedings of the 22nd Annual Conference of the Cognitive Science Society. University of
+Pennsylvania, Philadelphia, PA, Lawrence Erlbaum, Mahwah, NJ, pp. 83–88.
+Christiansen, M.H., Curtin, S.L., 1999. The power of statistical learning: No need for algebraic rules. In: Proceedings of the Twenty
+First Annual Conference of the Cognitive Science Society. Psychology Press, New York, pp. 114–119.
+Christiansen, M.H., Kirby, S., 2003. Language evolution: The hardest problem in science? In: Christiansen, M.H., Kirby, S. (Eds.),
+Language Evolution, Studies in the Evolution of Language, vol. 3. Oxford University Press, Oxford, pp. 1–15.
+Christiansen, M.H., Reali, F., Chater, N., 2006. The Baldwin effect works for functional, but not arbitrary, features of language. In:
+Cangelosi, A., Smith, A.D.M., Smith, K. (Eds.), The Evolution of Language. Proceedings of the 6th International Conference
+(EVOLANG6), Rome, Italy, 12-15 April 2006. World Scientiﬁc, pp. 27–34.
+Clark, E.V., 1995. Language acquisition: The lexicon and syntax. In: Miller, J.L., Eismas, P.D. (Eds.), Handbook of Perception and
+Cognition, Speech, Language, and Communication, vol. 11. Academic Press, San Diego, CA, pp. 303–337.
+Cook, R.S., Kay, P., Regier, T., 2005. The world color survey databasee: History and use. In: Cohen, H., Lefebvre, C. (Eds.),
+Handbook of Categorization in Cognitive Science. Elsevier Science Ltd, Oxford, pp. 223–241.
+Cuskley, C., Castellano, C., Colaiori, F., Loreto, V., Pugliese, M., Tria, F., 2017. The regularity game: Investigating linguistic rule
+dynamics in a population of interacting agents. Cognition 159, 25–32.
+Czaika, M., de Haas, H., 2014. The globalization of migration: Has the world become more migratory? Int. Migr. Rev. 48 (2), 283–
+323.
+da Silva Filho, R.J., Brust, M.R., Ribeiro, C.H.C., 2009. Consensus dynamics in a non-deterministic naming game with shared
+memory.
+Dall’Asta, L., Baronchelli, A., Barrat, A., Loreto, V., 2006. Agreement dynamics on small-world networks. EPL 73 (6), 969–975.
+Dall’Asta, L., Baronchelli, A., Barrat, A., Loreto, V., 2006. Non-equilibrium dynamics of language games on complex networks.
+Phys. Rev. E 74, 036105.
+De Beule, J., Bergen, B.K., 2006. On the emergence of compositionality. In: Cangelosi, A., Smith, A.D.M., Smith, K. (Eds.), The
+Evolution Of Language. Proceedings of the 6th International Conference (Evolang6). World Scientiﬁc, pp. 35–42.
+De Beule, J., De Vylder, B., Belpaeme, T., 2006. A cross-situational learning algorithm for damping homonymy in the guessing
+game. In: Rocha, L.M. (Ed.), Artiﬁcial Life X: Proceedings of the Tenth International Conference on the Simulation and Synthesis
+of Living Systems. MIT Press, Cambridge, MA, pp. 466–472.
+De Vylder, B., Tuyls, K., 2006. How to reach linguistic consensus: A proof of convergence for the naming game. J. Theor. Biol. 242
+(4), 818–831.
+Deacon, T.W., 1997. The Symbolic Species: The Co-evolution of Language and the Brain. W.W. Norton & Company, New York.
+Dor, D., Knight, C., Lewis, J. (Eds.), 2014. The Social Origins of Language. Oxford University Press, Oxford.
+Ellis, N.C., Larsen-Freeman, D. (Eds.), 2009. Language as a Complex Adaptive System. John Wiley & Sons, Chichester.
+Ferrer-i-Cancho, R., 2005. Zipf’s law from a communicative phase transition. Eur. Phys. J. B 47 (3), 449–457.
+Ferrer-i-Cancho, R., 2017. The placement of the head that maximizes predictability. An information theoretic approach.
+Glottometrics 39, 38–71.
+Ferrer-i-Cancho, R., Vitevitch, M.S., 2018. The origins of Zipf’s meaning-frequency law. J. Assoc. Inf. Sci. Technol. 69 (11), 1369–
+1379.
+Fiegna, F., Velicer, G.J., 2003. Competitive fates of bacterial social parasites: Persistence and self–induced extinction of
+myxococcus xanthus cheaters. Proc. R. Soc. Lond. B 270 (1523), 1527–1534.
+Frank, S.L., Bod, R., Christiansen, M.H., 2012. How hierarchical is language use? Proc. R. Soc. B 279 (1747), 4522–4531.
+Franke, M., 2016. The evolution of compositionality in signaling games. J. Log. Lang. Inf. 25 (3), 355–377.
+
+D. Lipowska, A. Lipowski / Lingua 272 (2022) 103331
+
+11
+
+Gao, Y., Chen, G., Chan, R.H., 2014. Naming game on networks: Let everyone be both speaker and hearer. Sci. Rep. 4, 6149.
+Garcia-Casademont, E., 2017. A case study in the emergence of recursive phrase structure. In: Bourgine, P., Collet, P., Parrend, P.
+(Eds.), First Complex Systems Digital Campus World E-Conference 2015. Springer Proceedings in Complexity. Springer, pp.
+333–336.
+Goffman, E., 1974. Frame Analysis: An Essay on the Organization of Experience. Harper & Row, New York.
+Goldberg, A.E., 1995. Constructions: A construction Grammar Approach to Argument Structure. University of Chicago Press,
+Chicago.
+Gong, T., 2009. Computational Simulation in Evolutionary Linguistics: A Study on Language Emergence. Academia Sinica, Institute
+of Linguistics, Taipei.
+Gong, T., 2011. Simulating the coevolution of compositionality and word order regularity. Interact. Stud. 12 (1), 63–106.
+Gong, T., Shuai, L., Zhang, M., 2014. Modelling language evolution: Examples and predictions. Phys. Life Rev. 11 (2), 280–302.
+Gong, T., Wang, W.S., 2005. Computational modeling on language emergence: A coevolution model of lexicon, syntax and social
+structure. Lang. Linguist. 6 (1), 1–41.
+González, M.C., Hidalgo, C.A., Barabási, A.-L., 2008. Understanding individual human mobility patterns. Nature 453 (7196), 779–
+782.
+Goodman, N.D., Frank, M.C., 2016. Pragmatic language interpretation as probabilistic inference. Trends Cogn. Sci. 20 (11), 818–
+829.
+Hurford, J.R., 1989. Biological evolution of the Saussurean sign as a component of the language acquisition device. Lingua 77 (2),
+187–222.
+Hurford, J.R., 2003. Why synonymy is rare: Fitness is in the speaker. In: Banzhaf, W., Christaller, T., Dittrich, P., Kim, J.T., Ziegler,
+J. (Eds.), Advances in Artiﬁcial Life. Proceedings of the Seventh European Conference on Artiﬁcial Life ECAL 2003. Vol. 2801 of
+Lecture Notes in Artiﬁcial Intelligence. Springer-Verlag, Berlin, Heidelberg, pp. 442–451.
+Hurford, J.R., 2012. The Origins of Grammar: Language in the Light of Evolution. Oxford University Press, Oxford.
+Hurford, J.R., 2014. Origins of Language: A Slim Guide. Oxford University Press, Oxford.
+Huttegger, S.M., Skyrms, B., Zollman, K.J., 2014. Probe and adjust in information transfer games. Erkenntnis 79 (4), 835–853.
+Jackendoff, R., 1999. Possible stages in the evolution of the language capacity. Trends Cogn. Sci. 3 (7), 272–279.
+Jackendoff, R., 2002. Foundations of Language: Brain, Meaning, Grammar, Evolution. Oxford University Press, Oxford.
+Jaeger, H., Steels, L., Baronchelli, A., Briscoe, T., Christiansen, M.H., Grifﬁths, T., Jäger, G., Kirby, S., Komarova, N.L., Richerson,
+P.J., Jochen, T., 2009. What can mathematical, computational and robotic models tell us about the origins of syntax. In:
+Bickerton, D., Szathmáry, E. (Eds.), Biological Foundations and Origin of Syntax, Strüngmann Forum Reports, Vol. 3. MIT
+Press, Cambridge, MA, pp. 385–410.
+Jørgensen, J.N., Karrebæk, M.S., Madsen, L.M., Møller, J.S., 2011. Polylanguaging in superdiversity. Diversities 13 (2), 23–37.
+URL www.unesco.org/shs/diversities/vol13/issue2/art2.
+Joseph, B.D., DeStefano, J., Jacobs, N.G., Lehiste, I. (Eds.), 2003. When Languages Collide: Perspectives on Language Conﬂict,
+Language Competition, and Language Coexistence. Ohio State University Press, Columbus.
+Ke, J., Minett, J.W., Au, C.-P., Wang, W.S.-Y., 2002. Self-organization and selection in the emergence of vocabulary. Complexity 7
+(3), 41–54.
+Kirby, S., Cornish, H., Smith, K., 2008. Cumulative cultural evolution in the laboratory: An experimental approach to the origins of
+structure in human language. Proc. Natl. Acad. Sci. USA 105 (31), 10681–10686.
+Kirby, S., Grifﬁths, T., Smith, K., 2014. Iterated learning and the evolution of language. Curr. Opin. Neurobiol. 28, 108–114.
+Kirby, S., Hurford, J.R., 2002. The Emergence of Linguistic Structure: An Overview of the Iterated Learning Model. In: Cangelosi, A.,
+Parisi, D. (Eds.), Simulating the Evolution of Language. Springer-Verlag, London, Ch. 6, pp. 121–148.
+Kirby, S., Tamariz, M., Cornish, H., Smith, K., 2015. Compression and communication in the cultural evolution of linguistic structure.
+Cognition 141, 87–102.
+Komarova, N.L., Jameson, K.A., Narens, L., 2007. Evolutionary models of color categorization based on discrimination. J. Math.
+Psychol. 51 (6), 359–382.
+Krifka, M., 2001. Compositionality. In: Wilson, R.A., Keil, F.C. (Eds.), The MIT Encyclopedia of the Cognitive Sciences. MIT Press
+Cambridge, MA, pp. 152–153.
+Laks, B., Cleuziou, S., Demoule, J.-P., Encrevé, P. (Eds.), 2008. Origin and Evolution of Languages: Approaches, Models,
+Paradigms. Equinox Publishing Limited, London.
+Lei, C., Wu, T., Wang, L., Jia, J.-Y., 2010. Fast convergence in language games induced by majority rule. Phys. A 389 (19), 4046–
+4051.
+Lenaerts, T., Jansen, B., Tuyls, K., De Vylder, B., 2005. The evolutionary language game: An orthogonal approach. J. Theor. Biol.
+235 (4), 566–582.
+Lewis, D.K., 1969. Convention: A Philosophical Study. Harvard University Press, Cambridge.
+Li, B., Chen, G., Chow, T.W., 2013. Naming game with multiple hearers. Commun. Nonlinear Sci. Numer. Simul. 18 (5), 1214–1228.
+Li, D., Fan, Z., Tang, W.K., 2017. Domain learning naming game for color categorization. PloS One 12 (11), e0188164.
+Lindsey, D.T., Brown, A.M., 2006. Universality of color names. Proc. Natl. Acad. Sci. USA 103 (44), 16608–16613.
+Lipowska, D., 2016. Komputerowe modelowanie ewolucji jez zyka (Computational Modelling of Language Evolution). Wydawnictwo
+Naukowe UAM, Poznań.
+Lipowska, D., Lipowski, A., 2012. Naming game on adaptive weighted networks. Artif. Life 18, 311–323.
+
+12
+
+D. Lipowska, A. Lipowski / Lingua 272 (2022) 103331
+
+Lipowska, D., Lipowski, A., 2014. Phase transition and fast agreement in the Naming Game with preference for multi-word agents.
+J. Stat. Mech.: Theory Exp. 2014 (8), P08001.
+Lipowska, D., Lipowski, A., 2017. Language competition in a population of migrating agents. Phys. Rev. E 95 (5), 052308.
+Lipowska, D., Lipowski, A., 2018. Emergence of linguistic conventions in multi-agent reinforcement learning. PLoS One 13 (11),
+e0208095.
+Lipowska, D., Lipowski, A., 2021. Evolution towards linguistic coherence in naming game with migrating agents. Entropy 23 (3),
+299.
+Lipowski, A., Lipowska, D., 2008. Bio-linguistic transition and Baldwin effect in an evolutionary naming-game model. Int. J. Mod.
+Phys. C 19 (3), 399–407.
+Lipowski, A., Lipowska, D., 2009. Language structure in the n-object naming game. Phys. Rev. E 80 (5), 056107.
+Lipowski, A., Lipowska, D., Ferreira, A.L., 2017. Agreement dynamics on directed random graphs. J. Stat. Mech.: Theory Exp. 2017
+(6), 063408.
+Liu, R.-R., Jia, C.-X., Yang, H.-X., Wang, B.-H., 2009. Naming game on small-world networks with geographical effects. Phys. A 388
+(17), 3615–3620.
+Loreto, V., Baronchelli, A., Mukherjee, A., Puglisi, A., Tria, F., 2011. Statistical physics of language dynamics. J. Stat. Mech.: Theory
+Exp. 2011 (04), P04006.
+Loreto, V., Mukherjee, A., Tria, F., 2012. On the origin of the hierarchy of color names. Proc. Natl. Acad. Sci. USA 109 (18), 6819–
+6824.
+Lorkiewicz, W., Katarzyniak, R., 2014. Multi-participant interaction in multi-agent naming game. CMST 20 (2), 59–80.
+Lou, Y., Chen, G., Hu, J., 2018. Communicating with sentences: A multi-word naming game model. Phys. A 490, 857–868.
+Lu, Q., Korniss, G., Szymanski, B.K., 2006. Naming games in spatially-embedded random networks. In: Trajkovski, G., Collins, S.
+(Eds.), Interaction and Emergent Phenomena in Societies of Agents. Proceedings of the AAAI Fall 2006 Symposium. AAAI
+Press, Menlo Park, CA, pp. 148–155.
+Lu, Q., Korniss, G., Szymanski, B.K., 2008. Naming games in two-dimensional and small-world-connected random geometric
+networks. Phys. Rev. E 77 (1), 016111.
+Lu, Q., Korniss, G., Szymanski, B.K., 2009. The naming game in social networks: community formation and consensus engineering.
+J. Econ. Interact. Coord. 4 (2), 221–235.
+Lyon, C., Nehaniv, C.L., Cangelosi, A. (Eds.), 2007. Emergence of Communication and Language. Springer-Verlag, London.
+Lyons, J., 1981. Language, Meaning and Context. Fontana, London.
+Maity, S.K., Mukherjee, A., Tria, F., Loreto, V., 2013. Emergence of fast agreement in an overhearing population: The case of the
+naming game. EPL 101 (6), 68004.
+Marchetti, G., Patriarca, M., Heinsalu, E., 2020. A bird’s-eye view of naming game dynamics: From trait competition to Bayesian
+inference. Chaos 30 (6), 063119.
+Mordatch, I., Abbeel, P., 2018. Emergence of grounded compositional language in multi-agent populations. In: The Thirty-Second
+AAAI Conference on Artiﬁcial Intelligence (AAAI-18). Association for the Advancement of Artiﬁcial Intelligence, pp. 1495–1502.
+https://aaai.org/ocs/index.php/AAAI/AAAI18/paper/view/17007.
+Mühlenbernd, R., 2011. Learning with neighbours. Emergence of convention in a society of learning agents. Synthese 183 (1), 87–
+109.
+Mühlenbernd, R., 2014. Structure and variation of signaling conventions in scale-free networks. In: Herzig, A., Lorini, E. (Eds.),
+Proceedings of the European Conference on Social Intelligence (ECSI-2014), Barcelona, Spain, November 3–5, 2014. CEURWS.org, pp. 347–358.
+Mühlenbernd, R., 2021. Evolutionary stability of ambiguity in context signaling games. Synthese 198, 11725–11753.
+Mühlenbernd, R., Franke, M., 2012a. Signaling conventions: Who learns what where and when in a social network? In: Cartmill, E.,
+Scott-Phillips, T., Tamariz, M., Hurford, J. (Eds.), The Evolution of Language. Proceedings of the 9th International Conference
+on the Evolution of Language (EVOLANG9). World Scientiﬁc, pp. 242–249.
+Mühlenbernd, R., Franke, M., 2012b. Simulating the emergence of conventions in small-world networks. In: Proceedings of the 21st
+International Conference on Behavior Representation in Modeling & Simulation (BRIMS 2012). pp. 37–42.
+Mühlenbernd, R., Nick, J.D., 2014. Language change and the force of innovation. In: Colinet, M., Katrenko, S., Rendsvig, R.K.
+(Eds.), Pristine Perspectives on Logic, Language, and Computation, Lecture Notes in Computer Science, vol. 8607. Springer,
+Berlin, Heidelberg, pp. 194–213.
+Munroe, S., Cangelosi, A., 2002. Learning and the evolution of language: The role of cultural variation and learning costs in the
+Baldwin effect. Artif. Life 8 (4), 311–339.
+Nolﬁ, S., Mirolli, M. (Eds.), 2010. Evolution of Communication and Language in Embodied Agents. Springer-Verlag, Berlin,
+Heidelberg.
+Nowak, M.A., Krakauer, D., 1999. The evolution of language. Proc. Natl. Acad. Sci. USA 96 (14), 8028–8033.
+Nowak, M.A., Plotkin, J.B., Jansen, V.A.A., 2000. The evolution of syntactic communication. Nature 404 (6777), 495–498.
+O’Connor, C., 2015. Ambiguity is kinda good sometimes. Philos. Sci. 82 (1), 110–121.
+Oliphant, M., 1996. The dilemma of Saussurean communication. BioSystems 37 (1–2), 31–38.
+Orton, H., Dieth, E., 1962. Survey of English Dialects. E.J. Arnold & Son, Leeds.
+Oudeyer, P.-Y., 2006. Self-Organization in the Evolution of Speech. Oxford University Press, Oxford.
+Pastor-Satorras, R., Vespignani, A., 2001. Epidemic spreading in scale-free networks. Phys. Rev. Lett. 86 (14), 3200–3203.
+
+D. Lipowska, A. Lipowski / Lingua 272 (2022) 103331
+
+13
+
+Patriarca, M., Heinsalu, E., Léonard, J.L., 2020a. Languages in Space and Time: Models and Methods from Complex Systems
+Theory. Vol. 4 of Physics of Society: Econophysics and Sociophysics. Cambridge University Press, Cambridge, Ch. 7:
+Language Competition Models, pp. 128–176.
+Patriarca, M., Marchetti, G., Heinsalu, E., 2020b. A Bayesian approach to the naming game model. Front. Phys. 8, 10.
+Pinker, S., Bloom, P., 1990. Natural language and natural selection. Behav. Brain Sci. 13 (4), 707–727.
+Progovac, L., 2015. Evolutionary Syntax. Oxford University Press, Oxford.
+Puglisi, A., Baronchelli, A., Loreto, V., 2008. Cultural route to the emergence of linguistic categories. Proc. Natl. Acad. Sci. USA 105
+(23), 7936–7940.
+Reboul, A., 2017. Cognition and Communication in the Evolution of Language. Oxford University Press, Oxford.
+Santana, C., 2014. Ambiguity in cooperative signaling. Philos. Sci. 81 (3), 398–422.
+Saunders, B.A., van Brakel, J., 1997. Are there nontrivial constraints on colour categorization? Behav. Brain Sci. 20 (2), 167–179.
+Scott-Phillips, T., 2015. Speaking Our Minds: Why Human Communication is Different, and how Language Evolved to Make it
+Special. Palgrave MacMillan, London.
+Semple, S., Ferrer-i-Cancho, R., Gustison, M.L., 2022. Linguistic laws in biology. Trends Ecol. Evol. 37 (1), 53–66.
+Skyrms, B., 2002. Signals, evolution and the explanatory power of transient information. Philos. Sci. 69 (3), 407–428.
+Skyrms, B., 2010. Signals: Evolution, Learning, and Information. Oxford University Press, Oxford, UK.
+Smith, A.D.M., 2014. Models of language evolution and change. WIREs Cogn. Sci. 5 (3), 281–293.
+Smith, K., 2002. The cultural evolution of communication in a population of neural networks. Connect. Sci. 14 (1), 65–84.
+Smith, K., 2006. The Evolution of Language. In: Cangelosi, A., Smith, A.D.M., Smith, K. (Eds.), The Evolution of Language.
+Proceedings of the 6th International Conference (EVOLANG6), Rome, Italy, 12-15 April 2006. World Scientiﬁc, pp. 315–322.
+Smith, K., Kirby, S., Brighton, H., 2003. Iterated learning: A framework for the emergence of language. Artif. Life 9 (4), 371–386.
+Spike, M., Stadler, K., Kirby, S., Smith, K., 2017. Minimal requirements for the emergence of learned signaling. Cognitive Sci. 41 (3),
+623–658.
+Stadler, K., Wellens, P., De Beule, J., 2012. The combinatorial naming game. In: De Baets, B., Manderick, B., Rademaker, M.,
+Waegeman, W. (Eds.), Proceedings of the 21st Belgian-Dutch Conference on Machine Learning (BeneLearn 2012). Vol. 3.
+Benelearn 2012 Organization Committee, Ghent, Belgium, pp. 9–14. http://hdl.handle.net/1854/LU-8513870.
+Steels, L., 1995. A self-organizing spatial vocabulary. Artif. Life 2 (3), 319–332.
+Steels, L., 2000. Language as a complex adaptive system. In: Schoenauer, M., Deb, K., Rudolph, G., Yao, X., Lutton, E., Merelo, J.,
+Schwefel, H.P. (Eds.), Proceedings of the 6th International Conference on Parallel Problem Solving from Nature. Vol. 1917 of
+Lecture Notes in Computer Science. Springer-Verlag, Berlin Heidelberg, pp. 17–26.
+Steels, L., 2005. The emergence and evolution of linguistic structure: From lexical to grammatical communication systems.
+Connect. Sci. 17 (3–4), 213–230.
+Steels, L., 2011. Modeling the cultural evolution of language. Phys. Life Rev. 8 (4), 339–356.
+Steels, L. (Ed.), 2012. Experiments in Cultural Language Evolution. Vol. 3 of Advances in Interaction Studies. John Benjamins,
+Amsterdam.
+Steels, L., 2015. The Talking Heads Experiment: Origins of Words and Meanings. Vol. 1 of Computational Models of Language
+Evolution. Language Science Press, Berlin.
+Steels, L., 2016. Agent-based models for the emergence and evolution of grammar. Phil. Trans. R. Soc. B 371 (1701), 20150447.
+Steels, L., Loetzsch, M., 2012. The grounded naming game. In: Steels, L. (Ed.), Experiments in Cultural Language Evolution,
+Advances in Interaction Studies, vol. 3. John Benjamins, Amsterdam, pp. 41–59.
+Steels, L., McIntyre, A., 1998. Spatially distributed naming games. Adv. Complex Syst. 1 (04), 301–323.
+Steels, L., Szathmáry, E., 2018. The evolutionary dynamics of language. BioSystems 164, 128–137.
+Steinert-Threlkeld, S., 2016. Compositional signaling in a complex world. J. Log. Lang. Inf. 25 (3), 379–397.
+Steinert-Threlkeld, S., 2020. Toward the emergence of nontrivial compositionality. Philos. Sci. 87 (5), 897–909.
+Tria, F., Galantucci, B., Loreto, V., 2012. Naming a structured world: A cultural route to duality of patterning. PLoS One 7 (6),
+e37744.
+Trudgill, P., 2000. Sociolinguistics: An Introduction to Language and Society. Penguin Books, London.
+Urbina, F., Vera, J., 2019. A decentralized route to the origins of scaling in human language. J. Stat. Mech.: Theory Exp. 2019 (9),
+093401.
+Van Eecke, P., Beuls, K., 2020. Re-conceptualising the language game paradigm in the framework of multi-agent reinforcement
+learning.
+Vera, J., Urbina, F., Palma, W., 2021. Formation of vocabularies in a decentralized graph-based approach to human language.
+Phys. Rev. E 103, 022129.
+Vogt, P., 2005. The emergence of compositional structures in perceptually grounded language games. Artif. Intell. 167 (1–2), 206–
+242.
+Wagner, E., 2009. Communication and structured correlation. Erkenntnis 71 (3), 377–393.
+Wang, W.X., Lin, B.Y., Tang, C.L., Chen, G.R., 2007. Agreement dynamics of ﬁnite-memory language games on networks. Eur.
+Phys. J. B 60 (4), 529–536.
+Wellens, P., Loetzsch, M., 2012. Multidimensional meanings in lexicon formation. In: Steels, L. (Ed.), Experiments in Cultural
+Language Evolution, Advances in Interaction Studies, vol. 3. John Benjamins, Amsterdam, pp. 143–166.
+Williams, C.H. (Ed.), 1988. Language in Geographic Context. Multilingual Matters, Clevedon, Avon & Philadelphia, PA.
+
+14
+
+D. Lipowska, A. Lipowski / Lingua 272 (2022) 103331
+
+Wittgenstein, L., 2009. Philosophical Investigations. Wiley-Blackwell, rev. 4th ed.
+Wray, A., 1998. Protolanguage as a holistic system for social interaction. Lang. Commun. 18 (1), 47–67.
+Wray, A., 2000. Holistic utterances in protolanguage: the link from primates to humans. In: Knight, C., Studdert-Kennedy, M.,
+Hurford, J.R. (Eds.), The Evolutionary Emergence of Language: Social Function and the Origins of Linguistic Form. Cambridge
+University Press, Cambridge, pp. 285–302.
+Wray, A., Perkins, M.R., 2000. The functions of formulaic language: An integrated model. Lang. Commun. 20 (1), 1–28.
+Zaslavsky, N., Kemp, C., Tishby, N., Regier, T., 2019. Color naming reﬂects both perceptual structure and communicative need.
+Top. Cogn. Sci. 11 (1), 207–219.
+Zaslavsky, N., Kemp, C., Tishby, N., Regier, T., 2020. Communicative need in colour naming. Cogn. Neuropsychol. 37 (5–6), 312–
+324.
+Zhang, W., Lim, C.C., 2010. Noise in naming games, partial synchronization and community detection in social networks.
+Zhou, J., Lou, Y., Chen, G., Tang, W.K., 2018. Multi-language naming game. Phys. A 496, 620–634.
+Zollman, K.J., 2005. Talking to neighbors: The evolution of regional meaning. Philos. Sci. 72 (1), 69–85.
+_
+Zywiczyński,
+P., 2018. Language Origins: From Mythology to Science. Peter Lang.
+Zywiczynski, P., Gontier, N., Wacewicz, S., 2017. The evolution of (proto-)language: Focus on mechanisms. Lang. Sci. 63, 1–11.
+
+
